@@ -5,6 +5,8 @@ const D = DATA;
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// phones and tablets: nothing can hover, so the page says "tap" and every hover has a tap to match
+const HOVERLESS = window.matchMedia('(hover: none)').matches;
 const MINUS = '−';
 const tok = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const isDark = () => {
@@ -94,18 +96,37 @@ function makeLayouts(N, B, perm) {
 const LAYOUT_NAMES = { raster: 'raster order', morton: 'Morton order', blocks: 'block-contiguous order', repack: 'repacked: whole z-groups moved' };
 
 // ====================================================================== tooltip
+// A mouse or pen reads a mark by hovering it. A finger cannot hover, so a tap opens the tip instead:
+// it sits above the finger, where the finger does not cover it, and stays up until the next touch or
+// scroll. `tipOff` undoes whatever marked the tapped item (an outline) once the tip goes away.
 const tip = $('#tip');
-function showTip(html, ev) {
+let lastPointer = 'mouse', tapped = false, tipOff = null;
+const byFinger = (ev) => (ev.pointerType || lastPointer) !== 'mouse';   // touch or pen
+function showTip(html, ev, above) {
   tip.innerHTML = html;
   tip.classList.add('on');
-  const r = tip.getBoundingClientRect();
+  tip.style.left = '0px'; tip.style.top = '0px';           // measure at full width, not squeezed by an edge
+  const r = tip.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
   let x = ev.clientX + 14, y = ev.clientY + 14;
-  if (x + r.width > window.innerWidth - 8) x = ev.clientX - r.width - 14;
-  if (y + r.height > window.innerHeight - 8) y = ev.clientY - r.height - 14;
-  tip.style.left = Math.max(8, x) + 'px';
+  if (above) {
+    x = ev.clientX - r.width / 2; y = ev.clientY - r.height - 24;
+    if (y < 8) y = ev.clientY + 30;
+  } else {
+    if (x + r.width > vw - 8) x = ev.clientX - r.width - 14;
+    if (y + r.height > vh - 8) y = ev.clientY - r.height - 14;
+  }
+  tip.style.left = Math.max(8, Math.min(x, vw - r.width - 8)) + 'px';
   tip.style.top = Math.max(8, y) + 'px';
 }
-const hideTip = () => tip.classList.remove('on');
+function hideTip() {
+  tip.classList.remove('on');
+  tapped = false;
+  if (tipOff) { const f = tipOff; tipOff = null; f(); }
+}
+function tapTip(html, ev, off) { hideTip(); showTip(html, ev, true); tapped = true; tipOff = off || null; }
+document.addEventListener('pointerdown', (ev) => { lastPointer = ev.pointerType; if (tapped) hideTip(); }, { capture: true, passive: true });
+window.addEventListener('scroll', () => { if (tapped) hideTip(); }, { passive: true });
+document.addEventListener('touchstart', () => {}, { passive: true });   // iOS shows :active only with a touch listener
 
 // ====================================================================== canvas helper
 function fitCanvas(canvas, cssW, cssH) {
@@ -429,13 +450,14 @@ function initLab() {
   }
   const tipFor = (v) => `token at (z, y, x) = ${fmtC(v)}<br>memory position ${L[st.layout][v]} (${LAYOUT_NAMES[st.layout]})`;
   [[slicesC, hitSlice], [ribbonC, hitRibbon]].forEach(([el, hit]) => {
-    el.addEventListener('pointermove', (ev) => { const v = hit(ev); if (v !== st.hover) { st.hover = v; drawSlices(); drawRibbon(); } if (v >= 0) showTip(tipFor(v), ev); else hideTip(); });
-    el.addEventListener('pointerleave', () => { st.hover = -1; hideTip(); drawSlices(); drawRibbon(); });
-    el.addEventListener('click', (ev) => { const v = hit(ev); if (v >= 0) { st.q = v; draw(); } });
+    el.addEventListener('pointermove', (ev) => { if (ev.pointerType === 'touch') return; const v = hit(ev); if (v !== st.hover) { st.hover = v; drawSlices(); drawRibbon(); } if (v >= 0) showTip(tipFor(v), ev); else hideTip(); });
+    el.addEventListener('pointerleave', (ev) => { if (ev.pointerType === 'touch') return; st.hover = -1; hideTip(); drawSlices(); drawRibbon(); });
+    // a click or a tap makes the token the query; a finger cannot hover, so a tap also names the token
+    el.addEventListener('click', (ev) => { const v = hit(ev); if (v < 0) return; st.q = v; draw(); if (byFinger(ev)) tapTip(tipFor(v), ev); });
   });
   // keyboard: arrows move the query along x and y, Page Up and Page Down along z
   slicesC.tabIndex = 0;
-  slicesC.setAttribute('aria-label', 'The token field as eight z-slices. Click a token, or use the arrow keys and Page Up or Page Down, to move the query.');
+  slicesC.setAttribute('aria-label', `The token field as eight z-slices. ${HOVERLESS ? 'Tap' : 'Click'} a token, or use the arrow keys and Page Up or Page Down, to move the query.`);
   slicesC.addEventListener('keydown', (ev) => {
     const d = { ArrowLeft: [0, 0, -1], ArrowRight: [0, 0, 1], ArrowUp: [0, -1, 0], ArrowDown: [0, 1, 0], PageUp: [1, 0, 0], PageDown: [-1, 0, 0] }[ev.key];
     if (!d) return;
@@ -472,6 +494,8 @@ function initRope() {
   const tokens = svg.append('g');
   const mk = (cls, fill, lab) => {
     const t = tokens.append('g').attr('class', cls).style('cursor', 'grab');
+    // an undrawn margin: a fingertip is wider than the token, so it may grab a little outside it
+    t.append('rect').attr('x', -6).attr('y', -6).attr('width', cell + 12).attr('height', cell + 12).style('fill', 'transparent');
     t.append('rect').attr('width', cell - 6).attr('height', cell - 6).attr('x', 3).attr('y', 3).attr('rx', 6).style('fill', fill).style('stroke', 'var(--ink)').style('stroke-width', 1.5);
     t.append('text').attr('x', cell / 2).attr('y', cell / 2 + 5).attr('text-anchor', 'middle').style('font-style', 'italic').style('font-weight', 700).style('fill', '#111').style('font-size', '15px').text(lab);
     return t;
@@ -540,8 +564,9 @@ function initRope() {
   function dragger(sel, key) {
     sel.call(d3.drag().on('start', function () { d3.select(this).style('cursor', 'grabbing'); })
       .on('drag', (ev) => {
-        const [mx, my] = d3.pointer(ev, svg.node());
-        const p = [clamp(Math.floor(my / cell), 0, G - 1), clamp(Math.floor(mx / cell), 0, G - 1)];
+        // the drag event's own x and y, in the grid's units; d3.pointer(ev) would read clientX from
+        // the source event, which a touch event does not have, so a finger could not move a token
+        const p = [clamp(Math.floor(ev.y / cell), 0, G - 1), clamp(Math.floor(ev.x / cell), 0, G - 1)];
         const other = key === 'q' ? st.k : st.q;
         if (p[0] === other[0] && p[1] === other[1]) return;
         if (p[0] !== st[key][0] || p[1] !== st[key][1]) { st[key] = p; update(); }
@@ -670,7 +695,7 @@ function initPool() {
 function initTour() {
   const FW = 3016.58, FH = 1080;
   const stops = [
-    { t: 'The whole operator', d: 'PACK3D separates memory layout from attention geometry. Step through the panels, or click any part of the figure to zoom in.', r: [0, 0, FW, FH] },
+    { t: 'The whole operator', d: `PACK3D separates memory layout from attention geometry. Step through the panels, or ${HOVERLESS ? 'tap' : 'click'} any part of the figure to zoom in.`, r: [0, 0, FW, FH] },
     { t: '1 · A 3D token field', d: 'Queries, keys and values sit on a 3D token grid, so every token has a place in the sample.', r: [16, 16, 572, 580] },
     { t: '2 · Pack for memory (layout only)', d: 'The field may be packed in any memory order for efficient execution, such as a block-Morton or block-contiguous layout. Each token’s grid coordinate travels with it.', r: [16, 592, 572, 456] },
     { t: '3 · Physical 3D coordinates', d: 'Each token carries integer coordinates on the token grid, c = (z, y, x). These, not memory positions, are what PACK3D’s attention reads.', r: [608, 10, 504, 484] },
@@ -780,6 +805,45 @@ function tableFrom(el, head, rows) {
   t.append('thead').append('tr').selectAll('th').data(head).join('th').text((d) => d);
   t.append('tbody').selectAll('tr').data(rows).join('tr').selectAll('td').data((r) => r).join('td').text((d) => d);
 }
+// A mark that explains itself, used as sel.call(explain, html). A mouse or pen hovers the mark. A
+// fingertip is wider than most marks, so a tap anywhere on the chart opens the tip of the nearest mark
+// within reach and outlines that mark while its tip is up.
+function explain(sel, html) {
+  sel.classed('has-tip', true).property('__tip', html)
+    .on('pointermove', (ev) => { if (ev.pointerType !== 'touch') showTip(html, ev); })
+    .on('pointerleave', (ev) => { if (ev.pointerType !== 'touch') hideTip(); });
+  const svg = sel.node().ownerSVGElement;
+  if (svg && !svg.__taps) { svg.__taps = true; svg.addEventListener('click', tapChart); }
+}
+const REACH = 26;                                         // CSS pixels from a mark's edge
+function tapChart(ev) {
+  if (!byFinger(ev)) return;
+  let best = null, bd = REACH;
+  ev.currentTarget.querySelectorAll('.has-tip').forEach((el) => {
+    const d = reach(el, ev.clientX, ev.clientY);
+    if (d < bd) { bd = d; best = el; }
+  });
+  if (!best) return;
+  best.classList.add('is-tapped');
+  tapTip(best.__tip, ev, () => best.classList.remove('is-tapped'));
+}
+// screen distance from a point to a mark: a circle by its radius, a line by its segment, the rest by box
+function reach(el, x, y) {
+  const m = el.getScreenCTM();
+  if (!m) return Infinity;
+  const at = (u, v) => [m.a * u + m.c * v + m.e, m.b * u + m.d * v + m.f], n = (k) => +el.getAttribute(k) || 0;
+  if (el.tagName === 'circle') {
+    const [cx, cy] = at(n('cx'), n('cy'));
+    return Math.max(0, Math.hypot(x - cx, y - cy) - n('r') * Math.hypot(m.a, m.b));
+  }
+  if (el.tagName === 'line') {
+    const [x1, y1] = at(n('x1'), n('y1')), [x2, y2] = at(n('x2'), n('y2')), dx = x2 - x1, dy = y2 - y1, L = dx * dx + dy * dy;
+    const t = L ? clamp(((x - x1) * dx + (y - y1) * dy) / L, 0, 1) : 0;
+    return Math.hypot(x - x1 - t * dx, y - y1 - t * dy);
+  }
+  const r = el.getBoundingClientRect();
+  return Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom));
+}
 const redrawers = [];
 function onResize(fn) { redrawers.push(fn); }
 let rzT = 0;
@@ -823,7 +887,7 @@ function initSlope() {
         const b = S.s1[i], p = seg(a, b);
         gS.append('line').attr('x1', p[0]).attr('y1', p[1]).attr('x2', p[2]).attr('y2', p[3]).style('stroke', S.tint).style('stroke-width', 1.4);
         gS.append('line').attr('x1', p[0]).attr('y1', p[1]).attr('x2', p[2]).attr('y2', p[3]).style('stroke', 'transparent').style('stroke-width', 10)
-          .on('pointermove', (ev) => showTip(`<b>${S.name}</b>, seed ${R.seeds[i]}<br>${a.toFixed(4)} → ${b.toFixed(4)} (${sgn(b - a, 4)})`, ev)).on('pointerleave', hideTip);
+          .call(explain, `<b>${S.name}</b>, seed ${R.seeds[i]}<br>${a.toFixed(4)} → ${b.toFixed(4)} (${sgn(b - a, 4)})`);
       });
       const a = mean(S.s0), b = mean(S.s1), p = seg(a, b);
       gS.append('line').attr('x1', p[0]).attr('y1', p[1]).attr('x2', p[2]).attr('y2', p[3]).style('stroke', S.col).style('stroke-width', 4).style('stroke-linecap', 'round');
@@ -894,7 +958,7 @@ function initNamed() {
       svg.append('text').attr('x', m.l - 12).attr('y', yy + 13).attr('text-anchor', 'end').attr('class', 'lab-ink').text(name);
       const bw = Math.max(1.5, x(0) - x(v));
       svg.append('rect').attr('x', x(0) - bw).attr('y', yy).attr('width', bw).attr('height', 18).attr('rx', 3).style('fill', col)
-        .on('pointermove', (ev) => showTip(`<b>${name}</b>, named switch<br>${a.toFixed(4)} → ${b.toFixed(4)}`, ev)).on('pointerleave', hideTip);
+        .call(explain, `<b>${name}</b>, named switch<br>${a.toFixed(4)} → ${b.toFixed(4)}`);
       svg.append('text').attr('x', x(0) + 8).attr('y', yy + 13).attr('class', 'lab-strong num').text(fix(v, 4));
     });
   }
@@ -931,7 +995,7 @@ function initMSD() {
         svg.append('text').attr('x', 8).attr('y', yy + 4).attr('class', 'lab-ink').style('font-size', '13px').text(name);
         vals.forEach((v, i) => {
           svg.append('circle').attr('cx', x(v)).attr('cy', yy).attr('r', 5.5).style('fill', col).style('stroke', 'var(--surface)').style('stroke-width', 1.5)
-            .on('pointermove', (ev) => showTip(`<b>${name}</b> · ${title.split(' · ')[0]}<br>seed ${i + 1}: ${v < 0.01 ? v.toFixed(4) : v.toFixed(3)}% of positions changed`, ev)).on('pointerleave', hideTip);
+            .call(explain, `<b>${name}</b> · ${title.split(' · ')[0]}<br>seed ${i + 1}: ${v < 0.01 ? v.toFixed(4) : v.toFixed(3)}% of positions changed`);
         });
         const mv = mean(vals);
         svg.append('line').attr('x1', x(mv)).attr('x2', x(mv)).attr('y1', yy - 10).attr('y2', yy + 10).style('stroke', 'var(--ink)').style('stroke-width', 2);
@@ -959,7 +1023,7 @@ function initBranch() {
       const by = narrow ? yy + 10 : yy;
       const bw = Math.max(1.5, Math.abs(x(v) - x(0)));
       svgI.append('rect').attr('x', v < 0 ? z0 - bw : z0).attr('y', by).attr('width', bw).attr('height', 18).attr('rx', 3).style('fill', 'var(--tint-teal)').style('stroke', 'var(--teal)').style('stroke-width', 1)
-        .on('pointermove', (ev) => showTip(`<b>${IV[k]}</b><br>Dice change ${sgn(v, 4)}, mean of 3 seeds`, ev)).on('pointerleave', hideTip);
+        .call(explain, `<b>${IV[k]}</b><br>Dice change ${sgn(v, 4)}, mean of 3 seeds`);
       svgI.append('text').attr('x', z0 + 8).attr('y', by + 13).attr('class', 'lab-strong num').text(sgn(v, 4));
     });
     svgI.append('line').attr('x1', z0).attr('x2', z0).attr('y1', 14).attr('y2', H - 8).style('stroke', 'var(--ink)').style('stroke-width', 1.5);
@@ -986,7 +1050,7 @@ function initBranch() {
       const by = narrow ? yy + 18 : yy + 2;
       svgP.append('rect').attr('x', x0).attr('y', by).attr('width', x1 - x0).attr('height', 14).attr('rx', 3).style('fill', 'var(--track)');
       if (v > 0) svgP.append('rect').attr('x', x0).attr('y', by).attr('width', x(v) - x0).attr('height', 14).attr('rx', 3).style('fill', col)
-        .on('pointermove', (ev) => showTip(`<b>${name}</b><br>accuracy ${v.toFixed(4)}, mean of 6 seeds`, ev)).on('pointerleave', hideTip);
+        .call(explain, `<b>${name}</b><br>accuracy ${v.toFixed(4)}, mean of 6 seeds`);
       svgP.append('text').attr('x', x1 + 8).attr('y', by + 11).attr('class', 'lab-strong num').text(v.toFixed(4));
       if (firstBar === null) firstBar = by; lastBar = by + 14; barYs.push(by);
       yy += rowH;
@@ -1018,7 +1082,7 @@ function initUnet() {
       svg.append('line').attr('x1', x(U.unet[i])).attr('x2', x(U.pack[i])).attr('y1', yy).attr('y2', yy).style('stroke', 'var(--rule)').style('stroke-width', 3);
       const tipH = `<b>seed ${s}</b><br>PACK3D ${U.pack[i].toFixed(4)} · U-Net ${U.unet[i].toFixed(4)}<br>difference ${sgn(U.pack[i] - U.unet[i], 4)}`;
       [[U.unet[i], 'var(--warm)'], [U.pack[i], 'var(--teal)']].forEach(([v, c]) => svg.append('circle').attr('cx', x(v)).attr('cy', yy).attr('r', 6.5).style('fill', c).style('stroke', 'var(--surface)').style('stroke-width', 1.5)
-        .on('pointermove', (ev) => showTip(tipH, ev)).on('pointerleave', hideTip));
+        .call(explain, tipH));
     });
   }
   const svgS = d3.select('#structs');
@@ -1043,7 +1107,7 @@ function initUnet() {
       const dy = [0, -12, 12, -24, 24].find((o) => placed.every(([px, py]) => Math.hypot(px - cx, py - o) >= 12)) ?? 0;
       placed.push([cx, dy]);
       svgS.append('circle').attr('cx', cx).attr('cy', base + dy).attr('r', 5.5).style('fill', r.d > 0 ? 'var(--teal)' : 'var(--warm)').style('stroke', 'var(--surface)').style('stroke-width', 1.5)
-        .on('pointermove', (ev) => showTip(`<b>${r.name}</b>${r.holm ? ' *' : ''}<br>mean difference ${sgn(r.d, 4)}${r.holm ? '<br>survives Holm correction' : ''}`, ev)).on('pointerleave', hideTip);
+        .call(explain, `<b>${r.name}</b>${r.holm ? ' *' : ''}<br>mean difference ${sgn(r.d, 4)}${r.holm ? '<br>survives Holm correction' : ''}`);
       if (['CETN2', 'NUP153', 'ATP2A2', 'SEC61B'].includes(r.name)) {
         // labels lean away from their neighbors: NUP153 and ATP2A2 to the left, SEC61B to the right
         const lift = r.name === 'SEC61B' ? 38 : 22;
@@ -1085,7 +1149,7 @@ function initSystems() {
     kinds.forEach(([k, name, col]) => {
       svg.append('path').datum(S).attr('d', d3.line().x((d) => x(d.n)).y((d) => y(d[k]))).style('fill', 'none').style('stroke', col).style('stroke-width', 2.6);
       S.forEach((d) => svg.append('circle').attr('cx', x(d.n)).attr('cy', y(d[k])).attr('r', d === r ? 6 : 3.5).style('fill', col).style('stroke', 'var(--surface)').style('stroke-width', 1.5)
-        .on('pointermove', (ev) => showTip(`<b>${name}</b> · ${lab[d.n]} tokens<br>${ms(k, d[k])} ms forward + backward`, ev)).on('pointerleave', hideTip));
+        .call(explain, `<b>${name}</b> · ${lab[d.n]} tokens<br>${ms(k, d[k])} ms forward + backward`));
       const last = S[S.length - 1];
       const dy = k === 'pack' ? -7 : k === 'window' ? 12 : 4;
       svg.append('text').attr('x', x(last.n) + 12).attr('y', y(last[k]) + dy).attr('class', 'lab-ink').style('font-size', '13px').text(name);
@@ -1136,7 +1200,7 @@ function initEnd() {
   const rampF = ramp(['#3B2D8F', '#6047BC', '#8D6DD8', '#C0ACF0', '#F5F1FD']);
   const BLACK = lab('#000000'), WHITE = lab('#FFFFFF'), EDGE = '#060A09', MINT = '#5FE0C3';
   // on touch screens there is no pointer to hover and usually no arrow keys: say "tap"
-  if (window.matchMedia('(hover: none)').matches) $('#endRead').textContent = 'Tap a cube to read its two indices.';
+  if (HOVERLESS) $('#endRead').textContent = 'Tap a cube, or slide a finger across the word, to read its two indices.';
   const HINT = $('#endRead').textContent;
   let T = [], n = 0, X = 0, Z = 0, two = null, cur = 'raster';
   let mem = null, order = null, shades = null, ribCol = null, farFirst = null, mirFirst = null;
@@ -1384,7 +1448,7 @@ function initEnd() {
   const again = $('#endAgain');
   if (RM) again.hidden = true; else again.addEventListener('click', build);
 
-  // pointing: the mouse shows a tip; a tap (touch or pen) picks the cube
+  // pointing: the mouse shows a tip; a finger or pen taps a cube to pick it, or a finger slides across
   const unTip = () => { hideTip(); tip.classList.remove('on-dark'); };
   const tipFor = (j, ev) => { const t = T[j]; showTip(`<b>i = ${mem[j]}</b> · c = (${t.z}, ${t.y}, ${t.x})`, ev); tip.classList.add('on-dark'); };
   function hit(px, py) {
@@ -1420,12 +1484,14 @@ function initEnd() {
   canvas.addEventListener('pointerleave', leave);
   rib.addEventListener('pointerleave', leave);
   const pick = (i) => { selI = i; readout(i, true); render(); };
-  canvas.addEventListener('pointerdown', (ev) => { if (ctx && ev.pointerType !== 'mouse') { const [x, y] = local(canvas, ev), j = hit(x, y); pick(j >= 0 ? mem[j] : -1); } });
-  rib.addEventListener('pointerdown', (ev) => {
-    if (!ctx || ev.pointerType === 'mouse') return;
-    const [x, , w] = local(rib, ev), i = clamp(Math.floor((x / w) * n), 0, n - 1);
-    pick(land(i, NPnow()) >= 1 ? i : -1);
-  });
+  const onWord = (ev) => { const [x, y] = local(canvas, ev), j = hit(x, y); return j >= 0 ? mem[j] : -1; };
+  const onRibbon = (ev) => { const [x, , w] = local(rib, ev), i = clamp(Math.floor((x / w) * n), 0, n - 1); return land(i, NPnow()) >= 1 ? i : -1; };
+  // a tap picks on click, not on pointerdown, so a scroll that starts on the word picks nothing
+  canvas.addEventListener('click', (ev) => { if (ctx && byFinger(ev)) pick(onWord(ev)); });
+  rib.addEventListener('click', (ev) => { if (ctx && byFinger(ev)) pick(onRibbon(ev)); });
+  // a finger sliding sideways walks the word or the memory; both leave vertical drags to the page (pan-y)
+  canvas.addEventListener('pointermove', (ev) => { if (ctx && ev.pointerType === 'touch') { const i = onWord(ev); if (i >= 0 && i !== selI) pick(i); } });
+  rib.addEventListener('pointermove', (ev) => { if (ctx && ev.pointerType === 'touch') { const i = onRibbon(ev); if (i >= 0 && i !== selI) pick(i); } });
   // the keyboard walks the memory: arrows step one position, Home and End jump to either end
   canvas.addEventListener('keydown', (ev) => {
     if (!ctx) return;

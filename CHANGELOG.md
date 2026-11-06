@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- The website works with touch on phones and tablets. The query and key tokens in the rotary-dials
+  demo can be dragged with a finger, every chart opens its tooltip on a tap (the nearest mark within
+  reach, outlined while its tip is up), a tap on the token field names the token, the closing word
+  can be tapped or scrubbed with a finger, and hover styles no longer stick after a tap.
+
 ## [0.1.0] - 2026-11-06
 
 First public release, accompanying the NeurIPS 2026 paper

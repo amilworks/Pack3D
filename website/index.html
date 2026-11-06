@@ -154,7 +154,7 @@ body::before {
   z-index: 30; background: var(--bg);
 }
 a { color: inherit; text-decoration-color: var(--teal); text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
-a:hover { text-decoration-thickness: 2.5px; }
+@media (hover: hover) { a:hover { text-decoration-thickness: 2.5px; } }
 :focus-visible { outline: 2.5px solid var(--teal); outline-offset: 3px; border-radius: 4px; }
 ::selection { background: var(--tint-teal); }
 
@@ -234,7 +234,7 @@ em { font-style: italic; }
   font-size: 0.82rem; color: var(--ink-2); text-decoration: none; white-space: nowrap;
   padding: 6px 10px; border-radius: 999px;
 }
-.chapters a:hover { color: var(--ink); background: var(--surface); }
+@media (hover: hover) { .chapters a:hover { color: var(--ink); background: var(--surface); } }
 .chapters a.on { color: var(--ink); background: var(--surface); box-shadow: inset 0 0 0 1px var(--rule); }
 .topbar .btn { padding: 7px 14px; font-size: 0.84rem; }
 .top-links { display: flex; gap: 8px; flex: none; }
@@ -253,17 +253,17 @@ em { font-style: italic; }
   font: 600 0.95rem/1 var(--font-body); padding: 12px 18px; border-radius: 999px; cursor: pointer;
   text-decoration: none; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
 }
-.btn:hover { background: color-mix(in oklab, var(--ink) 86%, var(--teal)); }
+@media (hover: hover) { .btn:hover { background: color-mix(in oklab, var(--ink) 86%, var(--teal)); } }
 .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
-.btn.ghost:hover { border-color: var(--ink); background: var(--surface); }
+@media (hover: hover) { .btn.ghost:hover { border-color: var(--ink); background: var(--surface); } }
 .btn.teal { background: var(--teal); border-color: var(--teal); color: #06201A; }
-.btn.teal:hover { background: color-mix(in oklab, var(--teal) 86%, var(--ink)); }
+@media (hover: hover) { .btn.teal:hover { background: color-mix(in oklab, var(--teal) 86%, var(--ink)); } }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   appearance: none; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);
   font: 600 0.82rem/1 var(--font-body); padding: 8px 12px; border-radius: 999px; cursor: pointer;
 }
-.chip:hover { color: var(--ink); border-color: var(--ink-3); }
+@media (hover: hover) { .chip:hover { color: var(--ink); border-color: var(--ink-3); } }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .chip .k { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.7; margin-left: 4px; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--ink-2); cursor: pointer; user-select: none; }
@@ -341,7 +341,7 @@ em { font-style: italic; }
   border-left: 2px solid var(--rule); padding: 4px 0 4px 16px; color: var(--ink-2); cursor: pointer;
   transition: border-color .2s, color .2s;
 }
-.step:hover { color: var(--ink); }
+@media (hover: hover) { .step:hover { color: var(--ink); } }
 .step.on { border-color: var(--teal); color: var(--ink); }
 .step b { color: var(--ink); }
 
@@ -420,7 +420,7 @@ table.data th { color: var(--ink-3); font-weight: 600; }
 /* Figure 1 always sits on white, its own background, in both themes */
 .tour-view {
   position: relative; overflow: hidden; border-radius: 10px; aspect-ratio: 2 / 1; margin-top: 14px;
-  background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--rule); cursor: zoom-in; touch-action: pan-y;
+  background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--rule); cursor: zoom-in; touch-action: manipulation;
 }
 .tour-view.zoomed { cursor: zoom-out; }
 @media (max-width: 700px) { .tour-view { aspect-ratio: 4 / 3; } }
@@ -447,7 +447,7 @@ table.data th { color: var(--ink-3); font-weight: 600; }
   position: absolute; appearance: none; padding: 0; margin: 0; background: transparent; cursor: pointer; border-radius: 4px;
   border: 1px dashed rgba(95, 105, 100, 0.55);
 }
-.map-r:hover { background: rgba(0, 183, 150, 0.08); border-style: solid; border-color: rgba(0, 115, 93, 0.8); }
+@media (hover: hover) { .map-r:hover { background: rgba(0, 183, 150, 0.08); border-style: solid; border-color: rgba(0, 115, 93, 0.8); } }
 .map-r[aria-pressed="true"] { border: 2px solid #00B796; background: rgba(0, 183, 150, 0.14); }
 .map-r:focus-visible { outline-offset: 1px; }
 
@@ -539,7 +539,7 @@ main {
 .end-ribbon canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 4px; cursor: crosshair; touch-action: pan-y; }
 .end-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 18px; }
 .end .chip { background: transparent; color: var(--e-ink-2); border-color: rgba(238, 243, 241, 0.2); }
-.end .chip:hover { color: var(--e-ink); border-color: rgba(238, 243, 241, 0.5); }
+@media (hover: hover) { .end .chip:hover { color: var(--e-ink); border-color: rgba(238, 243, 241, 0.5); } }
 .end .chip[aria-pressed="true"] { background: var(--e-ink); color: var(--e-bg); border-color: var(--e-ink); }
 .end-again { margin-left: auto; }
 .end-read {
@@ -561,14 +561,14 @@ html.at-end { background-color: #060A09; }
 .end-credits p, .end-credits li { font-size: 0.9rem; line-height: 1.55; color: var(--e-ink-2); }
 .end-credits ul, .end-credits ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
 .end-credits a { color: var(--e-ink); text-decoration-color: rgba(95, 224, 195, 0.5); }
-.end-credits a:hover { text-decoration-color: var(--e-mint); }
+@media (hover: hover) { .end-credits a:hover { text-decoration-color: var(--e-mint); } }
 .end-who { display: grid; gap: 8px; align-content: start; }
 .end-credits .end-title { font-family: var(--font-display); font-weight: 500; font-size: 1.12rem; line-height: 1.3; letter-spacing: -0.012em; color: var(--e-ink); }
 .end-credits .end-mail { font-family: var(--font-mono); font-size: 0.8rem; user-select: all; }
 .end-credits .end-venue { color: var(--e-mint); font-weight: 600; }
 .end-ix { grid-auto-flow: column; grid-template-rows: repeat(6, auto); column-gap: 20px; }
 .end-ix a { display: flex; gap: 10px; align-items: baseline; text-decoration: none; }
-.end-ix a:hover { color: var(--e-mint); }
+@media (hover: hover) { .end-ix a:hover { color: var(--e-mint); } }
 .end-ix a span { font-family: var(--font-mono); font-size: 0.74rem; color: var(--e-ink-3); min-width: 2ch; text-align: right; }
 .end-base {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
@@ -576,7 +576,7 @@ html.at-end { background-color: #060A09; }
 }
 .end-base .end-arxiv { font-family: var(--font-mono); font-size: 0.8rem; color: var(--e-ink-2); }
 .end-base .end-top { font-weight: 600; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; }
-.end-base .end-top:hover { color: var(--e-mint); }
+@media (hover: hover) { .end-base .end-top:hover { color: var(--e-mint); } }
 .tip.on-dark { background: #EEF3F1; color: #0B0F0E; }
 @media print {
   main { box-shadow: none; }
@@ -595,6 +595,23 @@ html.at-end { background-color: #060A09; }
   .bignums { grid-template-columns: minmax(0, 1fr); }
   .fields { grid-template-columns: minmax(0, 1fr); }
   .dial-row { gap: 4px; }
+}
+
+/* ------------------------------------------------------------------ touch
+   A finger cannot hover. Hover tints apply only where a pointer can hover (above), so they cannot
+   stick after a tap; a pressed control answers the finger instead. Taps on the figures open their
+   tips in app.js, and the outlined mark is the one the open tip describes. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+a, button, label, summary, .chip, .btn, .map-r, #labSlices, #labRibbon, svg.chart { touch-action: manipulation; }
+canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r { -webkit-tap-highlight-color: transparent; }
+.chart .is-tapped { stroke: var(--ink) !important; stroke-width: 2.5px !important; }
+@media (hover: hover) { .touch-only { display: none; } }
+@media (hover: none) {
+  .mouse-only { display: none; }
+  .btn, .chip { transition: transform .1s ease; }
+  .btn:active, .chip:active { transform: scale(0.96); }
+  .map-r:active { background: rgba(0, 183, 150, 0.14); }
+  .tip { font-size: 0.86rem; }
 }
 
 </style>
@@ -682,7 +699,7 @@ html.at-end { background-color: #060A09; }
   <div class="wide bench" id="lab">
     <div class="bench-head">
       <span class="bench-title">The two-indices lab</span>
-      <span class="bench-sub">8 × 8 × 8 tokens · click a token to make it the query</span>
+      <span class="bench-sub">8 × 8 × 8 tokens · <span class="mouse-only">click</span><span class="touch-only">tap</span> a token to make it the query</span>
     </div>
     <div class="controls">
       <div class="chips" id="labLayouts" role="group" aria-label="Storage order">
@@ -823,7 +840,7 @@ html.at-end { background-color: #060A09; }
     <p class="eyebrow">Interlude</p>
     <h2>The whole operator on one page</h2>
   </div>
-  <div class="col prose"><p>Figure 1 of the paper draws the operator end to end. Step through it panel by panel, or click any part of the figure to zoom in.</p></div>
+  <div class="col prose"><p>Figure 1 of the paper draws the operator end to end. Step through it panel by panel, or <span class="mouse-only">click</span><span class="touch-only">tap</span> any part of the figure to zoom in.</p></div>
   <div class="wide bench" id="tour">
     <div class="tour-view" id="tourView">
       <img id="tourImg" src="figure1.svg" width="3017" height="1080" loading="lazy" decoding="async" alt="Figure 1 of the paper: a 3D token field, packing for memory, physical 3D coordinates, axial RoPE, compressed global summaries, and the sparse 3D field view." draggable="false">
@@ -981,7 +998,7 @@ html.at-end { background-color: #060A09; }
     <div class="bench">
       <div class="bench-head"><span class="bench-title">13 of 15 structures favor PACK3D</span><span class="bench-sub">best checkpoint · mean Dice difference, PACK3D − U-Net</span></div>
       <div class="chart-wrap"><svg id="structs" class="chart" role="img" aria-label="Per-structure mean Dice difference"></svg></div>
-      <p class="bench-foot">At the best checkpoint the U-Net is ahead on CETN2 and NUP153, and only ATP2A2 and SEC61B (marked *) survive a paired-t Holm correction. At the final checkpoint, 12 of 15 structures favor PACK3D. Hover a dot for its structure.</p>
+      <p class="bench-foot">At the best checkpoint the U-Net is ahead on CETN2 and NUP153, and only ATP2A2 and SEC61B (marked *) survive a paired-t Holm correction. At the final checkpoint, 12 of 15 structures favor PACK3D. <span class="mouse-only">Hover</span><span class="touch-only">Tap</span> a dot for its structure.</p>
     </div>
   </div>
 </section>
