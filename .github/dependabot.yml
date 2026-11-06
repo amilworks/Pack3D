@@ -1,0 +1,11 @@
+# Keep the pinned GitHub Actions current. Python dependencies are not updated here on purpose:
+# reproduce/constraints-tested.txt records the environment the paper's runs were validated with.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]

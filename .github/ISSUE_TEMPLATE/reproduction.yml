@@ -1,0 +1,19 @@
+name: Paper reproduction
+description: A question about a recipe, a reported number, or the data protocol.
+labels: ["question"]
+body:
+  - type: input
+    id: recipe
+    attributes:
+      label: Recipe and commit
+      description: The recipe's path under reproduce/configs/, and the repository commit you used.
+      placeholder: reproduce/configs/allen15/<recipe>.yaml at commit <hash>
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: The seed, the checkpoint-selection rule, the backend, the evaluation split, and the number you observed beside the number you expected. Do not attach datasets, checkpoints or credentials.
+    validations:
+      required: true

@@ -1,0 +1,213 @@
+{
+  "snapshot_date": "2026-11-06",
+  "files": [
+    {
+      "source": "hypernsa/attention/pack3d_streamed_2026_11_04.py",
+      "destination": "src/pack3d/geometry.py",
+      "source_sha256": "c7f7e59d187fe4e867529b001f2fad4435e6e5c4a9ddffe379107a3baf068b8c",
+      "extracted_sha256": "bc8697f38aa1cb833e91c6f2acd3098725d0988c6eb779e03d3362c87423488b",
+      "public_sha256": "75e5775d838943b3a6b3fd856d474b39fbe6c7c31ee00d8f2460dac536a47aeb",
+      "release_changes": "Extracted prepared geometry; added public coordinate layouts and membership-preserving transport."
+    },
+    {
+      "source": "hypernsa/attention/pack3d_streamed_2026_11_04.py",
+      "destination": "src/pack3d/_validation.py",
+      "source_sha256": "c7f7e59d187fe4e867529b001f2fad4435e6e5c4a9ddffe379107a3baf068b8c",
+      "extracted_sha256": "9af6c67bf30fff9abdf383fa45e0ae2f5b038f59d2a153eac17489a14b0aebd9",
+      "public_sha256": "9af6c67bf30fff9abdf383fa45e0ae2f5b038f59d2a153eac17489a14b0aebd9",
+      "release_changes": "Namespace/import extraction only."
+    },
+    {
+      "source": "hypernsa/attention/pack3d_streamed_2026_11_04.py",
+      "destination": "src/pack3d/reference.py",
+      "source_sha256": "c7f7e59d187fe4e867529b001f2fad4435e6e5c4a9ddffe379107a3baf068b8c",
+      "extracted_sha256": "b29705b1751dceaff2e686453cfba58d597d2e5287a8c0af5c85d04ab1aa9143",
+      "public_sha256": "b40b446dd1c0e5a792b8f4449970b94b26d66aa831608e35960dbca0e3353730",
+      "release_changes": "Extracted oracle; factored pooling into compression.py without changing the operator."
+    },
+    {
+      "source": "hypernsa/attention/pack3d_streamed_2026_11_04.py",
+      "destination": "src/pack3d/backends/triton/autograd.py",
+      "source_sha256": "c7f7e59d187fe4e867529b001f2fad4435e6e5c4a9ddffe379107a3baf068b8c",
+      "extracted_sha256": "4bb2d91028d84c495cdf769efb000f3d7a261e3ea8689178ebda5567685c1998",
+      "public_sha256": "4bb2d91028d84c495cdf769efb000f3d7a261e3ea8689178ebda5567685c1998",
+      "release_changes": "Namespace/import extraction only."
+    },
+    {
+      "source": "hypernsa/attention/pack3d_streamed_kernels_2026_11_04.py",
+      "destination": "src/pack3d/backends/triton/kernels.py",
+      "source_sha256": "66ad7c596c6fc29452cd4c66717f983be274899a7fd842a378a379893486ca36",
+      "extracted_sha256": "7e1cd6c6686eac5190263296e59729d134365c1e1a1774ccc93f7584a1408582",
+      "public_sha256": "80bba56beb30638db39b8c3328fbd5c630df732d56e010a45d255afa6731fdc6",
+      "release_changes": "Updated module header and removed unused import; numerical kernel bodies retained."
+    },
+    {
+      "source": "hypernsa/attention/hypernsa_morton.py",
+      "destination": "reproduce/paper_backend/hypernsa/attention/hypernsa_morton.py",
+      "source_sha256": "7641c5bc8043ab653a83458cf3ba1e1088cc79ef7bdd869b1a485c80350cfad3",
+      "extracted_sha256": "7641c5bc8043ab653a83458cf3ba1e1088cc79ef7bdd869b1a485c80350cfad3",
+      "public_sha256": "7641c5bc8043ab653a83458cf3ba1e1088cc79ef7bdd869b1a485c80350cfad3",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/attention/layout.py",
+      "destination": "reproduce/paper_backend/hypernsa/attention/layout.py",
+      "source_sha256": "cab9386b21ab849b2ea97ba860107ea6b569df7c396f75d9309d7723b3accce7",
+      "extracted_sha256": "cab9386b21ab849b2ea97ba860107ea6b569df7c396f75d9309d7723b3accce7",
+      "public_sha256": "cab9386b21ab849b2ea97ba860107ea6b569df7c396f75d9309d7723b3accce7",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/attention/triton_local.py",
+      "destination": "reproduce/paper_backend/hypernsa/attention/triton_local.py",
+      "source_sha256": "bb0438a9498a6e86ca3c057c067b9c147415e042b660cca9e8883b03ff441324",
+      "extracted_sha256": "bb0438a9498a6e86ca3c057c067b9c147415e042b660cca9e8883b03ff441324",
+      "public_sha256": "bb0438a9498a6e86ca3c057c067b9c147415e042b660cca9e8883b03ff441324",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/attention/triton_route.py",
+      "destination": "reproduce/paper_backend/hypernsa/attention/triton_route.py",
+      "source_sha256": "63624a98dbe6bde3dfa77756793440dbb1a98e88ac7435abca39fbf7d7e5e8d2",
+      "extracted_sha256": "63624a98dbe6bde3dfa77756793440dbb1a98e88ac7435abca39fbf7d7e5e8d2",
+      "public_sha256": "63624a98dbe6bde3dfa77756793440dbb1a98e88ac7435abca39fbf7d7e5e8d2",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/attention/triton_selected.py",
+      "destination": "reproduce/paper_backend/hypernsa/attention/triton_selected.py",
+      "source_sha256": "f4e2169845b65e2e72efa5036152668917cab686f85c61fdf3ab442b6bebb01b",
+      "extracted_sha256": "f4e2169845b65e2e72efa5036152668917cab686f85c61fdf3ab442b6bebb01b",
+      "public_sha256": "f4e2169845b65e2e72efa5036152668917cab686f85c61fdf3ab442b6bebb01b",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/models/realdata.py",
+      "destination": "reproduce/paper_backend/hypernsa/models/realdata.py",
+      "source_sha256": "955c4c177415c30251f132d464dac42b72dcdd2a1b44f549039f76fbe81b2c8c",
+      "extracted_sha256": "955c4c177415c30251f132d464dac42b72dcdd2a1b44f549039f76fbe81b2c8c",
+      "public_sha256": "955c4c177415c30251f132d464dac42b72dcdd2a1b44f549039f76fbe81b2c8c",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/models/hypernsa_nd.py",
+      "destination": "reproduce/paper_backend/hypernsa/models/hypernsa_nd.py",
+      "source_sha256": "764be4226421893916d6d9d2e902fd75bfa53a1bf019cec0b23434332e99da65",
+      "extracted_sha256": "764be4226421893916d6d9d2e902fd75bfa53a1bf019cec0b23434332e99da65",
+      "public_sha256": "764be4226421893916d6d9d2e902fd75bfa53a1bf019cec0b23434332e99da65",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/training/realdata.py",
+      "destination": "reproduce/paper_backend/hypernsa/training/realdata.py",
+      "source_sha256": "f28245ceebc6922e0a46b6fa8a6142df9ff71e8889d35d189c5e4bab2a9a4dc9",
+      "extracted_sha256": "f28245ceebc6922e0a46b6fa8a6142df9ff71e8889d35d189c5e4bab2a9a4dc9",
+      "public_sha256": "f28245ceebc6922e0a46b6fa8a6142df9ff71e8889d35d189c5e4bab2a9a4dc9",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/training/wandb_utils.py",
+      "destination": "reproduce/paper_backend/hypernsa/training/wandb_utils.py",
+      "source_sha256": "f445abb9c0a39f9ad2cf3e89be6eff129b5a7027aa46db2523e5688a626673f6",
+      "extracted_sha256": "f445abb9c0a39f9ad2cf3e89be6eff129b5a7027aa46db2523e5688a626673f6",
+      "public_sha256": "f445abb9c0a39f9ad2cf3e89be6eff129b5a7027aa46db2523e5688a626673f6",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/evaluation/kernel_metrics.py",
+      "destination": "reproduce/paper_backend/hypernsa/evaluation/kernel_metrics.py",
+      "source_sha256": "84937228eb3efe096fb980908ad5d385cf4a99e5649ef15985ca47646107ecb2",
+      "extracted_sha256": "84937228eb3efe096fb980908ad5d385cf4a99e5649ef15985ca47646107ecb2",
+      "public_sha256": "84937228eb3efe096fb980908ad5d385cf4a99e5649ef15985ca47646107ecb2",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/utils/seed.py",
+      "destination": "reproduce/paper_backend/hypernsa/utils/seed.py",
+      "source_sha256": "c9a1a8de04869793731165d85726080bf7f1f843e21d8048b1fe1d18f1847714",
+      "extracted_sha256": "c9a1a8de04869793731165d85726080bf7f1f843e21d8048b1fe1d18f1847714",
+      "public_sha256": "c9a1a8de04869793731165d85726080bf7f1f843e21d8048b1fe1d18f1847714",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/utils/env.py",
+      "destination": "reproduce/paper_backend/hypernsa/utils/env.py",
+      "source_sha256": "955b84e09d136c39b3d4714a9ae8641ed85af0099c6c29b99e2bd80de08213e6",
+      "extracted_sha256": "955b84e09d136c39b3d4714a9ae8641ed85af0099c6c29b99e2bd80de08213e6",
+      "public_sha256": "138600fd1a89381595b77af389e9211fdf2fad5368aeee2693ad55a82294c0d3",
+      "release_changes": "Removed hostname and process identifier collection."
+    },
+    {
+      "source": "hypernsa/data/allen.py",
+      "destination": "reproduce/paper_backend/hypernsa/data/allen.py",
+      "source_sha256": "9d1bda8f3cd688ea6c1d093a8e733975b040d4cc54d1580e2c0c7f86713774c8",
+      "extracted_sha256": "9d1bda8f3cd688ea6c1d093a8e733975b040d4cc54d1580e2c0c7f86713774c8",
+      "public_sha256": "9d1bda8f3cd688ea6c1d093a8e733975b040d4cc54d1580e2c0c7f86713774c8",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/data/msd.py",
+      "destination": "reproduce/paper_backend/hypernsa/data/msd.py",
+      "source_sha256": "9d86c0f9a17720efdb32dea8c685bddea33a1913c651c0ff35e166c6f6df393c",
+      "extracted_sha256": "9d86c0f9a17720efdb32dea8c685bddea33a1913c651c0ff35e166c6f6df393c",
+      "public_sha256": "97af152d394e1a34fcd7e3803bdfdd0685f82515640ee18346db7b5f8128597b",
+      "release_changes": "Restricted tar extraction to data filter and tensor loading to weights_only=True."
+    },
+    {
+      "source": "hypernsa/data/medmnist.py",
+      "destination": "reproduce/paper_backend/hypernsa/data/medmnist.py",
+      "source_sha256": "09753fc7f7462ff5ae6687e3b2b94408df192c98584d9748d59a20f167551163",
+      "extracted_sha256": "09753fc7f7462ff5ae6687e3b2b94408df192c98584d9748d59a20f167551163",
+      "public_sha256": "09753fc7f7462ff5ae6687e3b2b94408df192c98584d9748d59a20f167551163",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "scripts/train_3d_segmentation.py",
+      "destination": "reproduce/paper_backend/scripts/train_3d_segmentation.py",
+      "source_sha256": "79649e31fad6f87004679b7332091e66926417eed9f866bbac21c5495d818e2b",
+      "extracted_sha256": "79649e31fad6f87004679b7332091e66926417eed9f866bbac21c5495d818e2b",
+      "public_sha256": "79649e31fad6f87004679b7332091e66926417eed9f866bbac21c5495d818e2b",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "rebuttal/scripts/train_3d_segmentation_rebuttal_2026_07_26.py",
+      "destination": "reproduce/paper_backend/rebuttal/scripts/train_3d_segmentation_rebuttal_2026_07_26.py",
+      "source_sha256": "9174f0e7a0a786c3b3da93226d7c4c9d7e9edf8dce8dd20f6d954ed04a8fdfa2",
+      "extracted_sha256": "9174f0e7a0a786c3b3da93226d7c4c9d7e9edf8dce8dd20f6d954ed04a8fdfa2",
+      "public_sha256": "9174f0e7a0a786c3b3da93226d7c4c9d7e9edf8dce8dd20f6d954ed04a8fdfa2",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "rebuttal/scripts/artifact_claim_lock_2026_07_26.py",
+      "destination": "reproduce/paper_backend/rebuttal/scripts/artifact_claim_lock_2026_07_26.py",
+      "source_sha256": "7311a4ef10febd841d3f2aabf686743c147beaef77cc46cbd2bb9dd9b05c2118",
+      "extracted_sha256": "7311a4ef10febd841d3f2aabf686743c147beaef77cc46cbd2bb9dd9b05c2118",
+      "public_sha256": "7311a4ef10febd841d3f2aabf686743c147beaef77cc46cbd2bb9dd9b05c2118",
+      "release_changes": "Unchanged research source."
+    },
+    {
+      "source": "hypernsa/attention/pack3d_streamed_adapter_2026_11_04.py",
+      "destination": "reproduce/paper_backend/hypernsa/attention/streamed_adapter.py",
+      "source_sha256": "8717f20fa2737f488b94b2589e6e7e3c59cd4c25e8cae36ad40d71dc97ba7df3",
+      "extracted_sha256": "b4bb549fa2ff6dc53426aef9d5e0d2690d572a52496058688f46e6171d2bcc7f",
+      "public_sha256": "b4bb549fa2ff6dc53426aef9d5e0d2690d572a52496058688f46e6171d2bcc7f",
+      "release_changes": "Changed dated core import to standalone pack3d package."
+    },
+    {
+      "source": "tests/test_pack3d_streamed_2026_11_04.py",
+      "destination": "tests/test_triton.py",
+      "source_sha256": "d04123f196be653406ddf973eaecd4070f5a7b721bff98e233eb13181f8ba391",
+      "extracted_sha256": "69257edc5603436b9232393bf010ffbe33633b4c7521355e6a578e7d6385a933",
+      "public_sha256": "552f0ff1918131ee68b852e4e11428282facfe4a41f6e0518f15651814eae969",
+      "release_changes": "Updated imports; extended public API and historical local-Triton execution checks."
+    },
+    {
+      "source": "rebuttal/scripts/evaluate_msd_repacking_sweep_2026_07_26.py",
+      "destination": "reproduce/repack.py",
+      "source_sha256": "6b798076b99893a9a6d7c5644138e6b48b4f6947cfdd4dac172eb73945c81fcb",
+      "extracted_sha256": "1d9ac6649a751675c8de41e5164845d7747267d9b9ccd566a7f2aab53ee68465",
+      "public_sha256": "1d9ac6649a751675c8de41e5164845d7747267d9b9ccd566a7f2aab53ee68465",
+      "release_changes": "Extracted coarse-group transport; explicit permutation seed and identity rejection."
+    }
+  ]
+}

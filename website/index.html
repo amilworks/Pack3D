@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Geometry Matters in Packed 3D Attention (PACK3D), NeurIPS 2026</title>
+<meta name="description" content="PACK3D indexes 3D attention by token coordinates, not memory order. Repacking memory costs a sequence-indexed control 0.048 Dice; PACK3D changes by 0.0001.">
+<meta name="author" content="Amil Khan, Anantajit Subrahmanya, B.S. Manjunath">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#F3F5F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0F0E" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="canonical" href="https://amilworks.github.io/Pack3D/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PACK3D">
+<meta property="og:title" content="Geometry Matters in Packed 3D Attention">
+<meta property="og:description" content="Packing a 3D field gives every token two indices: a coordinate in the sample and a position in memory. PACK3D attends by the coordinate. NeurIPS 2026, UC Santa Barbara.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Geometry Matters in Packed 3D Attention">
+<meta name="twitter:description" content="Packing a 3D field gives every token two indices: a coordinate in the sample and a position in memory. PACK3D attends by the coordinate. NeurIPS 2026, UC Santa Barbara.">
+<meta property="og:url" content="https://amilworks.github.io/Pack3D/">
+<meta property="og:image" content="https://amilworks.github.io/Pack3D/social.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Title card for Geometry Matters in Packed 3D Attention, NeurIPS 2026, with a 3D token volume colored by memory position.">
+<meta name="twitter:image" content="https://amilworks.github.io/Pack3D/social.png">
+<meta name="twitter:image:alt" content="Title card for Geometry Matters in Packed 3D Attention, NeurIPS 2026, with a 3D token volume colored by memory position.">
+<meta name="citation_title" content="Geometry Matters in Packed 3D Attention">
+<meta name="citation_author" content="Khan, Amil">
+<meta name="citation_author_institution" content="University of California, Santa Barbara">
+<meta name="citation_author" content="Subrahmanya, Anantajit">
+<meta name="citation_author_institution" content="University of California, Santa Barbara">
+<meta name="citation_author" content="Manjunath, B. S.">
+<meta name="citation_author_institution" content="University of California, Santa Barbara">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_conference_title" content="Advances in Neural Information Processing Systems">
+<meta name="citation_language" content="en">
+<meta name="citation_pdf_url" content="https://arxiv.org/pdf/2610.38694">
+<meta name="citation_arxiv_id" content="2610.38694">
+<meta name="citation_abstract_html_url" content="https://amilworks.github.io/Pack3D/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ScholarlyArticle","headline":"Geometry Matters in Packed 3D Attention","name":"Geometry Matters in Packed 3D Attention","alternateName":"PACK3D","abstract":"Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. Raster, Morton, and block-contiguous layouts change the position and leave the coordinate alone. A positional mechanism indexed by sequence position can therefore learn the memory layout rather than the object, and accuracy on the training layout cannot reveal that it has. We introduce PACK3D, a local–global attention operator that separates memory layout from attention geometry. It attends exactly within a coordinate-defined neighborhood, sees the whole field through pooled summaries, and rotates queries and keys with axial RoPE at token-grid coordinates. Because keys are rotated before pooling, each query-to-summary logit is a weighted sum of query–key terms evaluated at the summarized tokens' displacements from the query. The operator is equivariant to any repacking that carries coordinates, neighborhoods, summary memberships, and within-block slots along with the tokens. On Allen WTC-11 microscopy at 262k tokens, PACK3D and a matched packed-sequence RoPE control reach comparable Dice on the training layout. Repacking the same validation volumes then costs the packed control 0.048 macro Dice on average, with a loss in all six seeds, while PACK3D changes by 0.0001. On MSD Heart and Spleen, sequence indexing again changes more predictions under repacking, at little cost in Dice. PACK3D also exceeds a parameter-matched 3D U-Net by 0.009 Dice over six seeds, and a full PACK3D layer runs within 7–31% of window-attention latency while adding a global pathway. Geometry, not storage order, should index attention over packed 3D fields.","author":[{"@type":"Person","name":"Amil Khan","affiliation":{"@type":"Organization","name":"Department of Electrical & Computer Engineering","parentOrganization":{"@type":"CollegeOrUniversity","name":"University of California, Santa Barbara"}}},{"@type":"Person","name":"Anantajit Subrahmanya","affiliation":{"@type":"Organization","name":"Department of Electrical & Computer Engineering","parentOrganization":{"@type":"CollegeOrUniversity","name":"University of California, Santa Barbara"}}},{"@type":"Person","name":"B.S. Manjunath","affiliation":{"@type":"Organization","name":"Department of Electrical & Computer Engineering","parentOrganization":{"@type":"CollegeOrUniversity","name":"University of California, Santa Barbara"}}}],"datePublished":"2026","inLanguage":"en","keywords":["packed 3D attention","positional encoding","rotary position embedding","axial RoPE","sparse attention","3D microscopy","volumetric segmentation","packing equivariance"],"isPartOf":{"@type":"CreativeWorkSeries","name":"Advances in Neural Information Processing Systems"},"publication":{"@type":"PublicationEvent","name":"NeurIPS 2026","location":{"@type":"Place","name":"Sydney, Australia"}},"sameAs":"https://arxiv.org/abs/2610.38694","identifier":{"@type":"PropertyValue","propertyID":"arXiv","value":"2610.38694"},"associatedMedia":{"@type":"MediaObject","contentUrl":"https://arxiv.org/pdf/2610.38694","encodingFormat":"application/pdf"},"url":"https://amilworks.github.io/Pack3D/","mainEntityOfPage":"https://amilworks.github.io/Pack3D/","image":"https://amilworks.github.io/Pack3D/social.png"}</script>
+<link rel="preload" href="fonts/inter-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>@font-face{font-family:"Inter";src:url(fonts/inter-latin-standard-normal.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"Inter";src:url(fonts/inter-latin-standard-italic.woff2) format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"DM Mono";src:url(fonts/dm-mono-latin-400-normal.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"DM Mono";src:url(fonts/dm-mono-latin-500-normal.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
+<style>
+/* Layout: a single reading column (about 66ch) that opens into wide "benches" where the demos and
+   charts live. Every bench is a white sheet with Figure 1's dashed rule, so the page reads like the
+   paper's figure spread out over a long table. */
+:root {
+  --bg: #F3F5F4;
+  --surface: #FFFFFF;
+  --surface-2: #F8FAF9;
+  --ink: #0F1513;
+  --ink-2: #444D49;
+  --ink-3: #5F6964;
+  --rule: #D5D8D2;
+  --grid: #E4EBE8;
+  --mint: #E9F8F3;
+  --mint-ink: #00735D;
+  --teal: #00B796;
+  --coral: #FF7276;
+  --lav: #997ADB;
+  --warm: #9E978E;
+  --neutral-2: #5F5B56;
+  --orange: #FFAA4D;
+  --green: #8FE07A;
+  --green-ink: #2C8F1F;
+  --tint-teal: #8EDDCB;
+  --tint-coral: #FFB4B6;
+  --track: #EEF1EF;
+  --shadow: 0 1px 0 rgba(15, 21, 19, 0.04);
+  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --col: 42rem;
+  --wide: 76rem;
+  --radius: 14px;
+  --sheet-r: clamp(22px, 3.4vw, 48px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B0F0E;
+    --surface: #121816;
+    --surface-2: #161D1B;
+    --ink: #E8EEEB;
+    --ink-2: #B9C2BE;
+    --ink-3: #93A09A;
+    --rule: #2D3633;
+    --grid: #202927;
+    --mint: #0E2621;
+    --mint-ink: #5FE0C3;
+    --teal: #19AC8B;
+    --coral: #C9474F;
+    --lav: #9479D8;
+    --warm: #A39C93;
+    --neutral-2: #D2CCC4;
+    --orange: #FFB15E;
+    --green: #7BD866;
+    --green-ink: #8FE07A;
+    --tint-teal: #1F5F51;
+    --tint-coral: #6B2F33;
+    --track: #1C2422;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B0F0E;
+  --surface: #121816;
+  --surface-2: #161D1B;
+  --ink: #E8EEEB;
+  --ink-2: #B9C2BE;
+  --ink-3: #93A09A;
+  --rule: #2D3633;
+  --grid: #202927;
+  --mint: #0E2621;
+  --mint-ink: #5FE0C3;
+  --teal: #19AC8B;
+  --coral: #C9474F;
+  --lav: #9479D8;
+  --warm: #A39C93;
+  --neutral-2: #D2CCC4;
+  --orange: #FFB15E;
+  --green: #7BD866;
+  --green-ink: #8FE07A;
+  --tint-teal: #1F5F51;
+  --tint-coral: #6B2F33;
+  --track: #1C2422;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  letter-spacing: -0.004em;
+  line-height: 1.62;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  margin: 0;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 30; background: var(--bg);
+}
+a { color: inherit; text-decoration-color: var(--teal); text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+a:hover { text-decoration-thickness: 2.5px; }
+:focus-visible { outline: 2.5px solid var(--teal); outline-offset: 3px; border-radius: 4px; }
+::selection { background: var(--tint-teal); }
+
+.gutter {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.col { max-width: var(--col); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+
+/* ------------------------------------------------------------------ type */
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h1 {
+  font-family: var(--font-display);
+  font-weight: 380;
+  font-size: clamp(2.6rem, 5.8vw, 5rem);
+  line-height: 1.04;
+  letter-spacing: -0.028em;
+}
+h2 {
+  font-family: var(--font-display);
+  font-weight: 480;
+  font-size: clamp(1.9rem, 3.8vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.024em;
+}
+h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  font-size: 1.32rem;
+  line-height: 1.25;
+}
+p { margin: 0; }
+.prose { display: grid; gap: 1.05em; }
+.prose p { max-width: 66ch; }
+.lede { font-size: clamp(1.18rem, 1.8vw, 1.42rem); line-height: 1.5; color: var(--ink); }
+.muted { color: var(--ink-2); }
+.small { font-size: 0.9rem; line-height: 1.5; }
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mint-ink);
+}
+.eyebrow.keep-case { text-transform: none; letter-spacing: 0.03em; font-size: 0.84rem; }
+.mono { font-family: var(--font-mono); font-size: 0.9em; }
+.num { font-variant-numeric: tabular-nums; }
+.math svg { vertical-align: middle; }
+.math-inline { white-space: nowrap; }
+.math-display { display: block; overflow-x: auto; padding: 0.4rem 0; font-size: 1.12rem; }
+.math-display svg { max-width: none; }
+strong { font-weight: 600; }
+em { font-style: italic; }
+
+/* ------------------------------------------------------------------ top bar */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+.topbar-in { display: flex; align-items: center; gap: 18px; height: 52px; }
+.wordmark {
+  font-family: var(--font-display); font-weight: 650; font-size: 1.05rem; letter-spacing: -0.012em;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+}
+.wordmark .cube { width: 18px; height: 18px; }
+.wm-text { display: grid; line-height: 1.08; }
+.wm-sub { font-family: var(--font-body); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.01em; color: var(--ink-3); }
+.chapters { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); padding-right: 24px; }
+.chapters::-webkit-scrollbar { display: none; }
+.chapters a {
+  font-size: 0.82rem; color: var(--ink-2); text-decoration: none; white-space: nowrap;
+  padding: 6px 10px; border-radius: 999px;
+}
+.chapters a:hover { color: var(--ink); background: var(--surface); }
+.chapters a.on { color: var(--ink); background: var(--surface); box-shadow: inset 0 0 0 1px var(--rule); }
+.topbar .btn { padding: 7px 14px; font-size: 0.84rem; }
+.top-links { display: flex; gap: 8px; flex: none; }
+.progress { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; background: var(--teal); }
+/* over the dark stage at the end, the bar goes dark with it */
+.topbar { transition: background-color 0.35s, border-color 0.35s; }
+.topbar.on-end {
+  --bg: #060A09; --surface: #18201E; --ink: #EEF3F1; --ink-2: #B4BEBA; --ink-3: #8C9A95; --rule: rgba(238, 243, 241, 0.13);
+  color: var(--ink); color-scheme: dark;
+}
+@media (max-width: 760px) { .chapters { display: none; } .topbar-in { justify-content: space-between; } }
+
+/* ------------------------------------------------------------------ buttons and chips */
+.btn {
+  appearance: none; border: 1px solid var(--ink); background: var(--ink); color: var(--bg);
+  font: 600 0.95rem/1 var(--font-body); padding: 12px 18px; border-radius: 999px; cursor: pointer;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+}
+.btn:hover { background: color-mix(in oklab, var(--ink) 86%, var(--teal)); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+.btn.ghost:hover { border-color: var(--ink); background: var(--surface); }
+.btn.teal { background: var(--teal); border-color: var(--teal); color: #06201A; }
+.btn.teal:hover { background: color-mix(in oklab, var(--teal) 86%, var(--ink)); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  appearance: none; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);
+  font: 600 0.82rem/1 var(--font-body); padding: 8px 12px; border-radius: 999px; cursor: pointer;
+}
+.chip:hover { color: var(--ink); border-color: var(--ink-3); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip .k { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.7; margin-left: 4px; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--ink-2); cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--teal); width: 16px; height: 16px; }
+
+/* ------------------------------------------------------------------ hero */
+.hero { padding-block: clamp(28px, 5vw, 64px) clamp(36px, 6vw, 72px); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: center; }
+@media (max-width: 920px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
+.hero .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 20px; font-size: 0.98rem; color: var(--ink-2); }
+.hero .meta b { color: var(--ink); font-weight: 600; }
+.hero .meta .affil { flex-basis: 100%; line-height: 1.45; }
+.hero .lede { margin-top: 22px; max-width: 36rem; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.hero-figure { display: grid; gap: 12px; min-width: 0; }
+.hero-canvas-wrap { position: relative; aspect-ratio: 1.08 / 1; width: 100%; max-width: 640px; margin-inline: auto; }
+.hero-canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-caption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.legend-ramp { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--ink-3); font-family: var(--font-mono); }
+.legend-ramp i { display: block; width: 120px; height: 8px; border-radius: 4px; }
+.layout-name { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-2); }
+
+/* ------------------------------------------------------------------ chapters */
+.chapter { padding-block: clamp(56px, 9vw, 120px) 0; scroll-margin-top: 60px; }
+.chapter-head { display: grid; gap: 14px; margin-bottom: 26px; }
+.chapter-head .eyebrow { display: flex; gap: 10px; align-items: center; }
+.chapter-head .eyebrow::before { content: ""; width: 22px; height: 1.5px; background: currentColor; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3.5vw, 48px); align-items: start; }
+@media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
+/* the bench: where demos and charts live */
+.bench {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  position: relative;
+  padding: clamp(14px, 2.4vw, 28px);
+  margin-top: 28px;
+  min-width: 0;
+}
+.bench::after {
+  content: ""; position: absolute; inset: 6px; border-radius: calc(var(--radius) - 4px);
+  border: 1.5px dashed var(--rule); pointer-events: none;
+}
+.bench > * { position: relative; z-index: 1; }
+.bench-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+.bench-title { font-weight: 600; font-size: 1.02rem; }
+.bench-sub { color: var(--ink-3); font-size: 0.86rem; }
+.bench-foot { margin-top: 12px; color: var(--ink-3); font-size: 0.84rem; line-height: 1.5; }
+.bench.mint { background: var(--mint); }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 14px; }
+.readouts { display: flex; flex-wrap: wrap; gap: 10px; }
+.readout {
+  border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; background: var(--surface-2);
+  display: grid; gap: 2px; min-width: 0;
+}
+.readout .lab { font-size: 0.74rem; color: var(--ink-3); font-family: var(--font-mono); letter-spacing: 0.01em; }
+.readout .val { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1.02rem; }
+
+/* ------------------------------------------------------------------ the lab */
+.lab-grid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
+.lab-3d { position: relative; aspect-ratio: 1.12 / 1; width: 100%; }
+.lab-3d canvas, .lab-slices canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lab-slices { position: relative; aspect-ratio: 2 / 1.06; width: 100%; }
+.ribbon-wrap { position: relative; width: 100%; margin-top: 14px; }
+.ribbon-wrap canvas { width: 100%; display: block; }
+.view-label + .lab-slices, .view-label + .ribbon-wrap { margin-top: 8px; }
+.nw { white-space: nowrap; }
+#ropeGrid { max-width: 460px; margin-inline: auto; }
+.readout .lab sub { font-size: 0.85em; }
+.view-label { font-family: var(--font-body); font-weight: 600; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
+.steps { display: grid; gap: 12px; counter-reset: step; }
+.step {
+  border-left: 2px solid var(--rule); padding: 4px 0 4px 16px; color: var(--ink-2); cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.step:hover { color: var(--ink); }
+.step.on { border-color: var(--teal); color: var(--ink); }
+.step b { color: var(--ink); }
+
+/* ------------------------------------------------------------------ big numbers */
+.bignums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.bignum { border-radius: 12px; padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--rule); display: grid; gap: 4px; align-content: start; min-width: 0; }
+.bignum .who { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+.bignum .v {
+  font-family: var(--font-display); font-weight: 420; font-size: clamp(2.1rem, 4.2vw, 3.3rem); line-height: 1;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.03em;
+}
+.bignum .d { color: var(--ink-3); font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.teal { background: var(--teal); } .dot.coral { background: var(--coral); } .dot.lav { background: var(--lav); }
+.dot.warm { background: var(--warm); } .dot.neutral { background: var(--neutral-2); } .dot.orange { background: var(--orange); } .dot.green { background: var(--green); }
+
+/* ------------------------------------------------------------------ charts */
+.chart { width: 100%; display: block; overflow: visible; }
+.chart text { fill: var(--ink-2); font-family: var(--font-body); font-size: 13px; }
+.chart .tick text { fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+.chart .tick line, .chart .grid line { stroke: var(--grid); }
+.chart .domain { stroke: none; }
+.chart .lab-ink { fill: var(--ink); font-weight: 550; }
+.chart .lab-strong { fill: var(--ink); font-weight: 650; }
+.chart .muted-t { fill: var(--ink-3); }
+.chart-wrap { position: relative; min-width: 0; }
+.tip {
+  position: fixed; z-index: 40; pointer-events: none; background: var(--ink); color: var(--bg);
+  font-size: 0.8rem; line-height: 1.35; padding: 7px 10px; border-radius: 8px; max-width: 260px;
+  opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s;
+  font-variant-numeric: tabular-nums;
+}
+.tip.on { opacity: 1; transform: none; }
+details.numbers { margin-top: 12px; font-size: 0.86rem; color: var(--ink-2); }
+details.numbers summary { cursor: pointer; color: var(--ink-3); font-weight: 600; }
+.table-wrap { overflow-x: auto; margin-top: 8px; }
+table.data { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.84rem; min-width: 100%; }
+table.data th, table.data td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+table.data th:first-child, table.data td:first-child { text-align: left; }
+table.data th { color: var(--ink-3); font-weight: 600; }
+
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.field { display: grid; gap: 8px; min-width: 0; }
+.field canvas { width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--rule); image-rendering: pixelated; }
+.field .cap { font-size: 0.84rem; color: var(--ink-2); }
+.field .cap b { color: var(--ink); }
+
+/* ------------------------------------------------------------------ widgets */
+.widget-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 18px; align-items: center; }
+@media (max-width: 860px) { .widget-grid { grid-template-columns: minmax(0, 1fr); } }
+.dial-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.dial-card { display: grid; gap: 6px; justify-items: center; min-width: 0; }
+.dial-card svg { width: 100%; max-width: 150px; }
+.dial-card .cap { font-size: 0.78rem; color: var(--ink-3); text-align: center; }
+.svg-ink { fill: var(--ink); } .svg-ink2 { fill: var(--ink-2); } .svg-ink3 { fill: var(--ink-3); }
+.stroke-rule { stroke: var(--rule); } .stroke-grid { stroke: var(--grid); } .stroke-ink { stroke: var(--ink); } .stroke-ink3 { stroke: var(--ink-3); }
+.meter { height: 12px; border-radius: 6px; background: var(--track); overflow: hidden; position: relative; }
+.meter i { position: absolute; inset: 0 auto 0 0; background: var(--teal); border-radius: 6px; transition: width .5s cubic-bezier(.2, .8, .2, 1); }
+
+.tags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .tags { grid-template-columns: minmax(0, 1fr); } }
+.tag {
+  display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--rule); border-radius: 10px;
+  padding: 10px 12px; background: var(--surface-2); cursor: pointer; font-size: 0.92rem; line-height: 1.35;
+}
+.tag input { margin-top: 3px; accent-color: var(--teal); width: 16px; height: 16px; flex: none; }
+.tag small { display: block; color: var(--ink-3); font-size: 0.8rem; }
+.verdict {
+  margin-top: 14px; border-radius: 12px; padding: 14px 16px; border: 1.5px solid var(--teal); background: var(--mint);
+  display: grid; gap: 4px; transition: border-color .2s, background .2s;
+}
+.verdict.off { border-color: var(--coral); background: color-mix(in oklab, var(--coral) 9%, var(--surface)); }
+.verdict b { font-size: 1.02rem; }
+
+/* figure tour */
+/* Figure 1 always sits on white, its own background, in both themes */
+.tour-view {
+  position: relative; overflow: hidden; border-radius: 10px; aspect-ratio: 2 / 1; margin-top: 14px;
+  background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--rule); cursor: zoom-in; touch-action: pan-y;
+}
+.tour-view.zoomed { cursor: zoom-out; }
+@media (max-width: 700px) { .tour-view { aspect-ratio: 4 / 3; } }
+.tour-view img { position: absolute; left: 0; top: 0; width: 100%; height: auto; max-width: none; transform-origin: 0 0; transition: transform 1.1s cubic-bezier(.3, .7, .1, 1); user-select: none; -webkit-user-drag: none; }
+.tour-spot {
+  position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: 10px; pointer-events: none; opacity: 0;
+  box-shadow: 0 0 0 1.5px rgba(0, 183, 150, 0.9), 0 0 0 200vmax rgba(255, 255, 255, 0.6);
+  transition: left 1.1s cubic-bezier(.3, .7, .1, 1), top 1.1s cubic-bezier(.3, .7, .1, 1), width 1.1s cubic-bezier(.3, .7, .1, 1), height 1.1s cubic-bezier(.3, .7, .1, 1), opacity .5s;
+}
+.tour-spot.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .tour-view img, .tour-spot { transition: none; } }
+.tour-desc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr); gap: 18px 32px; align-items: start; margin-top: 18px; }
+@media (max-width: 820px) { .tour-desc { grid-template-columns: minmax(0, 1fr); } }
+.tour-text { display: grid; gap: 14px; align-content: start; min-width: 0; max-width: 60ch; }
+.tour-text .tour-n { font-family: var(--font-body); font-weight: 600; font-size: 0.74rem; letter-spacing: 0.12em; color: var(--mint-ink); text-transform: uppercase; }
+.tour-text b { font-size: 1.16rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+.tour-text p { color: var(--ink-2); font-size: 1rem; line-height: 1.55; }
+.tour-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.tour-nav .btn { padding: 10px 16px; }
+/* the minimap: Figure 1 in miniature, each part a button */
+.tour-map { position: relative; border-radius: 8px; background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--rule); aspect-ratio: 3016.58 / 1080; }
+.tour-map img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.85; pointer-events: none; user-select: none; }
+.map-r {
+  position: absolute; appearance: none; padding: 0; margin: 0; background: transparent; cursor: pointer; border-radius: 4px;
+  border: 1px dashed rgba(95, 105, 100, 0.55);
+}
+.map-r:hover { background: rgba(0, 183, 150, 0.08); border-style: solid; border-color: rgba(0, 115, 93, 0.8); }
+.map-r[aria-pressed="true"] { border: 2px solid #00B796; background: rgba(0, 183, 150, 0.14); }
+.map-r:focus-visible { outline-offset: 1px; }
+
+/* pull quote */
+.pull {
+  font-family: var(--font-display); font-weight: 380; font-size: clamp(1.55rem, 3vw, 2.4rem); line-height: 1.2;
+  letter-spacing: -0.022em; text-wrap: balance;
+}
+.pull .hl { color: var(--mint-ink); }
+
+/* claims and recipe */
+.claims { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .claims { grid-template-columns: minmax(0, 1fr); } }
+.claim { border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; background: var(--surface); display: grid; gap: 6px; align-content: start; }
+.claim h3 { font-size: 1.02rem; }
+.claim ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--ink-2); font-size: 0.95rem; }
+pre.code {
+  margin: 0; overflow-x: auto; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 12px; padding: 16px;
+  font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; color: var(--ink);
+}
+pre.code .c { color: var(--ink-3); }
+pre.code .k { color: var(--mint-ink); font-weight: 600; }
+.cite-box { display: grid; gap: 10px; }
+.abstract { font-size: 1.04rem; line-height: 1.68; color: var(--ink); max-width: 66ch; }
+.noscript-note { max-width: var(--wide); margin: 16px auto 0; padding-block: 12px; border-radius: 10px; background: var(--mint); color: var(--ink); font-size: 0.95rem; }
+.copy-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.copy-note { font-size: 0.84rem; color: var(--ink-3); }
+
+/* ------------------------------------------------------------------ the end
+   The page is a sheet lifted off a dark stage: main gets rounded lower corners, a rim and a long
+   shadow, and the footer tucks under it. The stage stays dark in both themes. */
+main {
+  position: relative; z-index: 1; background: var(--bg);
+  padding-bottom: clamp(64px, 9vw, 128px);
+  border-radius: 0 0 var(--sheet-r) var(--sheet-r);
+  box-shadow: 0 1px 0 var(--rule), 0 40px 70px -36px rgba(0, 0, 0, 0.6);
+}
+.end {
+  --e-bg: #060A09;
+  --e-ink: #EEF3F1;
+  --e-ink-2: #B4BEBA;
+  --e-ink-3: #8C9A95;
+  --e-rule: rgba(238, 243, 241, 0.13);
+  --e-mint: #5FE0C3;
+  position: relative; z-index: 0; overflow: hidden;
+  margin-top: calc(-1 * var(--sheet-r));
+  padding-top: var(--sheet-r);
+  background: var(--e-bg);
+  color: var(--e-ink);
+  color-scheme: dark;
+}
+.end :focus-visible { outline-color: var(--e-mint); }
+.end-stage { padding-block: clamp(64px, 9vw, 128px) clamp(40px, 6vw, 72px); }
+.end-head { display: grid; gap: 20px; }
+.end-kicker {
+  display: flex; align-items: center; gap: 10px; color: var(--e-mint);
+  font-weight: 600; font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.end-kicker::before { content: ""; width: 22px; height: 1.5px; background: currentColor; }
+.end-closing {
+  font-family: var(--font-display); font-weight: 340; font-size: clamp(2.2rem, 5.4vw, 4.75rem);
+  line-height: 1.03; letter-spacing: -0.034em; text-wrap: balance; max-width: 20ch; color: var(--e-ink);
+}
+.end-closing .hl { color: var(--e-mint); }
+/* the closing line arrives a word at a time, in reading order (only with motion, only once) */
+.end.anim .end-closing .w {
+  display: inline-block; opacity: 0; transform: translateY(0.45em); filter: blur(8px);
+  transition: opacity 0.9s ease, transform 1s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.9s ease;
+  transition-delay: calc(var(--i) * 60ms);
+}
+.end.anim.in .end-closing .w { opacity: 1; transform: none; filter: none; }
+
+.end-theatre { position: relative; margin-top: clamp(24px, 4vw, 52px); }
+/* a low lavender light behind the word, the stage's only lamp */
+.end-theatre::before {
+  content: ""; position: absolute; left: 50%; top: 4%; width: min(1100px, 120%); height: 72%;
+  transform: translateX(-50%); pointer-events: none; z-index: -1;
+  background: radial-gradient(closest-side, rgba(128, 98, 220, 0.26), rgba(128, 98, 220, 0.08) 55%, transparent);
+}
+.end:not(.js) .end-theatre { display: none; }
+.end-canvas-wrap { position: relative; width: 100%; aspect-ratio: 2.3 / 1; }
+@media (max-width: 640px) { .end-canvas-wrap { aspect-ratio: 1 / 1; } }
+.end-canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: pan-y; border-radius: 12px; }
+.end-canvas-wrap canvas:focus-visible { outline: 2px solid var(--e-mint); outline-offset: 4px; }
+.end-memory { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-top: 6px; }
+.end-mlab, .end-count { font-family: var(--font-mono); font-size: 0.74rem; color: var(--e-ink-3); letter-spacing: 0.02em; }
+.end-count { min-width: 10ch; text-align: right; font-variant-numeric: tabular-nums; }
+.end-ribbon { position: relative; height: 14px; }
+.end-ribbon canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 4px; cursor: crosshair; touch-action: pan-y; }
+.end-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 18px; }
+.end .chip { background: transparent; color: var(--e-ink-2); border-color: rgba(238, 243, 241, 0.2); }
+.end .chip:hover { color: var(--e-ink); border-color: rgba(238, 243, 241, 0.5); }
+.end .chip[aria-pressed="true"] { background: var(--e-ink); color: var(--e-bg); border-color: var(--e-ink); }
+.end-again { margin-left: auto; }
+.end-read {
+  margin-top: 16px; min-height: 1.5em; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5;
+  color: var(--e-ink-2); font-variant-numeric: tabular-nums;
+}
+.end-cap { margin-top: 10px; max-width: 72ch; font-size: 0.95rem; line-height: 1.6; color: var(--e-ink-2); }
+
+.end-credits {
+  border-top: 1px solid var(--e-rule);
+  padding-block: clamp(36px, 5vw, 60px) calc(clamp(28px, 4vw, 44px) + env(safe-area-inset-bottom, 0px));
+}
+html.at-end { background-color: #060A09; }
+.end-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr) minmax(0, 1.45fr) minmax(0, 1.1fr); gap: 32px 36px; }
+@media (max-width: 1000px) { .end-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .end-grid { grid-template-columns: minmax(0, 1fr); } }
+.end-h { font-weight: 600; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--e-ink-3); margin-bottom: 12px; }
+.end-h2 { margin-top: 22px; }
+.end-credits p, .end-credits li { font-size: 0.9rem; line-height: 1.55; color: var(--e-ink-2); }
+.end-credits ul, .end-credits ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.end-credits a { color: var(--e-ink); text-decoration-color: rgba(95, 224, 195, 0.5); }
+.end-credits a:hover { text-decoration-color: var(--e-mint); }
+.end-who { display: grid; gap: 8px; align-content: start; }
+.end-credits .end-title { font-family: var(--font-display); font-weight: 500; font-size: 1.12rem; line-height: 1.3; letter-spacing: -0.012em; color: var(--e-ink); }
+.end-credits .end-mail { font-family: var(--font-mono); font-size: 0.8rem; user-select: all; }
+.end-credits .end-venue { color: var(--e-mint); font-weight: 600; }
+.end-ix { grid-auto-flow: column; grid-template-rows: repeat(6, auto); column-gap: 20px; }
+.end-ix a { display: flex; gap: 10px; align-items: baseline; text-decoration: none; }
+.end-ix a:hover { color: var(--e-mint); }
+.end-ix a span { font-family: var(--font-mono); font-size: 0.74rem; color: var(--e-ink-3); min-width: 2ch; text-align: right; }
+.end-base {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  margin-top: clamp(32px, 4.5vw, 52px); padding-top: 20px; border-top: 1px solid var(--e-rule); font-size: 0.86rem;
+}
+.end-base .end-arxiv { font-family: var(--font-mono); font-size: 0.8rem; color: var(--e-ink-2); }
+.end-base .end-top { font-weight: 600; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; }
+.end-base .end-top:hover { color: var(--e-mint); }
+.tip.on-dark { background: #EEF3F1; color: #0B0F0E; }
+@media print {
+  main { box-shadow: none; }
+  .end { background: none; color: #000; }
+  .end-theatre { display: none; }
+  .end.anim .end-closing .w { opacity: 1; transform: none; filter: none; }
+}
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (max-width: 400px) {
+  table.data th, table.data td { padding: 5px 6px; }
+  table.data th { white-space: normal; vertical-align: bottom; }
+}
+@media (max-width: 600px) {
+  body { font-size: 1.05rem; }
+  .bignums { grid-template-columns: minmax(0, 1fr); }
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .dial-row { gap: 4px; }
+}
+
+</style>
+
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in gutter wide">
+    <a class="wordmark" href="#top" aria-label="PACK3D NeurIPS 2026, back to top">
+      <svg class="cube" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 18 6v8.6L10 19 2 14.6V6z" fill="var(--teal)"/><path d="M10 1.5 18 6l-8 4.4L2 6z" fill="var(--mint-ink)" opacity=".55"/><path d="M10 10.4V19" stroke="var(--surface)" stroke-width="1.2"/></svg>
+      <span class="wm-text"><span class="wm-name">PACK3D</span> <span class="wm-sub">NeurIPS 2026</span></span>
+    </a>
+    <nav class="chapters" aria-label="Chapters">
+      <a href="#two-indices">Two indices</a>
+      <a href="#blind-spot">The blind spot</a>
+      <a href="#operator">The operator</a>
+      <a href="#figure">Figure 1</a>
+      <a href="#contract">The contract</a>
+      <a href="#test">The test</a>
+      <a href="#msd">Second domain</a>
+      <a href="#branch">Inside the branch</a>
+      <a href="#unet">U-Net</a>
+      <a href="#systems">Cost</a>
+      <a href="#limits">Limits</a>
+    </nav>
+    <div class="top-links">
+      <a class="btn ghost" href="https://github.com/amilworks/Pack3D" target="_blank" rel="noopener">Code</a>
+      <a class="btn" href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">Paper</a>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main id="top">
+<noscript><p class="noscript-note gutter">The interactive figures on this page need JavaScript. Every sentence and number is readable without it, and the paper is linked from the top bar.</p></noscript>
+<!-- ================================================================== hero -->
+<section class="hero gutter">
+  <div class="wide hero-grid">
+    <div>
+      <p class="eyebrow keep-case">NeurIPS 2026 · Sydney, Australia</p>
+      <h1 style="margin-top:16px" id="title">Geometry Matters in Packed 3D Attention</h1>
+      <div class="meta">
+        <span><b>Amil Khan</b></span><span><b>Anantajit Subrahmanya</b></span><span><b>B.S. Manjunath</b></span>
+        <span class="affil">Department of Electrical &amp; Computer Engineering<br>University of California, Santa Barbara</span>
+      </div>
+      <p class="lede">Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. <strong>PACK3D</strong> attends by the coordinate. A model that attends by memory position can learn the storage order instead of the object, and accuracy on the training layout cannot tell you which one it learned.</p>
+      <div class="cta">
+        <a class="btn" href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">Read the paper</a>
+        <a class="btn ghost" href="https://github.com/amilworks/Pack3D" target="_blank" rel="noopener">Get the code</a>
+        <a class="btn ghost" href="#test">Jump to the result</a>
+        <a class="btn ghost" href="#cite">Cite</a>
+      </div>
+    </div>
+    <figure class="hero-figure" style="margin:0">
+      <div class="hero-canvas-wrap" id="heroWrap">
+        <canvas id="heroCanvas" role="img" aria-label="A cube of 4,096 tokens, colored by the memory position each token occupies under the selected storage order."></canvas>
+      </div>
+      <div class="hero-caption">
+        <div class="chips" id="heroChips" role="group" aria-label="Storage order">
+          <button class="chip" data-layout="raster" aria-pressed="true">Raster</button>
+          <button class="chip" data-layout="morton" aria-pressed="false">Morton</button>
+          <button class="chip" data-layout="blocks" aria-pressed="false">Blocks</button>
+          <button class="chip" data-layout="repack" aria-pressed="false">Repacked</button>
+          <button class="chip" id="heroPlay" aria-pressed="false" title="Cycle through the orders">Play</button>
+        </div>
+        <div class="legend-ramp"><span>position 0</span><i id="heroRamp"></i><span>4,095</span></div>
+      </div>
+      <figcaption class="small muted">The same 16 × 16 × 16 volume of tokens, colored by the memory position each token lands in, with one corner cut away. Change the storage order and only the colors move: the volume stays where it is. A model that indexes position by memory order sees the colors.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================================================================== 1. two indices -->
+<section class="chapter gutter" id="two-indices">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 1</p>
+    <h2>Every token has two indices</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">Attention over a volume starts by writing the volume down. Patches become tokens, and the tokens go into memory in some order: raster, Morton, block by block.</p>
+    <p>The order is a systems choice, made for speed. It changes where a token is stored and leaves the token where it is. Each token keeps its coordinate <span class="math math-inline"><svg style="vertical-align: -0.566ex;" xmlns="http://www.w3.org/2000/svg" width="21.03ex" height="2.262ex" role="img" aria-label="c_i = \pi(i) = (z_i, y_i, x_i)" focusable="false" viewBox="0 -750 9295.3 1000"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="msub"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(1037.7,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mi" transform="translate(2093.5,0)"><path data-c="1D70B" d="M132 -11Q98 -11 98 22V33L111 61Q186 219 220 334L228 358H196Q158 358 142 355T103 336Q92 329 81 318T62 297T53 285Q51 284 38 284Q19 284 19 294Q19 300 38 329T93 391T164 429Q171 431 389 431Q549 431 553 430Q573 423 573 402Q573 371 541 360Q535 358 472 358H408L405 341Q393 269 393 222Q393 170 402 129T421 65T431 37Q431 20 417 5T381 -10Q370 -10 363 -7T347 17T331 77Q330 86 330 121Q330 170 339 226T357 318T367 358H269L268 354Q268 351 249 275T206 114T175 17Q164 -11 132 -11Z"></path></g><g data-mml-node="mo" transform="translate(2663.5,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(3052.5,0)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(3397.5,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mo" transform="translate(4064.3,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mo" transform="translate(5120.1,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(5509.1,0)"><g data-mml-node="mi"><path data-c="1D467" d="M347 338Q337 338 294 349T231 360Q211 360 197 356T174 346T162 335T155 324L153 320Q150 317 138 317Q117 317 117 325Q117 330 120 339Q133 378 163 406T229 440Q241 442 246 442Q271 442 291 425T329 392T367 375Q389 375 411 408T434 441Q435 442 449 442H462Q468 436 468 434Q468 430 463 420T449 399T432 377T418 358L411 349Q368 298 275 214T160 106L148 94L163 93Q185 93 227 82T290 71Q328 71 360 90T402 140Q406 149 409 151T424 153Q443 153 443 143Q443 138 442 134Q425 72 376 31T278 -11Q252 -11 232 6T193 40T155 57Q111 57 76 -3Q70 -11 59 -11H54H41Q35 -5 35 -2Q35 13 93 84Q132 129 225 214T340 322Q352 338 347 338Z"></path></g><g data-mml-node="mi" transform="translate(498,-150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(6301,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(6745.7,0)"><g data-mml-node="mi"><path data-c="1D466" d="M21 287Q21 301 36 335T84 406T158 442Q199 442 224 419T250 355Q248 336 247 334Q247 331 231 288T198 191T182 105Q182 62 196 45T238 27Q261 27 281 38T312 61T339 94Q339 95 344 114T358 173T377 247Q415 397 419 404Q432 431 462 431Q475 431 483 424T494 412T496 403Q496 390 447 193T391 -23Q363 -106 294 -155T156 -205Q111 -205 77 -183T43 -117Q43 -95 50 -80T69 -58T89 -48T106 -45Q150 -45 150 -87Q150 -107 138 -122T115 -142T102 -147L99 -148Q101 -153 118 -160T152 -167H160Q177 -167 186 -165Q219 -156 247 -127T290 -65T313 -9T321 21L315 17Q309 13 296 6T270 -6Q250 -11 231 -11Q185 -11 150 11T104 82Q103 89 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mi" transform="translate(523,-150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(7562.6,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="msub" transform="translate(8007.3,0)"><g data-mml-node="mi"><path data-c="1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path></g><g data-mml-node="mi" transform="translate(605,-150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(8906.3,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g></g></g></svg></span>. In the paper's words, the memory position <i>i</i> says where a token is stored, and <i>c<sub>i</sub></i> says where it is.</p>
+    <p>Below is a small field of 512 tokens. Pick a query <span class="mono" style="color:var(--ink)">q</span> (orange) and look at its neighbor <span class="mono" style="color:var(--ink)">k</span> one step up (green). The offset between them in the volume, <span class="math math-inline"><svg style="vertical-align: -0.65ex;" xmlns="http://www.w3.org/2000/svg" width="12.551ex" height="2.27ex" role="img" aria-label="\Delta c = c_k - c_q" focusable="false" viewBox="0 -716 5547.7 1003.2"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="394" d="M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z"></path></g><g data-mml-node="mi" transform="translate(833,0)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mo" transform="translate(1543.8,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="msub" transform="translate(2599.6,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g></g><g data-mml-node="mo" transform="translate(3706.2,0)"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"></path></g><g data-mml-node="msub" transform="translate(4706.4,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D45E" d="M33 157Q33 258 109 349T280 441Q340 441 372 389Q373 390 377 395T388 406T404 418Q438 442 450 442Q454 442 457 439T460 434Q460 425 391 149Q320 -135 320 -139Q320 -147 365 -148H390Q396 -156 396 -157T393 -175Q389 -188 383 -194H370Q339 -192 262 -192Q234 -192 211 -192T174 -192T157 -193Q143 -193 143 -185Q143 -182 145 -170Q149 -154 152 -151T172 -148Q220 -148 230 -141Q238 -136 258 -53T279 32Q279 33 272 29Q224 -10 172 -10Q117 -10 75 30T33 157ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path></g></g></g></g></svg></span>, never changes. The offset between them in memory, <span class="math math-inline"><svg style="vertical-align: -0.439ex;" xmlns="http://www.w3.org/2000/svg" width="4.975ex" height="2.059ex" role="img" aria-label="\Delta\mathrm{seq}" focusable="false" viewBox="0 -716 2199 910"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="394" d="M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z"></path></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(833,0)"><g data-mml-node="mi"><path data-c="73" d="M295 316Q295 356 268 385T190 414Q154 414 128 401Q98 382 98 349Q97 344 98 336T114 312T157 287Q175 282 201 278T245 269T277 256Q294 248 310 236T342 195T359 133Q359 71 321 31T198 -10H190Q138 -10 94 26L86 19L77 10Q71 4 65 -1L54 -11H46H42Q39 -11 33 -5V74V132Q33 153 35 157T45 162H54Q66 162 70 158T75 146T82 119T101 77Q136 26 198 26Q295 26 295 104Q295 133 277 151Q257 175 194 187T111 210Q75 227 54 256T33 318Q33 357 50 384T93 424T143 442T187 447H198Q238 447 268 432L283 424L292 431Q302 440 314 448H322H326Q329 448 335 442V310L329 304H301Q295 310 295 316Z"></path><path data-c="65" d="M28 218Q28 273 48 318T98 391T163 433T229 448Q282 448 320 430T378 380T406 316T415 245Q415 238 408 231H126V216Q126 68 226 36Q246 30 270 30Q312 30 342 62Q359 79 369 104L379 128Q382 131 395 131H398Q415 131 415 121Q415 117 412 108Q393 53 349 21T250 -11Q155 -11 92 58T28 218ZM333 275Q322 403 238 411H236Q228 411 220 410T195 402T166 381T143 340T127 274V267H333V275Z" transform="translate(394,0)"></path><path data-c="71" d="M33 218Q33 308 95 374T236 441H246Q330 441 381 372L387 364Q388 364 404 403L420 442H457V156Q457 -132 458 -134Q462 -142 470 -145Q491 -148 519 -148H535V-194H527L504 -193Q480 -192 453 -192T415 -191Q312 -191 303 -194H295V-148H311Q339 -148 360 -145Q369 -141 371 -135T373 -106V-41V49Q313 -11 236 -11Q154 -11 94 53T33 218ZM376 300Q346 389 278 401Q275 401 269 401T261 402Q211 400 171 350T131 214Q131 137 165 82T253 27Q296 27 328 54T376 118V300Z" transform="translate(838,0)"></path></g></g></g></g></svg></span>, depends on the order you choose.</p>
+  </div>
+
+  <div class="wide bench" id="lab">
+    <div class="bench-head">
+      <span class="bench-title">The two-indices lab</span>
+      <span class="bench-sub">8 × 8 × 8 tokens · click a token to make it the query</span>
+    </div>
+    <div class="controls">
+      <div class="chips" id="labLayouts" role="group" aria-label="Storage order">
+        <button class="chip" data-layout="raster" aria-pressed="true">Raster</button>
+        <button class="chip" data-layout="morton" aria-pressed="false">Morton</button>
+        <button class="chip" data-layout="blocks" aria-pressed="false">2 × 2 × 2 blocks</button>
+        <button class="chip" data-layout="repack" aria-pressed="false">Pure repack</button>
+      </div>
+      <div class="chips" id="labModes" role="group" aria-label="What to show">
+        <button class="chip" data-mode="pair" aria-pressed="true">q and k</button>
+        <button class="chip" data-mode="offsets" aria-pressed="false">Sequence neighbors</button>
+        <button class="chip" data-mode="local" aria-pressed="false">Local window</button>
+      </div>
+    </div>
+    <p class="view-label">The sample: eight z-slices, z = 0 to 7, each seen from above</p>
+    <div class="lab-slices" id="labSlicesWrap"><canvas id="labSlices" role="img" aria-label="The token field as eight z-slices; click a token to make it the query"></canvas></div>
+    <p class="view-label" style="margin-top:14px">The memory: 512 positions, read left to right, top to bottom</p>
+    <div class="ribbon-wrap"><canvas id="labRibbon" role="img" aria-label="The memory order of the tokens"></canvas></div>
+    <div class="readouts" style="margin-top:14px" id="labReadouts">
+      <div class="readout"><span class="lab">query q, coordinate (z, y, x)</span><span class="val" id="roQ">(3, 5, 2)</span></div>
+      <div class="readout"><span class="lab">Δc = c<sub>k</sub> − c<sub>q</sub></span><span class="val" id="roDc">(1, 0, 0)</span></div>
+      <div class="readout"><span class="lab">memory positions of q → k</span><span class="val" id="roSlots">—</span></div>
+      <div class="readout"><span class="lab">Δseq</span><span class="val" id="roDseq">—</span></div>
+      <div class="readout" id="roExtraBox" hidden><span class="lab" id="roExtraLab"></span><span class="val" id="roExtra"></span></div>
+    </div>
+    <p class="bench-foot" id="labNote">Colors follow each token's place in the sample, so a token keeps its color in every view. The pure repack keeps the raster order inside each z-layer and moves whole layers, the way the paper's repack moves whole summary groups.</p>
+  </div>
+</section>
+
+<!-- ================================================================== 2. blind spot -->
+<section class="chapter gutter" id="blind-spot">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 2</p>
+    <h2>The failure is silent</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">A positional encoding indexed by sequence position learns what a memory offset means.</p>
+    <p>Under raster order, the token 64 positions ahead of <span class="mono">q</span> is the one directly above it, and the tokens 1 and 8 positions away are its neighbors along x and y. That is a consistent proxy for geometry. So on the layout a model was trained on, a sequence index can stand in for a coordinate, and the model works.</p>
+    <p>Switch the lab above to <b>Sequence neighbors</b>: it marks the six tokens at Δseq = ±1, ±8 and ±64 from <span class="mono">q</span>. Under raster, for a query away from the edges of the field, they are exactly its six face neighbors. Under any other order, the same offsets point somewhere else in the volume.</p>
+    <p>On the training layout, accuracy cannot reveal which index a model reads. On <span class="nw">Allen-15</span> microscopy, a sequence-indexed model and PACK3D trained on the same raster-block layout reach comparable Dice:</p>
+  </div>
+  <div class="col bench" style="max-width:var(--col)">
+    <div class="bench-head"><span class="bench-title">On the training layout</span><span class="bench-sub"><span class="nw">Allen-15</span> · the six checkpoints tested in Chapter 5 · macro Dice</span></div>
+    <div class="bignums">
+      <div class="bignum"><span class="who"><span class="dot teal"></span>PACK3D</span><span class="v num" id="parityAx">0.8247</span><span class="d">axial RoPE on token coordinates</span></div>
+      <div class="bignum"><span class="who"><span class="dot coral"></span>Packed RoPE</span><span class="v num" id="parityPk">0.8229</span><span class="d">the same operator, RoPE on sequence position</span></div>
+    </div>
+    <p class="bench-foot">The packed-minus-axial difference on the training layout is −0.0018 over six seeds (<span class="nw">exact p = 0.22</span>). Nothing here says which index each model reads.</p>
+  </div>
+</section>
+
+<!-- ================================================================== 3. operator -->
+<section class="chapter gutter" id="operator">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 3</p>
+    <h2>PACK3D attends in the coordinates of the sample</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">PACK3D is a local–global attention operator that separates memory layout from attention geometry. It rests on three contracts.</p>
+  </div>
+  <div class="wide claims" style="margin-top:22px">
+    <div class="claim"><span class="eyebrow">Contract 1</span><h3>Local attention is exact</h3><p class="muted small">Each query attends to every token in its 3 × 3 × 3 coordinate neighborhood, at most 27 tokens. The neighborhood is defined by coordinate offsets and validity, never by adjacency in the packed array. Microscopy carries high-frequency morphology that summaries would erase.</p></div>
+    <div class="claim"><span class="eyebrow">Contract 2</span><h3>The rest of the field comes through summaries</h3><p class="muted small">Blocks of tokens are pooled into summaries, and every query attends to all of them. On <span class="nw">Allen-15</span> that is 1,024 summaries per KV head at 262,144 tokens.</p></div>
+    <div class="claim"><span class="eyebrow">Contract 3</span><h3>Compatibility is a function of 3D coordinates</h3><p class="muted small">Queries and keys are rotated with axial RoPE at their token-grid coordinates, never at their packed sequence index. Values are not rotated.</p></div>
+    <div class="claim"><span class="eyebrow">The consequence</span><h3>Keys are rotated before they are pooled</h3><p class="muted small">So each query-to-summary logit is a weighted sum of query–key terms, each evaluated at a member token's displacement from the query.</p></div>
+  </div>
+
+  <!-- 3a rotary dials -->
+  <div class="col prose" style="margin-top:46px">
+    <h3>A logit that only sees displacement</h3>
+    <p>Axial RoPE splits each head into rotation planes, one set per axis: <span class="math math-inline"><svg style="vertical-align: -0.667ex;" xmlns="http://www.w3.org/2000/svg" width="29.899ex" height="2.364ex" role="img" aria-label="R(c) = R_z(z) \oplus R_y(y) \oplus R_x(x)" focusable="false" viewBox="0 -750 13215.2 1045"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mo" transform="translate(759,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(1148,0)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mo" transform="translate(1581,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mo" transform="translate(2247.8,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="msub" transform="translate(3303.6,0)"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mi" transform="translate(792,-150) scale(0.707)"><path data-c="1D467" d="M347 338Q337 338 294 349T231 360Q211 360 197 356T174 346T162 335T155 324L153 320Q150 317 138 317Q117 317 117 325Q117 330 120 339Q133 378 163 406T229 440Q241 442 246 442Q271 442 291 425T329 392T367 375Q389 375 411 408T434 441Q435 442 449 442H462Q468 436 468 434Q468 430 463 420T449 399T432 377T418 358L411 349Q368 298 275 214T160 106L148 94L163 93Q185 93 227 82T290 71Q328 71 360 90T402 140Q406 149 409 151T424 153Q443 153 443 143Q443 138 442 134Q425 72 376 31T278 -11Q252 -11 232 6T193 40T155 57Q111 57 76 -3Q70 -11 59 -11H54H41Q35 -5 35 -2Q35 13 93 84Q132 129 225 214T340 322Q352 338 347 338Z"></path></g></g><g data-mml-node="mo" transform="translate(4474.4,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(4863.4,0)"><path data-c="1D467" d="M347 338Q337 338 294 349T231 360Q211 360 197 356T174 346T162 335T155 324L153 320Q150 317 138 317Q117 317 117 325Q117 330 120 339Q133 378 163 406T229 440Q241 442 246 442Q271 442 291 425T329 392T367 375Q389 375 411 408T434 441Q435 442 449 442H462Q468 436 468 434Q468 430 463 420T449 399T432 377T418 358L411 349Q368 298 275 214T160 106L148 94L163 93Q185 93 227 82T290 71Q328 71 360 90T402 140Q406 149 409 151T424 153Q443 153 443 143Q443 138 442 134Q425 72 376 31T278 -11Q252 -11 232 6T193 40T155 57Q111 57 76 -3Q70 -11 59 -11H54H41Q35 -5 35 -2Q35 13 93 84Q132 129 225 214T340 322Q352 338 347 338Z"></path></g><g data-mml-node="mo" transform="translate(5328.4,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mo" transform="translate(5939.6,0)"><path data-c="2295" d="M56 250Q56 394 156 488T384 583Q530 583 626 485T722 250Q722 110 625 14T390 -83Q249 -83 153 14T56 250ZM364 542Q308 539 251 509T148 418T96 278V270H369V542H364ZM681 278Q675 338 650 386T592 462T522 509T458 535T412 542H409V270H681V278ZM96 222Q104 150 139 95T219 12T302 -29T366 -42H369V230H96V222ZM681 222V230H409V-42H412Q429 -42 456 -36T521 -10T590 37T649 113T681 222Z"></path></g><g data-mml-node="msub" transform="translate(6939.8,0)"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mi" transform="translate(792,-150) scale(0.707)"><path data-c="1D466" d="M21 287Q21 301 36 335T84 406T158 442Q199 442 224 419T250 355Q248 336 247 334Q247 331 231 288T198 191T182 105Q182 62 196 45T238 27Q261 27 281 38T312 61T339 94Q339 95 344 114T358 173T377 247Q415 397 419 404Q432 431 462 431Q475 431 483 424T494 412T496 403Q496 390 447 193T391 -23Q363 -106 294 -155T156 -205Q111 -205 77 -183T43 -117Q43 -95 50 -80T69 -58T89 -48T106 -45Q150 -45 150 -87Q150 -107 138 -122T115 -142T102 -147L99 -148Q101 -153 118 -160T152 -167H160Q177 -167 186 -165Q219 -156 247 -127T290 -65T313 -9T321 21L315 17Q309 13 296 6T270 -6Q250 -11 231 -11Q185 -11 150 11T104 82Q103 89 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(8128.3,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(8517.3,0)"><path data-c="1D466" d="M21 287Q21 301 36 335T84 406T158 442Q199 442 224 419T250 355Q248 336 247 334Q247 331 231 288T198 191T182 105Q182 62 196 45T238 27Q261 27 281 38T312 61T339 94Q339 95 344 114T358 173T377 247Q415 397 419 404Q432 431 462 431Q475 431 483 424T494 412T496 403Q496 390 447 193T391 -23Q363 -106 294 -155T156 -205Q111 -205 77 -183T43 -117Q43 -95 50 -80T69 -58T89 -48T106 -45Q150 -45 150 -87Q150 -107 138 -122T115 -142T102 -147L99 -148Q101 -153 118 -160T152 -167H160Q177 -167 186 -165Q219 -156 247 -127T290 -65T313 -9T321 21L315 17Q309 13 296 6T270 -6Q250 -11 231 -11Q185 -11 150 11T104 82Q103 89 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(9007.3,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mo" transform="translate(9618.5,0)"><path data-c="2295" d="M56 250Q56 394 156 488T384 583Q530 583 626 485T722 250Q722 110 625 14T390 -83Q249 -83 153 14T56 250ZM364 542Q308 539 251 509T148 418T96 278V270H369V542H364ZM681 278Q675 338 650 386T592 462T522 509T458 535T412 542H409V270H681V278ZM96 222Q104 150 139 95T219 12T302 -29T366 -42H369V230H96V222ZM681 222V230H409V-42H412Q429 -42 456 -36T521 -10T590 37T649 113T681 222Z"></path></g><g data-mml-node="msub" transform="translate(10618.7,0)"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mi" transform="translate(792,-150) scale(0.707)"><path data-c="1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path></g></g><g data-mml-node="mo" transform="translate(11865.2,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(12254.2,0)"><path data-c="1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path></g><g data-mml-node="mo" transform="translate(12826.2,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g></g></g></svg></span>. A query and a key are each turned by their own coordinate, and the turns cancel down to their difference:</p>
+    <div class="math math-display"><span class="math math-inline"><svg style="vertical-align: -0.666ex;" xmlns="http://www.w3.org/2000/svg" width="35.016ex" height="2.669ex" role="img" aria-label="\langle R(c_i)\,q,\ R(c_j)\,k\rangle \;=\; q^{\top} R(c_j - c_i)\,k" focusable="false" viewBox="0 -885.3 15477.1 1179.6"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mo"><path data-c="27E8" d="M333 -232Q332 -239 327 -244T313 -250Q303 -250 296 -240Q293 -233 202 6T110 250T201 494T296 740Q299 745 306 749L309 750Q312 750 313 750Q331 750 333 732Q333 727 243 489Q152 252 152 250T243 11Q333 -227 333 -232Z"></path></g><g data-mml-node="mi" transform="translate(389,0)"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mo" transform="translate(1148,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(1537,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(2297,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mstyle" transform="translate(2686,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mi" transform="translate(2853,0)"><path data-c="1D45E" d="M33 157Q33 258 109 349T280 441Q340 441 372 389Q373 390 377 395T388 406T404 418Q438 442 450 442Q454 442 457 439T460 434Q460 425 391 149Q320 -135 320 -139Q320 -147 365 -148H390Q396 -156 396 -157T393 -175Q389 -188 383 -194H370Q339 -192 262 -192Q234 -192 211 -192T174 -192T157 -193Q143 -193 143 -185Q143 -182 145 -170Q149 -154 152 -151T172 -148Q220 -148 230 -141Q238 -136 258 -53T279 32Q279 33 272 29Q224 -10 172 -10Q117 -10 75 30T33 157ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path></g><g data-mml-node="mo" transform="translate(3313,0)"><path data-c="2C" d="M78 35T78 60T94 103T137 121Q165 121 187 96T210 8Q210 -27 201 -60T180 -117T154 -158T130 -185T117 -194Q113 -194 104 -185T95 -172Q95 -168 106 -156T131 -126T157 -76T173 -3V9L172 8Q170 7 167 6T161 3T152 1T140 0Q113 0 96 17Z"></path></g><g data-mml-node="mtext" transform="translate(3757.6,0)"><path data-c="A0" d=""></path></g><g data-mml-node="mi" transform="translate(4007.6,0)"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mo" transform="translate(4766.6,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(5155.6,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D457" d="M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z"></path></g></g><g data-mml-node="mo" transform="translate(5962.9,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mstyle" transform="translate(6351.9,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mi" transform="translate(6518.9,0)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g><g data-mml-node="mo" transform="translate(7039.9,0)"><path data-c="27E9" d="M55 732Q56 739 61 744T75 750Q85 750 92 740Q95 733 186 494T278 250T187 6T92 -240Q85 -250 75 -250Q67 -250 62 -245T55 -232Q55 -227 145 11Q236 248 236 250T145 489Q55 727 55 732Z"></path></g><g data-mml-node="mstyle" transform="translate(7428.9,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mo" transform="translate(7984.7,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mstyle" transform="translate(8762.7,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msup" transform="translate(9318.5,0)"><g data-mml-node="mi"><path data-c="1D45E" d="M33 157Q33 258 109 349T280 441Q340 441 372 389Q373 390 377 395T388 406T404 418Q438 442 450 442Q454 442 457 439T460 434Q460 425 391 149Q320 -135 320 -139Q320 -147 365 -148H390Q396 -156 396 -157T393 -175Q389 -188 383 -194H370Q339 -192 262 -192Q234 -192 211 -192T174 -192T157 -193Q143 -193 143 -185Q143 -182 145 -170Q149 -154 152 -151T172 -148Q220 -148 230 -141Q238 -136 258 -53T279 32Q279 33 272 29Q224 -10 172 -10Q117 -10 75 30T33 157ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path></g><g data-mml-node="TeXAtom" transform="translate(543.7,413) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="22A4" d="M55 642T55 648T59 659T66 666T71 668H708Q723 660 723 648T708 628H409V15Q402 2 391 0Q387 0 384 1T379 3T375 6T373 9T371 13T369 16V628H71Q70 628 67 630T59 637Z"></path></g></g></g><g data-mml-node="mi" transform="translate(10462.3,0)"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mo" transform="translate(11221.3,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(11610.3,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D457" d="M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z"></path></g></g><g data-mml-node="mo" transform="translate(12639.9,0)"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"></path></g><g data-mml-node="msub" transform="translate(13640.1,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(14400.1,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mstyle" transform="translate(14789.1,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mi" transform="translate(14956.1,0)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g></g></g></svg></span></div>
+    <p>So the logit depends on the displacement <span class="math math-inline"><svg style="vertical-align: -0.65ex;" xmlns="http://www.w3.org/2000/svg" width="12.551ex" height="2.27ex" role="img" aria-label="\Delta c = c_k - c_q" focusable="false" viewBox="0 -716 5547.7 1003.2"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="394" d="M51 0Q46 4 46 7Q46 9 215 357T388 709Q391 716 416 716Q439 716 444 709Q447 705 616 357T786 7Q786 4 781 0H51ZM507 344L384 596L137 92L383 91H630Q630 93 507 344Z"></path></g><g data-mml-node="mi" transform="translate(833,0)"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mo" transform="translate(1543.8,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="msub" transform="translate(2599.6,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g></g><g data-mml-node="mo" transform="translate(3706.2,0)"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"></path></g><g data-mml-node="msub" transform="translate(4706.4,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D45E" d="M33 157Q33 258 109 349T280 441Q340 441 372 389Q373 390 377 395T388 406T404 418Q438 442 450 442Q454 442 457 439T460 434Q460 425 391 149Q320 -135 320 -139Q320 -147 365 -148H390Q396 -156 396 -157T393 -175Q389 -188 383 -194H370Q339 -192 262 -192Q234 -192 211 -192T174 -192T157 -193Q143 -193 143 -185Q143 -182 145 -170Q149 -154 152 -151T172 -148Q220 -148 230 -141Q238 -136 258 -53T279 32Q279 33 272 29Q224 -10 172 -10Q117 -10 75 30T33 157ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path></g></g></g></g></svg></span> and never on where either token is stored. Drag the two tokens. Then move both together, or repack the memory.</p>
+  </div>
+  <div class="wide bench" id="rope">
+    <div class="bench-head"><span class="bench-title">Rotary dials</span><span class="bench-sub">one rotation plane per axis · toy frequencies and key content</span></div>
+    <div class="widget-grid">
+      <div>
+        <svg id="ropeGrid" class="chart" viewBox="0 0 320 320" role="img" aria-label="A 9 by 9 grid with a query and a key token you can drag"></svg>
+        <div class="controls" style="margin-top:10px">
+          <button class="btn ghost" id="ropeMove" type="button">Move both one step</button>
+          <button class="btn ghost" id="ropeRepack" type="button">Repack the memory</button>
+          <button class="btn ghost" id="ropeReset" type="button">Reset</button>
+        </div>
+      </div>
+      <div style="display:grid;gap:16px;min-width:0">
+        <div>
+          <p class="view-label" style="margin-bottom:6px"><span class="dot teal"></span> PACK3D: rotate by coordinate</p>
+          <div class="dial-row" id="ropeDialsCoord"></div>
+          <div style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin-top:6px">
+            <span class="small muted">logit</span><div class="meter"><i id="ropeMeterC"></i></div><span class="num mono" id="ropeValC">0.00</span>
+          </div>
+        </div>
+        <div>
+          <p class="view-label" style="margin-bottom:6px"><span class="dot coral"></span> Packed RoPE: rotate by memory position</p>
+          <div class="dial-row" id="ropeDialsSeq"></div>
+          <div style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin-top:6px">
+            <span class="small muted">logit</span><div class="meter"><i id="ropeMeterS" style="background:var(--coral)"></i></div><span class="num mono" id="ropeValS">0.00</span>
+          </div>
+        </div>
+        <p class="small muted" id="ropeNote">The orange hand is the query's turn and the green hand the key's. The shaded arc between them is the only positional information the logit receives.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3b rotate before pool -->
+  <div class="col prose" style="margin-top:46px">
+    <h3>Rotate first, then pool</h3>
+    <p>The global branch pools each block of tokens into one summary key. PACK3D rotates every key by its own coordinate before pooling:</p>
+    <div class="math math-display"><span class="math math-inline"><svg style="vertical-align: -3.186ex;" xmlns="http://www.w3.org/2000/svg" width="21.326ex" height="5.656ex" role="img" aria-label="\widehat{k}_j^{R} = \sum_{u\in B_j} a_{ju}\, R(c_u)\, k_u" focusable="false" viewBox="0 -1092 9426.1 2500"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="msubsup"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mover"><g data-mml-node="mi"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g><g data-mml-node="mo" transform="translate(260.5,248) translate(-278 0)"><path data-c="2C6" d="M279 669Q273 669 142 610T9 551L0 569Q-8 585 -8 587Q-8 588 -7 588L12 598Q30 608 66 628T136 666L277 744L564 587L555 569Q549 556 547 554T544 552Q539 555 410 612T279 669Z"></path></g></g></g><g data-mml-node="TeXAtom" transform="translate(554,413) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g></g><g data-mml-node="mi" transform="translate(554,-249.2) scale(0.707)"><path data-c="1D457" d="M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z"></path></g></g><g data-mml-node="mo" transform="translate(1418.5,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="munder" transform="translate(2474.2,0)"><g data-mml-node="mo" transform="translate(116.7,0)"><path data-c="2211" d="M60 948Q63 950 665 950H1267L1325 815Q1384 677 1388 669H1348L1341 683Q1320 724 1285 761Q1235 809 1174 838T1033 881T882 898T699 902H574H543H251L259 891Q722 258 724 252Q725 250 724 246Q721 243 460 -56L196 -356Q196 -357 407 -357Q459 -357 548 -357T676 -358Q812 -358 896 -353T1063 -332T1204 -283T1307 -196Q1328 -170 1348 -124H1388Q1388 -125 1381 -145T1356 -210T1325 -294L1267 -449L666 -450Q64 -450 61 -448Q55 -446 55 -439Q55 -437 57 -433L590 177Q590 178 557 222T452 366T322 544L56 909L55 924Q55 945 60 948Z"></path></g><g data-mml-node="TeXAtom" transform="translate(0,-1100) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(572,0)"><path data-c="2208" d="M84 250Q84 372 166 450T360 539Q361 539 377 539T419 540T469 540H568Q583 532 583 520Q583 511 570 501L466 500Q355 499 329 494Q280 482 242 458T183 409T147 354T129 306T124 272V270H568Q583 262 583 250T568 230H124V228Q124 207 134 177T167 112T231 48T328 7Q355 1 466 0H570Q583 -10 583 -20Q583 -32 568 -40H471Q464 -40 446 -40T417 -41Q262 -41 172 45Q84 127 84 250Z"></path></g><g data-mml-node="msub" transform="translate(1239,0)"><g data-mml-node="mi"><path data-c="1D435" d="M231 637Q204 637 199 638T194 649Q194 676 205 682Q206 683 335 683Q594 683 608 681Q671 671 713 636T756 544Q756 480 698 429T565 360L555 357Q619 348 660 311T702 219Q702 146 630 78T453 1Q446 0 242 0Q42 0 39 2Q35 5 35 10Q35 17 37 24Q42 43 47 45Q51 46 62 46H68Q95 46 128 49Q142 52 147 61Q150 65 219 339T288 628Q288 635 231 637ZM649 544Q649 574 634 600T585 634Q578 636 493 637Q473 637 451 637T416 636H403Q388 635 384 626Q382 622 352 506Q352 503 351 500L320 374H401Q482 374 494 376Q554 386 601 434T649 544ZM595 229Q595 273 572 302T512 336Q506 337 429 337Q311 337 310 336Q310 334 293 263T258 122L240 52Q240 48 252 48T333 46Q422 46 429 47Q491 54 543 105T595 229Z"></path></g><g data-mml-node="mi" transform="translate(792,-150) scale(0.707)"><path data-c="1D457" d="M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z"></path></g></g></g></g><g data-mml-node="msub" transform="translate(4318.4,0)"><g data-mml-node="mi"><path data-c="1D44E" d="M33 157Q33 258 109 349T280 441Q331 441 370 392Q386 422 416 422Q429 422 439 414T449 394Q449 381 412 234T374 68Q374 43 381 35T402 26Q411 27 422 35Q443 55 463 131Q469 151 473 152Q475 153 483 153H487Q506 153 506 144Q506 138 501 117T481 63T449 13Q436 0 417 -8Q409 -10 393 -10Q359 -10 336 5T306 36L300 51Q299 52 296 50Q294 48 292 46Q233 -10 172 -10Q117 -10 75 30T33 157ZM351 328Q351 334 346 350T323 385T277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q217 26 254 59T298 110Q300 114 325 217T351 328Z"></path></g><g data-mml-node="TeXAtom" transform="translate(562,-150) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D457" d="M297 596Q297 627 318 644T361 661Q378 661 389 651T403 623Q403 595 384 576T340 557Q322 557 310 567T297 596ZM288 376Q288 405 262 405Q240 405 220 393T185 362T161 325T144 293L137 279Q135 278 121 278H107Q101 284 101 286T105 299Q126 348 164 391T252 441Q253 441 260 441T272 442Q296 441 316 432Q341 418 354 401T367 348V332L318 133Q267 -67 264 -75Q246 -125 194 -164T75 -204Q25 -204 7 -183T-12 -137Q-12 -110 7 -91T53 -71Q70 -71 82 -81T95 -112Q95 -148 63 -167Q69 -168 77 -168Q111 -168 139 -140T182 -74L193 -32Q204 11 219 72T251 197T278 308T289 365Q289 372 288 376Z"></path></g><g data-mml-node="mi" transform="translate(412,0)"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g></g></g><g data-mml-node="mstyle" transform="translate(5626.2,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mi" transform="translate(5793.2,0)"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mo" transform="translate(6552.2,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(6941.2,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(7861.7,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mstyle" transform="translate(8250.7,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msub" transform="translate(8417.7,0)"><g data-mml-node="mi"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g><g data-mml-node="mi" transform="translate(554,-150) scale(0.707)"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g></g></g></g></svg></span></div>
+    <p>That keeps the geometry of the members inside the summary. Proposition 1 of the paper makes it exact: each query-to-summary logit is a weighted sum of query–key terms, each at a member token's displacement from the query.</p>
+    <div class="math math-display"><span class="math math-inline"><svg style="vertical-align: -3.222ex;" xmlns="http://www.w3.org/2000/svg" width="36.48ex" height="5.539ex" role="img" aria-label="(q_i^{R})^{\top}\, \widetilde{k}_g^{R} \;=\; \sum_{u\in S_g} A_{gu}\; q_i^{\top} R(c_u - c_i)\, k_u" focusable="false" viewBox="0 -1024 16124.1 2448.1"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mo"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msubsup" transform="translate(389,0)"><g data-mml-node="mi"><path data-c="1D45E" d="M33 157Q33 258 109 349T280 441Q340 441 372 389Q373 390 377 395T388 406T404 418Q438 442 450 442Q454 442 457 439T460 434Q460 425 391 149Q320 -135 320 -139Q320 -147 365 -148H390Q396 -156 396 -157T393 -175Q389 -188 383 -194H370Q339 -192 262 -192Q234 -192 211 -192T174 -192T157 -193Q143 -193 143 -185Q143 -182 145 -170Q149 -154 152 -151T172 -148Q220 -148 230 -141Q238 -136 258 -53T279 32Q279 33 272 29Q224 -10 172 -10Q117 -10 75 30T33 157ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path></g><g data-mml-node="TeXAtom" transform="translate(543.7,413) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g></g><g data-mml-node="mi" transform="translate(479,-249.2) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="msup" transform="translate(1519.4,0)"><g data-mml-node="mo"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="TeXAtom" transform="translate(422,413) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="22A4" d="M55 642T55 648T59 659T66 666T71 668H708Q723 660 723 648T708 628H409V15Q402 2 391 0Q387 0 384 1T379 3T375 6T373 9T371 13T369 16V628H71Q70 628 67 630T59 637Z"></path></g></g></g><g data-mml-node="mstyle" transform="translate(2541.5,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msubsup" transform="translate(2708.5,0)"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mover"><g data-mml-node="mi"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g><g data-mml-node="mo" transform="translate(260.5,202) translate(-278 0)"><path data-c="2DC" d="M374 597Q337 597 269 627T160 658Q101 658 34 606L24 597L12 611Q1 624 1 626Q1 627 27 648T55 671Q120 722 182 722Q219 722 286 692T395 661Q454 661 521 713L531 722L543 708Q554 695 554 693Q554 692 528 671T500 648Q434 597 374 597Z"></path></g></g></g><g data-mml-node="TeXAtom" transform="translate(554,413) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g></g><g data-mml-node="mi" transform="translate(554,-247) scale(0.707)"><path data-c="1D454" d="M311 43Q296 30 267 15T206 0Q143 0 105 45T66 160Q66 265 143 353T314 442Q361 442 401 394L404 398Q406 401 409 404T418 412T431 419T447 422Q461 422 470 413T480 394Q480 379 423 152T363 -80Q345 -134 286 -169T151 -205Q10 -205 10 -137Q10 -111 28 -91T74 -71Q89 -71 102 -80T116 -111Q116 -121 114 -130T107 -144T99 -154T92 -162L90 -164H91Q101 -167 151 -167Q189 -167 211 -155Q234 -144 254 -122T282 -75Q288 -56 298 -13Q311 35 311 43ZM384 328L380 339Q377 350 375 354T369 368T359 382T346 393T328 402T306 405Q262 405 221 352Q191 313 171 233T151 117Q151 38 213 38Q269 38 323 108L331 118L384 328Z"></path></g></g><g data-mml-node="mstyle" transform="translate(3849.2,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mo" transform="translate(4405,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mstyle" transform="translate(5183,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="munder" transform="translate(5738.8,0)"><g data-mml-node="mo" transform="translate(81.4,0)"><path data-c="2211" d="M60 948Q63 950 665 950H1267L1325 815Q1384 677 1388 669H1348L1341 683Q1320 724 1285 761Q1235 809 1174 838T1033 881T882 898T699 902H574H543H251L259 891Q722 258 724 252Q725 250 724 246Q721 243 460 -56L196 -356Q196 -357 407 -357Q459 -357 548 -357T676 -358Q812 -358 896 -353T1063 -332T1204 -283T1307 -196Q1328 -170 1348 -124H1388Q1388 -125 1381 -145T1356 -210T1325 -294L1267 -449L666 -450Q64 -450 61 -448Q55 -446 55 -439Q55 -437 57 -433L590 177Q590 178 557 222T452 366T322 544L56 909L55 924Q55 945 60 948Z"></path></g><g data-mml-node="TeXAtom" transform="translate(0,-1115.5) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(572,0)"><path data-c="2208" d="M84 250Q84 372 166 450T360 539Q361 539 377 539T419 540T469 540H568Q583 532 583 520Q583 511 570 501L466 500Q355 499 329 494Q280 482 242 458T183 409T147 354T129 306T124 272V270H568Q583 262 583 250T568 230H124V228Q124 207 134 177T167 112T231 48T328 7Q355 1 466 0H570Q583 -10 583 -20Q583 -32 568 -40H471Q464 -40 446 -40T417 -41Q262 -41 172 45Q84 127 84 250Z"></path></g><g data-mml-node="msub" transform="translate(1239,0)"><g data-mml-node="mi"><path data-c="1D446" d="M308 24Q367 24 416 76T466 197Q466 260 414 284Q308 311 278 321T236 341Q176 383 176 462Q176 523 208 573T273 648Q302 673 343 688T407 704H418H425Q521 704 564 640Q565 640 577 653T603 682T623 704Q624 704 627 704T632 705Q645 705 645 698T617 577T585 459T569 456Q549 456 549 465Q549 471 550 475Q550 478 551 494T553 520Q553 554 544 579T526 616T501 641Q465 662 419 662Q362 662 313 616T263 510Q263 480 278 458T319 427Q323 425 389 408T456 390Q490 379 522 342T554 242Q554 216 546 186Q541 164 528 137T492 78T426 18T332 -20Q320 -22 298 -22Q199 -22 144 33L134 44L106 13Q83 -14 78 -18T65 -22Q52 -22 52 -14Q52 -11 110 221Q112 227 130 227H143Q149 221 149 216Q149 214 148 207T144 186T142 153Q144 114 160 87T203 47T255 29T308 24Z"></path></g><g data-mml-node="mi" transform="translate(646,-150) scale(0.707)"><path data-c="1D454" d="M311 43Q296 30 267 15T206 0Q143 0 105 45T66 160Q66 265 143 353T314 442Q361 442 401 394L404 398Q406 401 409 404T418 412T431 419T447 422Q461 422 470 413T480 394Q480 379 423 152T363 -80Q345 -134 286 -169T151 -205Q10 -205 10 -137Q10 -111 28 -91T74 -71Q89 -71 102 -80T116 -111Q116 -121 114 -130T107 -144T99 -154T92 -162L90 -164H91Q101 -167 151 -167Q189 -167 211 -155Q234 -144 254 -122T282 -75Q288 -56 298 -13Q311 35 311 43ZM384 328L380 339Q377 350 375 354T369 368T359 382T346 393T328 402T306 405Q262 405 221 352Q191 313 171 233T151 117Q151 38 213 38Q269 38 323 108L331 118L384 328Z"></path></g></g></g></g><g data-mml-node="msub" transform="translate(7512.2,0)"><g data-mml-node="mi"><path data-c="1D434" d="M208 74Q208 50 254 46Q272 46 272 35Q272 34 270 22Q267 8 264 4T251 0Q249 0 239 0T205 1T141 2Q70 2 50 0H42Q35 7 35 11Q37 38 48 46H62Q132 49 164 96Q170 102 345 401T523 704Q530 716 547 716H555H572Q578 707 578 706L606 383Q634 60 636 57Q641 46 701 46Q726 46 726 36Q726 34 723 22Q720 7 718 4T704 0Q701 0 690 0T651 1T578 2Q484 2 455 0H443Q437 6 437 9T439 27Q443 40 445 43L449 46H469Q523 49 533 63L521 213H283L249 155Q208 86 208 74ZM516 260Q516 271 504 416T490 562L463 519Q447 492 400 412L310 260L413 259Q516 259 516 260Z"></path></g><g data-mml-node="TeXAtom" transform="translate(783,-150) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D454" d="M311 43Q296 30 267 15T206 0Q143 0 105 45T66 160Q66 265 143 353T314 442Q361 442 401 394L404 398Q406 401 409 404T418 412T431 419T447 422Q461 422 470 413T480 394Q480 379 423 152T363 -80Q345 -134 286 -169T151 -205Q10 -205 10 -137Q10 -111 28 -91T74 -71Q89 -71 102 -80T116 -111Q116 -121 114 -130T107 -144T99 -154T92 -162L90 -164H91Q101 -167 151 -167Q189 -167 211 -155Q234 -144 254 -122T282 -75Q288 -56 298 -13Q311 35 311 43ZM384 328L380 339Q377 350 375 354T369 368T359 382T346 393T328 402T306 405Q262 405 221 352Q191 313 171 233T151 117Q151 38 213 38Q269 38 323 108L331 118L384 328Z"></path></g><g data-mml-node="mi" transform="translate(477,0)"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g></g></g><g data-mml-node="mstyle" transform="translate(9086.9,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msubsup" transform="translate(9364.9,0)"><g data-mml-node="mi"><path data-c="1D45E" d="M33 157Q33 258 109 349T280 441Q340 441 372 389Q373 390 377 395T388 406T404 418Q438 442 450 442Q454 442 457 439T460 434Q460 425 391 149Q320 -135 320 -139Q320 -147 365 -148H390Q396 -156 396 -157T393 -175Q389 -188 383 -194H370Q339 -192 262 -192Q234 -192 211 -192T174 -192T157 -193Q143 -193 143 -185Q143 -182 145 -170Q149 -154 152 -151T172 -148Q220 -148 230 -141Q238 -136 258 -53T279 32Q279 33 272 29Q224 -10 172 -10Q117 -10 75 30T33 157ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path></g><g data-mml-node="TeXAtom" transform="translate(543.7,413) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="22A4" d="M55 642T55 648T59 659T66 666T71 668H708Q723 660 723 648T708 628H409V15Q402 2 391 0Q387 0 384 1T379 3T375 6T373 9T371 13T369 16V628H71Q70 628 67 630T59 637Z"></path></g></g><g data-mml-node="mi" transform="translate(479,-247) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mi" transform="translate(10508.8,0)"><path data-c="1D445" d="M230 637Q203 637 198 638T193 649Q193 676 204 682Q206 683 378 683Q550 682 564 680Q620 672 658 652T712 606T733 563T739 529Q739 484 710 445T643 385T576 351T538 338L545 333Q612 295 612 223Q612 212 607 162T602 80V71Q602 53 603 43T614 25T640 16Q668 16 686 38T712 85Q717 99 720 102T735 105Q755 105 755 93Q755 75 731 36Q693 -21 641 -21H632Q571 -21 531 4T487 82Q487 109 502 166T517 239Q517 290 474 313Q459 320 449 321T378 323H309L277 193Q244 61 244 59Q244 55 245 54T252 50T269 48T302 46H333Q339 38 339 37T336 19Q332 6 326 0H311Q275 2 180 2Q146 2 117 2T71 2T50 1Q33 1 33 10Q33 12 36 24Q41 43 46 45Q50 46 61 46H67Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628Q287 635 230 637ZM630 554Q630 586 609 608T523 636Q521 636 500 636T462 637H440Q393 637 386 627Q385 624 352 494T319 361Q319 360 388 360Q466 361 492 367Q556 377 592 426Q608 449 619 486T630 554Z"></path></g><g data-mml-node="mo" transform="translate(11267.8,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="msub" transform="translate(11656.8,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(12799.5,0)"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"></path></g><g data-mml-node="msub" transform="translate(13799.7,0)"><g data-mml-node="mi"><path data-c="1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path></g><g data-mml-node="mi" transform="translate(466,-150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mo" transform="translate(14559.6,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mstyle" transform="translate(14948.6,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="msub" transform="translate(15115.6,0)"><g data-mml-node="mi"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g><g data-mml-node="mi" transform="translate(554,-150) scale(0.707)"><path data-c="1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></g></g></g></g></svg></span></div>
+    <p>The identity does not make compression lossless: members are no longer individually addressable, and softmax over summaries is not softmax over tokens.</p>
+    <p>A cheaper summary-center variant pools unrotated keys and rotates the result once, at a representative coordinate. It is still coordinate-aware, and the paper bounds its logit error. But with uniform pooling, as in this toy, it cannot tell where inside the block each token sits. Swap two token states inside a block and watch both summaries.</p>
+  </div>
+  <div class="wide bench" id="pool">
+    <div class="bench-head"><span class="bench-title">One block, two ways to summarize it</span><span class="bench-sub">four member keys along x, drawn as 2D arrows</span></div>
+    <div class="widget-grid">
+      <svg id="poolSvg" class="chart" viewBox="0 0 520 330" role="img" aria-label="Four member keys and the two summaries"></svg>
+      <div style="display:grid;gap:14px;min-width:0">
+        <div class="controls" style="margin:0">
+          <button class="btn" id="poolSwap" type="button">Swap the states of tokens 1 and 2</button>
+        </div>
+        <div class="readouts">
+          <div class="readout"><span class="lab">rotate, then pool: moved by</span><span class="val" id="poolDtb">0.000</span></div>
+          <div class="readout"><span class="lab">pool, then rotate at center: moved by</span><span class="val" id="poolDsc">0.000</span></div>
+        </div>
+        <p class="small muted">The paper's placement probe asks this question of small one-layer models trained on a constructed task: two token states are exchanged within a block while the query, the block center, the token multiset and the uniformly pooled values stay fixed. Only token-level coordinates can tell the pair apart.</p>
+        <div id="probeMini"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== figure tour -->
+<section class="chapter gutter" id="figure">
+  <div class="col chapter-head">
+    <p class="eyebrow">Interlude</p>
+    <h2>The whole operator on one page</h2>
+  </div>
+  <div class="col prose"><p>Figure 1 of the paper draws the operator end to end. Step through it panel by panel, or click any part of the figure to zoom in.</p></div>
+  <div class="wide bench" id="tour">
+    <div class="tour-view" id="tourView">
+      <img id="tourImg" src="figure1.svg" width="3017" height="1080" loading="lazy" decoding="async" alt="Figure 1 of the paper: a 3D token field, packing for memory, physical 3D coordinates, axial RoPE, compressed global summaries, and the sparse 3D field view." draggable="false">
+      <div class="tour-spot" id="tourSpot" aria-hidden="true"></div>
+    </div>
+    <div class="tour-desc">
+      <div class="tour-text">
+        <div aria-live="polite" style="display:grid;gap:4px"><span class="tour-n" id="tourN">1 of 11</span><b id="tourT"></b><p id="tourD"></p></div>
+        <div class="tour-nav"><button class="btn ghost" id="tourPrev" type="button" aria-label="Previous part">← Previous</button><button class="btn" id="tourNext" type="button" aria-label="Next part">Next →</button></div>
+      </div>
+      <div class="tour-map" id="tourMap" role="group" aria-label="Parts of Figure 1">
+        <img src="figure1.svg" width="3017" height="1080" loading="lazy" decoding="async" alt="" aria-hidden="true" draggable="false">
+      </div>
+    </div>
+    <p class="bench-foot">Figure 1 is a schematic that draws one summary per block. The reported models add a second pooling stage and use the layouts described in the paper's method section.</p>
+  </div>
+</section>
+
+<!-- ================================================================== 4. contract -->
+<section class="chapter gutter" id="contract">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 4</p>
+    <h2>What a repack must carry</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">Coordinates alone are not enough. For the operator to be unchanged up to the permutation itself, more has to travel with each token.</p>
+    <p>Proposition 2, packing equivariance: if a repacking <i>P</i> carries with each token its coordinate and validity, its neighborhood edges, its summary memberships and its canonical slot within its block, and all tokenwise maps are shared, then in exact arithmetic</p>
+    <div class="math math-display"><span class="math math-inline"><svg style="vertical-align: -0.566ex;" xmlns="http://www.w3.org/2000/svg" width="26.292ex" height="2.262ex" role="img" aria-label="\mathcal{A}(PX;\,P\mathcal{G}) \;=\; P\,\mathcal{A}(X;\,\mathcal{G})" focusable="false" viewBox="0 -750 11620.9 1000"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="41" d="M576 668Q576 688 606 708T660 728Q676 728 675 712V571Q675 409 688 252Q696 122 720 57Q722 53 723 50T728 46T732 43T737 41T743 39L754 45Q788 61 803 61Q819 61 819 47Q818 43 814 35Q799 15 755 -7T675 -30Q659 -30 648 -25T630 -8T621 11T614 34Q603 77 599 106T594 146T591 160V163H460L329 164L316 145Q241 35 196 -7T119 -50T59 -24T30 43Q30 75 46 100T74 125Q81 125 83 120T88 104T96 84Q118 57 151 57Q189 57 277 182Q432 400 542 625L559 659H567Q574 659 575 660T576 668ZM584 249Q579 333 577 386T575 473T574 520V581L563 560Q497 426 412 290L372 228L370 224H371L383 228L393 232H586L584 249Z"></path></g></g><g data-mml-node="mo" transform="translate(819,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(1208,0)"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mi" transform="translate(1959,0)"><path data-c="1D44B" d="M42 0H40Q26 0 26 11Q26 15 29 27Q33 41 36 43T55 46Q141 49 190 98Q200 108 306 224T411 342Q302 620 297 625Q288 636 234 637H206Q200 643 200 645T202 664Q206 677 212 683H226Q260 681 347 681Q380 681 408 681T453 682T473 682Q490 682 490 671Q490 670 488 658Q484 643 481 640T465 637Q434 634 411 620L488 426L541 485Q646 598 646 610Q646 628 622 635Q617 635 609 637Q594 637 594 648Q594 650 596 664Q600 677 606 683H618Q619 683 643 683T697 681T738 680Q828 680 837 683H845Q852 676 852 672Q850 647 840 637H824Q790 636 763 628T722 611T698 593L687 584Q687 585 592 480L505 384Q505 383 536 304T601 142T638 56Q648 47 699 46Q734 46 734 37Q734 35 732 23Q728 7 725 4T711 1Q708 1 678 1T589 2Q528 2 496 2T461 1Q444 1 444 10Q444 11 446 25Q448 35 450 39T455 44T464 46T480 47T506 54Q523 62 523 64Q522 64 476 181L429 299Q241 95 236 84Q232 76 232 72Q232 53 261 47Q262 47 267 47T273 46Q276 46 277 46T280 45T283 42T284 35Q284 26 282 19Q279 6 276 4T261 1Q258 1 243 1T201 2T142 2Q64 2 42 0Z"></path></g><g data-mml-node="mo" transform="translate(2811,0)"><path data-c="3B" d="M78 370Q78 394 95 412T138 430Q162 430 180 414T199 371Q199 346 182 328T139 310T96 327T78 370ZM78 60Q78 85 94 103T137 121Q202 121 202 8Q202 -44 183 -94T144 -169T118 -194Q115 -194 106 -186T95 -174Q94 -171 107 -155T137 -107T160 -38Q161 -32 162 -22T165 -4T165 4Q165 5 161 4T142 0Q110 0 94 18T78 60Z"></path></g><g data-mml-node="mstyle" transform="translate(3089,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mi" transform="translate(3422.7,0)"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(4173.7,0)"><g data-mml-node="mi"><path data-c="47" d="M216 68Q155 68 115 100T59 177T44 273Q44 299 50 333T73 421T133 533T239 632Q346 704 466 704Q508 704 515 703Q555 696 577 681T599 635Q599 605 570 560T523 496Q490 466 455 466Q440 466 440 475T469 526T499 589Q499 605 489 617Q460 636 403 636Q343 636 295 611T220 548T174 464T150 382T144 318Q144 241 180 189T287 137Q325 137 359 160Q428 205 466 322Q472 342 501 359T551 376Q557 376 560 373T564 368L565 365Q560 341 551 302T512 173T451 31Q359 -119 204 -119Q163 -118 127 -109T74 -91T53 -77Q52 -75 52 -71Q52 -54 79 -35T132 -14H140L151 -19Q210 -49 281 -49H289Q312 -49 329 -31Q351 -7 372 36T405 109T416 142L408 136Q401 131 392 125T369 111T338 96T303 82T261 72T216 68Z"></path></g></g><g data-mml-node="mo" transform="translate(4768.7,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mstyle" transform="translate(5157.7,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mo" transform="translate(5713.4,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mstyle" transform="translate(6491.4,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="mi" transform="translate(7047.2,0)"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mstyle" transform="translate(7798.2,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(7965.2,0)"><g data-mml-node="mi"><path data-c="41" d="M576 668Q576 688 606 708T660 728Q676 728 675 712V571Q675 409 688 252Q696 122 720 57Q722 53 723 50T728 46T732 43T737 41T743 39L754 45Q788 61 803 61Q819 61 819 47Q818 43 814 35Q799 15 755 -7T675 -30Q659 -30 648 -25T630 -8T621 11T614 34Q603 77 599 106T594 146T591 160V163H460L329 164L316 145Q241 35 196 -7T119 -50T59 -24T30 43Q30 75 46 100T74 125Q81 125 83 120T88 104T96 84Q118 57 151 57Q189 57 277 182Q432 400 542 625L559 659H567Q574 659 575 660T576 668ZM584 249Q579 333 577 386T575 473T574 520V581L563 560Q497 426 412 290L372 228L370 224H371L383 228L393 232H586L584 249Z"></path></g></g><g data-mml-node="mo" transform="translate(8784.2,0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(9173.2,0)"><path data-c="1D44B" d="M42 0H40Q26 0 26 11Q26 15 29 27Q33 41 36 43T55 46Q141 49 190 98Q200 108 306 224T411 342Q302 620 297 625Q288 636 234 637H206Q200 643 200 645T202 664Q206 677 212 683H226Q260 681 347 681Q380 681 408 681T453 682T473 682Q490 682 490 671Q490 670 488 658Q484 643 481 640T465 637Q434 634 411 620L488 426L541 485Q646 598 646 610Q646 628 622 635Q617 635 609 637Q594 637 594 648Q594 650 596 664Q600 677 606 683H618Q619 683 643 683T697 681T738 680Q828 680 837 683H845Q852 676 852 672Q850 647 840 637H824Q790 636 763 628T722 611T698 593L687 584Q687 585 592 480L505 384Q505 383 536 304T601 142T638 56Q648 47 699 46Q734 46 734 37Q734 35 732 23Q728 7 725 4T711 1Q708 1 678 1T589 2Q528 2 496 2T461 1Q444 1 444 10Q444 11 446 25Q448 35 450 39T455 44T464 46T480 47T506 54Q523 62 523 64Q522 64 476 181L429 299Q241 95 236 84Q232 76 232 72Q232 53 261 47Q262 47 267 47T273 46Q276 46 277 46T280 45T283 42T284 35Q284 26 282 19Q279 6 276 4T261 1Q258 1 243 1T201 2T142 2Q64 2 42 0Z"></path></g><g data-mml-node="mo" transform="translate(10025.2,0)"><path data-c="3B" d="M78 370Q78 394 95 412T138 430Q162 430 180 414T199 371Q199 346 182 328T139 310T96 327T78 370ZM78 60Q78 85 94 103T137 121Q202 121 202 8Q202 -44 183 -94T144 -169T118 -194Q115 -194 106 -186T95 -174Q94 -171 107 -155T137 -107T160 -38Q161 -32 162 -22T165 -4T165 4Q165 5 161 4T142 0Q110 0 94 18T78 60Z"></path></g><g data-mml-node="mstyle" transform="translate(10303.2,0)"><g data-mml-node="mspace"></g></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(10636.9,0)"><g data-mml-node="mi"><path data-c="47" d="M216 68Q155 68 115 100T59 177T44 273Q44 299 50 333T73 421T133 533T239 632Q346 704 466 704Q508 704 515 703Q555 696 577 681T599 635Q599 605 570 560T523 496Q490 466 455 466Q440 466 440 475T469 526T499 589Q499 605 489 617Q460 636 403 636Q343 636 295 611T220 548T174 464T150 382T144 318Q144 241 180 189T287 137Q325 137 359 160Q428 205 466 322Q472 342 501 359T551 376Q557 376 560 373T564 368L565 365Q560 341 551 302T512 173T451 31Q359 -119 204 -119Q163 -118 127 -109T74 -91T53 -77Q52 -75 52 -71Q52 -54 79 -35T132 -14H140L151 -19Q210 -49 281 -49H289Q312 -49 329 -31Q351 -7 372 36T405 109T416 142L408 136Q401 131 392 125T369 111T338 96T303 82T261 72T216 68Z"></path></g></g><g data-mml-node="mo" transform="translate(11231.9,0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g></g></g></svg></span></div>
+    <p>where 𝒢 collects the coordinates and grouping metadata. Sequence-index RoPE has no such guarantee: a repack changes the rotary coordinate of every token it moves. Tick what travels.</p>
+  </div>
+  <div class="col bench" style="max-width:var(--col)" id="contractBench">
+    <div class="tags" id="tags">
+      <label class="tag"><input type="checkbox" checked data-tag="coord"><span>Coordinate and validity<small>where the token is, and whether it is real</small></span></label>
+      <label class="tag"><input type="checkbox" checked data-tag="edges"><span>Neighborhood edges<small>its 3 × 3 × 3 window</small></span></label>
+      <label class="tag"><input type="checkbox" checked data-tag="members"><span>Summary memberships<small>which block and group it is pooled into</small></span></label>
+      <label class="tag"><input type="checkbox" checked data-tag="slot"><span>Within-block slot<small>its canonical place inside its block</small></span></label>
+    </div>
+    <div class="verdict" id="verdict"><b id="verdictTitle">A pure repack</b><span class="small" id="verdictText"></span></div>
+  </div>
+</section>
+
+<!-- ================================================================== 5. the test -->
+<section class="chapter gutter" id="test">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 5 · The result</p>
+    <h2>Repack the memory, keep the volume</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">Hold each trained checkpoint fixed. Change only the memory order. Compare predictions in a common spatial order.</p>
+    <p>The repack moves whole summary groups. It moves 99.6% of tokens in memory and preserves every membership, so it lies inside Proposition 2. One fixed permutation is applied to every seed, so this is a stress test of storage-order dependence, not an estimate over layouts.</p>
+  </div>
+  <div class="wide bench" id="repackBench">
+    <div class="bench-head">
+      <span class="bench-title"><span class="nw">Allen-15</span> · 262,144 tokens · six seeds · 120 validation crops</span>
+      <button class="btn teal" id="replay" type="button">Repack the memory</button>
+    </div>
+    <div class="split" style="align-items:center">
+      <div class="chart-wrap"><svg id="slope" class="chart" role="img" aria-label="Macro Dice on the training layout and after the pure repack, per seed and on average"></svg></div>
+      <div style="display:grid;gap:12px;min-width:0">
+        <div class="bignums">
+          <div class="bignum"><span class="who"><span class="dot teal"></span>PACK3D</span><span class="v num" id="bnAx">+0.0001</span><span class="d" id="bnAxD">Dice 0.8247 → 0.8248</span></div>
+          <div class="bignum"><span class="who"><span class="dot coral"></span>Packed RoPE</span><span class="v num" id="bnPk">−0.048</span><span class="d" id="bnPkD">Dice 0.8229 → 0.7750</span></div>
+        </div>
+        <p class="small muted">Packed RoPE loses Dice in all six seeds. The packed-minus-axial change is −0.0480, negative in all six seed pairs (<span class="nw">exact p = 0.031</span>; <span class="nw">paired t-test p = 2 × 10</span><sup>−4</sup>).</p>
+      </div>
+    </div>
+    <details class="numbers"><summary>Show the numbers</summary><div class="table-wrap"><table class="data" id="slopeTable"></table></div></details>
+  </div>
+
+  <div class="col prose" style="margin-top:40px">
+    <h3>How many predictions moved</h3>
+    <p>Aligned hard predictions change at 0.0069% of positions for PACK3D, consistent with floating-point reduction order, and at 1.23% for packed RoPE. Each square below holds the 262,144 token positions of one crop.</p>
+  </div>
+  <div class="wide bench">
+    <div class="fields">
+      <div class="field"><canvas id="fieldAx" width="512" height="512" role="img" aria-label="262,144 positions with about 18 lit, each circled"></canvas><p class="cap"><span class="dot teal"></span> <b>PACK3D: 0.0069%</b> of positions, about 18 per crop, each circled so it can be seen</p></div>
+      <div class="field"><canvas id="fieldPk" width="512" height="512" role="img" aria-label="262,144 positions with about 3,215 lit"></canvas><p class="cap"><span class="dot coral"></span> <b>Packed RoPE: 1.23%</b> of positions, about 3,215 per crop</p></div>
+    </div>
+    <p class="bench-foot">Counts are to scale: the mean rate over six seeds times 262,144 positions, one pixel each. Where the changed positions fall inside a crop is not shown here; the lit pixels are placed at random.</p>
+  </div>
+
+  <div class="col" style="margin-top:56px">
+    <p class="pull">Two models with comparable accuracy on their training layout respond differently when <span class="hl">only the storage order</span> changes.</p>
+    <p class="muted" style="margin-top:14px">The sequence-indexed model has bound part of what it learned to the layout; the coordinate-indexed model has not.</p>
+  </div>
+  <div class="col prose" style="margin-top:56px">
+    <h3>A harder switch: change the groups too</h3>
+    <p>A named-layout switch evaluates the raster-trained checkpoints under native block-Morton order. It keeps coordinates and neighborhoods but changes which tokens are summarized together, so it changes the operator and lies outside Proposition 2.</p>
+  </div>
+  <div class="col bench" style="max-width:var(--col)">
+    <div class="chart-wrap"><svg id="named" class="chart" role="img" aria-label="Dice change under the named switch"></svg></div>
+    <p class="bench-foot">Three seeds. PACK3D 0.8228 → 0.8223; packed RoPE 0.8233 → 0.7445. The difference holds in all three seed pairs (<span class="nw">paired t-test p = 0.0035</span>; <span class="nw">exact p = 0.25</span>).</p>
+  </div>
+
+</section>
+
+<!-- ================================================================== 6. msd -->
+<section class="chapter gutter" id="msd">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 6</p>
+    <h2>A second domain</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">On the Medical Segmentation Decathlon, a pure repack of the same kind again separates the encodings, with little cost in Dice.</p>
+    <p>All three encodings reach comparable fixed-layout Dice on Heart (MRI) and Spleen (CT). Under the pure repack, packed RoPE changes more aligned predictions than both coordinate-indexed encodings in every seed on both tasks, yet mean Dice moves by less than 0.0003 for every arm. Separable PE is a learned 3D embedding read at coordinates.</p>
+  </div>
+  <div class="wide bench">
+    <div class="bench-head"><span class="bench-title">Predictions changed by the pure repack</span><span class="bench-sub">% of positions · log scale · dots are seeds, bars are means</span></div>
+    <div class="chart-wrap"><svg id="msdChart" class="chart" role="img" aria-label="Share of predictions changed by the repack, by task and encoding"></svg></div>
+    <p class="bench-foot">The MSD models are depth 1, trained under native block-Morton order on crops centered on known foreground, and validated on 8 Heart crops from 4 held-out cases and 16 Spleen crops from 8. Here the named switch runs the other way, from native to raster. It costs packed RoPE 0.0021 Spleen Dice, a loss in all three seeds (<span class="nw">exact p = 0.25</span>), yet packed RoPE keeps the highest post-switch Spleen Dice (0.9589); on Heart it causes no consistent loss. Whether storage-order sensitivity becomes accuracy loss depends on the task.</p>
+  </div>
+</section>
+
+<!-- ================================================================== 7. branch -->
+<section class="chapter gutter" id="branch">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 7</p>
+    <h2>Inside the global branch</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">An independently trained local-only model matches the fixed-layout <span class="nw">Allen-15</span> score, so natural-data Dice does not show that the task needs the global branch. A jointly trained model can still depend on it.</p>
+  </div>
+  <div class="wide split" style="margin-top:6px">
+    <div class="bench">
+      <div class="bench-head"><span class="bench-title">Break the branch at inference</span><span class="bench-sub"><span class="nw">Allen-15</span> · 3 seeds · Dice change</span></div>
+      <div class="chart-wrap"><svg id="interv" class="chart" role="img" aria-label="Dice change under three interventions"></svg></div>
+      <p class="bench-foot">Zeroing the compressed output and swapping in another sample's summaries lose Dice in all three seeds. Permuting summary keys and values together changes Dice by only +0.0001, as it must: attention over a set does not depend on the set's order.</p>
+    </div>
+    <div class="bench">
+      <div class="bench-head"><span class="bench-title">Controlled probes</span><span class="bench-sub">accuracy · 6 seeds · chance is 0.5</span></div>
+      <div class="chart-wrap"><svg id="probes" class="chart" role="img" aria-label="Probe accuracy for each variant"></svg></div>
+      <p class="bench-foot">Long range: the label lies outside the query's radius-one neighborhood. Zeroing the remote evidence returns the full model to chance, and flipping it inverts every prediction.</p>
+    </div>
+  </div>
+  <div class="col prose" style="margin-top:22px">
+    <p>Rotated summaries therefore carry a usable token-coordinate channel, and the global branch delivers remote evidence when a task requires it. Neither probe shows that natural segmentation does.</p>
+  </div>
+</section>
+
+<!-- ================================================================== 8. unet -->
+<section class="chapter gutter" id="unet">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 8</p>
+    <h2>Against a matched 3D U-Net</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">Same data, output grid, loss and optimizer. 30.08M parameters for PACK3D, 31.87M for the TokenGrid 3D U-Net, six seeds.</p>
+    <p>PACK3D's best-checkpoint Dice is higher by 0.0094 in all six pairs (<span class="nw">exact p = 0.031</span>; paired-t 95% interval [0.0065, 0.0123]). At the final checkpoint the difference is 0.0096, with five of six wins. This is a modest, consistent advantage in one matched comparison, not a ranking of attention above convolution.</p>
+  </div>
+  <div class="wide split" style="margin-top:6px">
+    <div class="bench">
+      <div class="bench-head"><span class="bench-title">Best macro Dice per seed</span><span class="bench-sub"><span class="dot warm"></span> U-Net <span class="dot teal" style="margin-left:8px"></span> PACK3D</span></div>
+      <div class="chart-wrap"><svg id="dumbbell" class="chart" role="img" aria-label="Best macro Dice per seed for both models"></svg></div>
+    </div>
+    <div class="bench">
+      <div class="bench-head"><span class="bench-title">13 of 15 structures favor PACK3D</span><span class="bench-sub">best checkpoint · mean Dice difference, PACK3D − U-Net</span></div>
+      <div class="chart-wrap"><svg id="structs" class="chart" role="img" aria-label="Per-structure mean Dice difference"></svg></div>
+      <p class="bench-foot">At the best checkpoint the U-Net is ahead on CETN2 and NUP153, and only ATP2A2 and SEC61B (marked *) survive a paired-t Holm correction. At the final checkpoint, 12 of 15 structures favor PACK3D. Hover a dot for its structure.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== 9. systems -->
+<section class="chapter gutter" id="systems">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 9</p>
+    <h2>What it costs</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">One full attention layer, forward and backward, on one H200 in bf16, at the trained <span class="nw">Allen-15</span> configuration.</p>
+    <p>Window attention is faster than PACK3D at every token count, by 7–9% from 131k to 524k tokens and by 16% and 31% at 65k and 1M. That premium buys a global pathway window attention lacks, and PACK3D uses less peak memory than window attention throughout. Against dense SDPA, PACK3D is 6.43× faster at 65k tokens and 99.56× faster at 1M.</p>
+  </div>
+  <div class="wide bench" id="sysBench">
+    <div class="controls">
+      <span class="small muted">Tokens</span>
+      <div class="chips" id="sysChips" role="group" aria-label="Token count"></div>
+    </div>
+    <div class="split">
+      <div class="chart-wrap"><svg id="sysChart" class="chart" role="img" aria-label="Layer latency against token count for three attention kinds"></svg></div>
+      <div style="display:grid;gap:12px;min-width:0" id="sysPanel"></div>
+    </div>
+    <p class="bench-foot">Median of ten timed repetitions after three warmups; peak PyTorch allocation. Layer measurements, not end-to-end training speedups. Because the number of summaries grows with the token count at a fixed pooling factor, the global term stays quadratic.</p>
+  </div>
+</section>
+
+<!-- ================================================================== 10. limits -->
+<section class="chapter gutter" id="limits">
+  <div class="col chapter-head">
+    <p class="eyebrow">Chapter 10</p>
+    <h2>Where the claim stops</h2>
+  </div>
+  <div class="wide claims">
+    <div class="claim">
+      <h3>What the evidence does not support</h3>
+      <ul>
+        <li>A fixed-layout accuracy advantage for axial RoPE.</li>
+        <li>That rotating keys before pooling, or the global branch, is needed for natural-data Dice.</li>
+        <li>Superiority over volumetric segmenters at large.</li>
+        <li>Label-free prediction: the Allen task predicts Allen-generated masks from target fluorescence, brightfield and DNA.</li>
+      </ul>
+    </div>
+    <div class="claim">
+      <h3>Limitations</h3>
+      <ul>
+        <li>The medical models are shallow, with small validation populations and crops centered on known foreground. They show layout sensitivity with little accuracy consequence, and the experiments do not explain the difference from Allen.</li>
+        <li>Best checkpoints and reported scores share one validation set.</li>
+        <li>The U-Net margin is modest; Swin UNETR and nnFormer were not run; the rotary allocation for anisotropic grids was not ablated.</li>
+        <li>The global work stays quadratic at a fixed compression ratio, and window attention is faster per layer.</li>
+        <li>These are research models, not validated for clinical or scientific decisions; automated masks and label-guided crops can propagate bias into downstream measurements.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col prose" style="margin-top:28px">
+    <p>Three corrections to the version of this paper reviewed for NeurIPS shape this reading. Its packed-sequence controls had no active rotary pairs, its summary-shuffle ablation relied on an evaluator bug, and its threshold baseline was tuned on validation crops. The corrected experiments reported in the paper replace all three.</p>
+  </div>
+</section>
+
+<!-- ================================================================== 11. recipe -->
+<section class="chapter gutter" id="recipe">
+  <div class="col chapter-head">
+    <p class="eyebrow">Take it home</p>
+    <h2>Run the test on your own pipeline</h2>
+  </div>
+  <div class="col prose">
+    <p class="lede">A membership-preserving repack is a cheap test that any pipeline whose tokens carry physical coordinates can run before trusting its positional encoding.</p>
+    <p>Permute whole summary groups in memory, run the trained model unchanged, restore spatial order, and compare predictions. Every token's coordinate, validity, neighborhood edges, memberships and within-block slot must travel with it; otherwise the test can flag even a coordinate-indexed model. The sketch below is pseudocode; adapt the names to your own model.</p>
+  </div>
+  <div class="col" style="margin-top:20px">
+<pre class="code"><span class="c"># a membership-preserving repack test (pseudocode)</span>
+<span class="k">perm</span>  = permute_groups(num_groups, seed)    <span class="c"># whole summary groups move</span>
+<span class="k">order</span> = expand(perm, group_size)            <span class="c"># token order in memory</span>
+
+x_mem = tokens[order]                       <span class="c"># same tokens, new order</span>
+c_mem = coords[order]                       <span class="c"># coordinates travel along</span>
+g_mem = transport(meta, order)              <span class="c"># validity, edges, groups, slots</span>
+y_new = model(x_mem, c_mem, g_mem)          <span class="c"># trained model, unchanged</span>
+y_new = y_new[inverse(order)]               <span class="c"># back to spatial order</span>
+
+y_ref = model(tokens, coords, meta)
+changed = mean(argmax(y_new) != argmax(y_ref))
+<span class="c"># near zero: this repack left the predictions unchanged</span>
+<span class="c"># large: predictions depend on the storage order</span></pre>
+  </div>
+  <div class="col prose" style="margin-top:20px">
+    <p>The code release runs the test on a small synthetic field, on a CPU: <a href="https://github.com/amilworks/Pack3D/blob/main/examples/repack_test.py" target="_blank" rel="noopener"><code class="mono">examples/repack_test.py</code></a>. It repacks the input of one attention layer and compares the outputs, once with RoPE at token coordinates, as in PACK3D, and once with RoPE at sequence index. The first output does not change; the second does.</p>
+  </div>
+  <div class="col" style="margin-top:64px">
+    <p class="pull">Memory layout is a systems decision, <span class="hl">not an attention coordinate system.</span></p>
+  </div>
+</section>
+
+<!-- ================================================================== abstract -->
+<section class="chapter gutter" id="abstract">
+  <div class="col chapter-head">
+    <p class="eyebrow">The paper</p>
+    <h2>Abstract</h2>
+  </div>
+  <div class="col prose">
+    <p class="abstract">Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. Raster, Morton, and block-contiguous layouts change the position and leave the coordinate alone. A positional mechanism indexed by sequence position can therefore learn the memory layout rather than the object, and accuracy on the training layout cannot reveal that it has. We introduce PACK3D, a local–global attention operator that separates memory layout from attention geometry. It attends exactly within a coordinate-defined neighborhood, sees the whole field through pooled summaries, and rotates queries and keys with axial RoPE at token-grid coordinates. Because keys are rotated before pooling, each query-to-summary logit is a weighted sum of query–key terms evaluated at the summarized tokens' displacements from the query. The operator is equivariant to any repacking that carries coordinates, neighborhoods, summary memberships, and within-block slots along with the tokens. On Allen WTC-11 microscopy at 262k tokens, PACK3D and a matched packed-sequence RoPE control reach comparable Dice on the training layout. Repacking the same validation volumes then costs the packed control 0.048 macro Dice on average, with a loss in all six seeds, while PACK3D changes by 0.0001. On MSD Heart and Spleen, sequence indexing again changes more predictions under repacking, at little cost in Dice. PACK3D also exceeds a parameter-matched 3D U-Net by 0.009 Dice over six seeds, and a full PACK3D layer runs within 7–31% of window-attention latency while adding a global pathway. Geometry, not storage order, should index attention over packed 3D fields.</p>
+    <p class="small muted">Amil Khan, Anantajit Subrahmanya and B.S. Manjunath. <i>Geometry Matters in Packed 3D Attention.</i> Advances in Neural Information Processing Systems (NeurIPS), 2026. <a href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">arXiv:2610.38694</a></p>
+  </div>
+</section>
+
+<!-- ================================================================== cite -->
+<section class="chapter gutter" id="cite">
+  <div class="col chapter-head">
+    <p class="eyebrow">Cite</p>
+    <h2>Geometry Matters in Packed 3D Attention</h2>
+  </div>
+  <div class="col cite-box">
+    <pre class="code" id="bibtex">@inproceedings{khan2026geometry,
+  title     = {Geometry Matters in Packed 3D Attention},
+  author    = {Khan, Amil and Subrahmanya, Anantajit and Manjunath, B. S.},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026},
+  eprint    = {2610.38694},
+  archivePrefix = {arXiv}
+}</pre>
+    <div class="copy-row"><button class="btn" id="copyBib" type="button">Copy BibTeX</button><span class="copy-note" id="copyNote" aria-live="polite"></span></div>
+  </div>
+</section>
+</main>
+
+<!-- ================================================================== the end
+     The page lifts off a dark stage. The closing line arrives word by word, then the word PACK3D builds
+     itself as a small packed field: one cube per token, arriving in memory order under the chosen storage
+     order. Every order takes its own path through memory, and every path builds the same word. -->
+<footer class="end" id="end">
+  <div class="end-stage gutter" id="endStage">
+    <div class="wide end-head">
+      <p class="end-kicker">End of sequence</p>
+      <p class="end-closing" id="endClosing"><span class="hl-w"><span class="hl">Geometry</span>,</span> not storage order, should index attention over packed 3D&nbsp;fields.</p>
+    </div>
+    <div class="wide end-theatre" id="endTheatre">
+      <div class="end-canvas-wrap" id="endWrap">
+        <canvas id="endCanvas" tabindex="0" role="slider" aria-label="Memory position in the word PACK3D, built from cubes, one cube per token" aria-describedby="endCap" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="No token picked. Use the arrow keys to walk the memory."></canvas>
+      </div>
+      <div class="end-memory" aria-hidden="true">
+        <span class="end-mlab">memory</span>
+        <div class="end-ribbon"><canvas id="endRibbon"></canvas></div>
+        <span class="end-count" id="endCount"></span>
+      </div>
+      <div class="end-controls">
+        <div class="chips" id="endChips" role="group" aria-label="Storage order for the closing word">
+          <button class="chip" type="button" data-layout="raster" aria-pressed="true">Raster</button>
+          <button class="chip" type="button" data-layout="morton" aria-pressed="false">Morton</button>
+          <button class="chip" type="button" data-layout="blocks" aria-pressed="false">Blocks</button>
+          <button class="chip" type="button" data-layout="repack" aria-pressed="false">Repacked</button>
+        </div>
+        <button class="chip end-again" type="button" id="endAgain">Build it again</button>
+      </div>
+      <p class="end-read" id="endRead">Point at a cube to read its two indices, or focus the word and walk the memory with ← and →.</p>
+      <p class="end-cap" id="endCap">Every cube is a token with two indices: a coordinate <i>c</i> = (<i>z</i>, <i>y</i>, <i>x</i>) and a memory position <i>i</i>, which sets its color. The tokens arrive in memory order. Raster builds the word layer by layer, Morton in nested clusters, Blocks one brick at a time, and the repack moves whole z-layers. Four paths through memory build one word.</p>
+    </div>
+  </div>
+  <div class="end-credits gutter">
+    <div class="wide end-grid">
+      <div class="end-who">
+        <p class="end-title">Geometry Matters in Packed 3D Attention</p>
+        <p>Amil Khan, Anantajit Subrahmanya, <span class="nw">B.S. Manjunath</span></p>
+        <p>Department of Electrical &amp; Computer Engineering<br>University of California, Santa Barbara</p>
+        <p class="end-mail">{amil, anantajit, manj}@ucsb.edu</p>
+        <p class="end-venue">NeurIPS 2026 · Sydney, Australia</p>
+      </div>
+      <nav class="end-col" aria-label="Read">
+        <p class="end-h">Read</p>
+        <ul>
+          <li><a href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">The paper on arXiv</a></li>
+          <li><a href="https://github.com/amilworks/Pack3D" target="_blank" rel="noopener">The code on GitHub</a></li>
+          <li><a href="#abstract">The abstract</a></li>
+          <li><a href="#cite">Cite: BibTeX</a></li>
+          <li><a href="#figure">Figure 1, step by step</a></li>
+          <li><a href="#test">The repack result</a></li>
+          <li><a href="#recipe">Run the test yourself</a></li>
+        </ul>
+      </nav>
+      <nav class="end-col" aria-label="All chapters" id="endIndex">
+        <p class="end-h">Chapters</p>
+        <ol class="end-ix">
+          <li><a href="#two-indices"><span>1</span>Two indices</a></li>
+          <li><a href="#blind-spot"><span>2</span>The blind spot</a></li>
+          <li><a href="#operator"><span>3</span>The operator</a></li>
+          <li><a href="#figure"><span>·</span>Figure 1</a></li>
+          <li><a href="#contract"><span>4</span>The contract</a></li>
+          <li><a href="#test"><span>5</span>The result</a></li>
+          <li><a href="#msd"><span>6</span>Second domain</a></li>
+          <li><a href="#branch"><span>7</span>Inside the branch</a></li>
+          <li><a href="#unet"><span>8</span>U-Net</a></li>
+          <li><a href="#systems"><span>9</span>Cost</a></li>
+          <li><a href="#limits"><span>10</span>Limits</a></li>
+          <li><a href="#recipe"><span>·</span>Take it home</a></li>
+        </ol>
+      </nav>
+      <div class="end-col">
+        <p class="end-h">Data</p>
+        <ul>
+          <li>Allen Institute for Cell Science: WTC-11 hiPSC Single-Cell Image Dataset v1</li>
+          <li>Medical Segmentation Decathlon: Heart (MRI) and Spleen (CT)</li>
+        </ul>
+        <p class="end-h end-h2">Colophon</p>
+        <p>Set in Inter and DM Mono. Charts drawn with d3, cubes on canvas. Every result shown is checked against the camera-ready paper; the cube widgets, this word included, are illustrations.</p>
+      </div>
+    </div>
+    <div class="wide end-base">
+      <a class="end-arxiv" href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">arXiv:2610.38694</a>
+      <a class="end-top" href="#top">Back to the top <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+<div class="tip" id="tip" aria-hidden="true"></div>
+
+<script src="d3.min.js" defer></script>
+<script src="app.js" defer></script>
+
+</body>
+</html>

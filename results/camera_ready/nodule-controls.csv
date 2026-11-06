@@ -1,0 +1,4 @@
+Encoding,Best balanced accuracy,Final balanced accuracy
+Axial RoPE,0.7422 $\pm$ 0.0174,0.7336 $\pm$ 0.0213
+Separable 3D PE,0.7878 $\pm$ 0.0196,0.7565 $\pm$ 0.0351
+Packed RoPE,0.5988 $\pm$ 0.0367,0.5827 $\pm$ 0.0376

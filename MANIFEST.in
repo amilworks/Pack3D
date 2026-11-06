@@ -1,0 +1,15 @@
+include README.md LICENSE pyproject.toml CITATION.cff CONTRIBUTING.md CHANGELOG.md THIRD_PARTY_NOTICES.md
+graft src
+graft docs
+graft examples
+graft tests
+graft reproduce
+graft benchmarks
+graft tools
+graft results
+graft .github
+prune website
+global-exclude *.py[cod] .DS_Store
+prune artifacts
+prune .venv
+prune .git

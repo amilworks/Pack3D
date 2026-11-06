@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://amilworks.github.io/Pack3D/sitemap.xml

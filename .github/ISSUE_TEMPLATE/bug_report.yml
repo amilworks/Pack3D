@@ -1,0 +1,33 @@
+name: Bug report
+description: PACK3D fails to install, fails to run, or gives a wrong result.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for the report. A small reproduction with synthetic tensors is the fastest way to a fix.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your Python, PyTorch and Triton versions, your GPU and driver if you use one, and the PACK3D version or commit. Leave out secrets and private paths.
+      placeholder: |
+        Python 3.12, PyTorch 2.11.0, Triton 3.6.0
+        GPU and driver:
+        PACK3D version or commit:
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Synthetic tensors are best. Include the shapes, the dtype, the layout you built, and the backend (`reference` or `triton`).
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What you expected, and what happened
+      description: Paste the full error message, or the numbers that differ.
+    validations:
+      required: true

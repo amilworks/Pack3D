@@ -1,0 +1,71 @@
+{
+  "snapshot_date": "2026-11-06",
+  "files": [
+    {
+      "file": "results/camera_ready/allen6-interventions.csv",
+      "source": "camera_ready/2026-11-04/evidence/allen6-interventions.csv",
+      "sha256": "5646c33316ea74ffa9537ef89fb3ed098427c39aa5e98a90d22a82fceea3a627",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/compute.csv",
+      "source": "camera_ready/2026-11-04/evidence/compute.csv",
+      "sha256": "d8c6b08ff32db0f47733e1d1458e4d132da2ed811d37bdba78cc20f91b59ba12",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/factor-seeds.csv",
+      "source": "camera_ready/2026-11-04/evidence/factor-seeds.csv",
+      "sha256": "96e0177dc1340591c0139b889c202d4acae0591accc54c377b2504722f2bb76b",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/medical-seeds.csv",
+      "source": "camera_ready/2026-11-04/evidence/medical-seeds.csv",
+      "sha256": "a87a425aae3c5b047f98ac4740a6fe7db770e152980649e42e95f4362286f6a6",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/nodule-controls.csv",
+      "source": "camera_ready/2026-11-04/evidence/nodule-controls.csv",
+      "sha256": "ffbdf41f0c2da770552b69bfe0897ca199fdd67148d66e24d7810180d713c054",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/repacking-seeds.csv",
+      "source": "camera_ready/2026-11-04/evidence/repacking-seeds.csv",
+      "sha256": "9a019c1a330c8f338cbd862099f3397efcd07e4618c756e6f3f4d48bdfec306f",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/structure-results.csv",
+      "source": "camera_ready/2026-11-04/evidence/structure-results.csv",
+      "sha256": "ff101327aa0c8dcd531b377447a233ba22fcbd47021d1239485bbece095d07e2",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/system-memory.csv",
+      "source": "camera_ready/2026-11-04/evidence/system-memory.csv",
+      "sha256": "e76f253307e097cac24eb6f6ce06891efebfe7d052e060b98d5da750a83ffe89",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/threshold-controls.csv",
+      "source": "camera_ready/2026-11-04/evidence/threshold-controls.csv",
+      "sha256": "039f45288a276ef3818bf6bdb99057c8b62d793e7f65d0a2e9f407d587d6311a",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/camera_ready/unet-seeds.csv",
+      "source": "camera_ready/2026-11-04/evidence/unet-seeds.csv",
+      "sha256": "b53cd89a445b6cdd4618588352ebd5a5a23795a25171209c9869bb62d472fc37",
+      "kind": "frozen_metric"
+    },
+    {
+      "file": "results/allen15_repacking/seed_metrics.csv",
+      "source": "camera_ready/2026-11-04/evidence/allen_repacking_figure_source.csv",
+      "sha256": "09eabdcda4a3b9b14504f67db3345237a72ee33c7d65133cd8c3c771d6e56bb6",
+      "kind": "exact_frozen_metric"
+    }
+  ]
+}

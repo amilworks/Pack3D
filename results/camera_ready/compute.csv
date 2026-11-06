@@ -1,0 +1,4 @@
+Run family,Runs,Wall hours/run,Summed GPU hours
+Allen-15 PACK3D,6,1.84--4.29,17.68
+Allen-15 U-Net,6,0.23--0.73,2.90
+Medical positional matrix,18,0.27--0.31,5.33

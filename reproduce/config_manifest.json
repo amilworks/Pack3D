@@ -1,0 +1,589 @@
+{
+  "configs": [
+    {
+      "file": "reproduce/configs/allen15/axial_seed13.yaml",
+      "original_run_id": "phase8s_allen15_pack3d_lg_rope_d8_predesc_262k_10000step_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/configs/phase8s/phase8s_allen15_pack3d_lg_rope_d8_predesc_262k_10000step_seed13.yaml",
+      "source_sha256": "383edcc2c38ce3f29f74707632b5f318182ce392c225134cb9209ee32575b445",
+      "public_sha256": "60d17499f843744a200815ca93330b21e5da83f019ae430a744f53966d27e633",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_seed29.yaml",
+      "original_run_id": "phase8s_allen15_pack3d_lg_rope_d8_predesc_262k_10000step_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/configs/phase8s/phase8s_allen15_pack3d_lg_rope_d8_predesc_262k_10000step_seed29.yaml",
+      "source_sha256": "1914ad2765bd11d5738494a25d72aced7d167377601a8a2a0849e90c52580fb8",
+      "public_sha256": "ad0b35f8faade0b85d984818329ecdca2220db6c152958666fc9d5850bc7dcfc",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_seed41.yaml",
+      "original_run_id": "phase8s_allen15_pack3d_lg_rope_d8_predesc_262k_10000step_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/configs/phase8s/phase8s_allen15_pack3d_lg_rope_d8_predesc_262k_10000step_seed41.yaml",
+      "source_sha256": "878acf1d0fb339f60c9ac2c7168fdbcff6fb7088351a0c6fcb457e35050d7ff8",
+      "public_sha256": "abe09e84be64976486978728feefa57e2fb73545fad5538c5f13a20a580fae5b",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/separable_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_separable3d_d8_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15/allen15_separable3d_d8_262k_10k_seed13.yaml",
+      "source_sha256": "d24314ebe31835f93b0084ea9941b9dc0031bf24d61a8fbbcfb3b7f67bca4b67",
+      "public_sha256": "8e0110342b8795ea376daa5d1ce5a3dca9c9695e4b69f19823751bbe49e734bc",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/separable_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_separable3d_d8_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15/allen15_separable3d_d8_262k_10k_seed29.yaml",
+      "source_sha256": "b0ee1452b20d794b669808439992b60e71798ea805d38733c001cc5f92aee157",
+      "public_sha256": "c9bcd4c2a17406f52733498d22fd26551074624a4c469ca76c831f5a95f6c7db",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/separable_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_separable3d_d8_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15/allen15_separable3d_d8_262k_10k_seed41.yaml",
+      "source_sha256": "bf0884e5aaa6d628efe89265093c5455f5cc9837314b3c547f79557fdd82f4c8",
+      "public_sha256": "f6442a61861eaeb1d067a9f029f79ef96d934d7f5343e79038fdb211dde0a4bc",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/compressed_unrotated_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_compressed_unrotated_d8_262k_10k_seed13_restart1",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_compressed_unrotated_d8_262k_10k_seed13.yaml",
+      "source_sha256": "245c24371057658b3f73a7df73ead218ccbb6b48274dc8161f74dba3dafa2edf",
+      "public_sha256": "42194ad6774325868ecf98695fadedfa9d3386e656eb90d3fcec358d84a57221",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/compressed_unrotated_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_compressed_unrotated_d8_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_compressed_unrotated_d8_262k_10k_seed29.yaml",
+      "source_sha256": "5db7f17e6a64e45542f4d0458adc3af7962e338470fc02c09519496f5f7cc237",
+      "public_sha256": "70c5a8dfeb185b8704a8bbaf0e852929efc6952dbc0109c38ceab585400a8f75",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/compressed_unrotated_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_compressed_unrotated_d8_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_compressed_unrotated_d8_262k_10k_seed41.yaml",
+      "source_sha256": "c9c0fb93ea632b89360485d0dc150c54e4b55be3f982516f186debff5d673c95",
+      "public_sha256": "fd03717d7d617e45669f4a8f3249f5c9dc8f5b5790efac57ceab6d915c477b24",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/local_only_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_local_only_d8_262k_10k_seed13_restart1",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_local_only_d8_262k_10k_seed13.yaml",
+      "source_sha256": "be638f1c9456527a0c7b80032c517e2b467ed3f90ba1b59e9f8d1c3a8a44152d",
+      "public_sha256": "a5617cba5dac66b83af6513dde962161f94ce2ab860e9b4efdfafa0cbd418e16",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/local_only_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_local_only_d8_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_local_only_d8_262k_10k_seed29.yaml",
+      "source_sha256": "49f02353ba2443e6c0420698dae718c3df21fb2fdd246687ebc7866089e747ea",
+      "public_sha256": "e762bbcb098743bc7bcc83fa7fc387fb3e6d652238fa7a80c3181fa5c48ec782",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/local_only_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_local_only_d8_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_local_only_d8_262k_10k_seed41.yaml",
+      "source_sha256": "4d96eb376e795a4f732708d4de92b1d6cd9ec13caae0c3b1830b0e96b1d8e103",
+      "public_sha256": "710f24ce0a73347c378d86e6fe5f7f31b205617976b7785436737d463a8702b1",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/packed_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_packed_rope_corrected_d8_262k_10k_seed13_restart1",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_packed_rope_corrected_d8_262k_10k_seed13.yaml",
+      "source_sha256": "5c96a4475bd0f7f40473fe94b4ac5f2609e564003af2112bdff3d1c7cc9e4578",
+      "public_sha256": "b31347afb830bafa82c6065647ffdbfff3a840fd2e0c15c126639b139808304f",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/packed_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_packed_rope_corrected_d8_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_packed_rope_corrected_d8_262k_10k_seed29.yaml",
+      "source_sha256": "42e791e38fdf16c300a3b6cdda877a3040395d7fa842935a17a251ac8a0a14b7",
+      "public_sha256": "1f4058db13e3a788614390b26a2713a1f404952b16beaea41edfd3988f75c438",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/packed_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_packed_rope_corrected_d8_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_packed_rope_corrected_d8_262k_10k_seed41.yaml",
+      "source_sha256": "608f5d22dfca913ba03ccf5f09de11cd4663f176f5cb6a0648ac7c1d4eb45f72",
+      "public_sha256": "b4bc8c7a7f52785f3f3ab15f9f552fb5a55eb3b0422b51a9fd770b8454c735e9",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/summary_center_rope_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_summary_center_d8_262k_10k_seed13_restart1",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_summary_center_d8_262k_10k_seed13.yaml",
+      "source_sha256": "dc94de499eedf94c8d68b5e8fceeb3ba65ab4956bab4234331cd0ed83565978e",
+      "public_sha256": "645c11b019f2659098032d6def0f0a496cbf3bd4134f5825b27994cbd5a39ddd",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/summary_center_rope_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_summary_center_d8_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_summary_center_d8_262k_10k_seed29.yaml",
+      "source_sha256": "3c78307d1d4ea036e8ec16414a06d53bfaffd4bccef7e08fb351427cb716c438",
+      "public_sha256": "f2d13922c7c5a1402acad9c0365ac7862279ed95bbaab14e239265352be4fbbe",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/summary_center_rope_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_summary_center_d8_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_factorial/allen15_summary_center_d8_262k_10k_seed41.yaml",
+      "source_sha256": "af5b055d91ea86593c6798f28069a136f93c8d16bd5925f6687400066d468e9b",
+      "public_sha256": "2ad98ce97f0868a8740b096246af85f974faf2684e6a819aeea12fef290d69d3",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/packed_seed53.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_packed_rope_sixseed_20260727_262k_10k_seed53",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_packed_rope_six_seed_extension_2026_07_27/allen15_packed_rope_corrected_d8_262k_10k_seed53_20260727.yaml",
+      "source_sha256": "9b373bdfac0c44dedf7e5e142bcb8ff35bbf8007c6d8268d18bc36c20eb5702e",
+      "public_sha256": "ab7a97eb4939ab7800ee831ce9fd114aef174e32b1355d6c37ee38a0c346fbb5",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/packed_seed67.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_packed_rope_sixseed_20260727_262k_10k_seed67",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_packed_rope_six_seed_extension_2026_07_27/allen15_packed_rope_corrected_d8_262k_10k_seed67_20260727.yaml",
+      "source_sha256": "7b8b4b8b2eb53db09604390554660266be5a25ab78a2cc4a825a363df705f81f",
+      "public_sha256": "e2a3b15c6c2bb42000dbe5734e1778f2841daa8cb4e7690a04ea0340e814070a",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/packed_seed83.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_packed_rope_sixseed_20260727_262k_10k_seed83",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_packed_rope_six_seed_extension_2026_07_27/allen15_packed_rope_corrected_d8_262k_10k_seed83_20260727.yaml",
+      "source_sha256": "35a16d9d080cb78356348994f6ca648e2e33367eb76e3afbc17d0cb05020cc1a",
+      "public_sha256": "29dd24048ae7db9d691ef477123e821b84992096dd010e03e164652d05e198eb",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_native_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_axial_native_block_morton_true_blocks_d8_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_true_blocks/allen15_axial_native_block_morton_true_blocks_d8_262k_10k_seed13.yaml",
+      "source_sha256": "ac683cad7e304f93b9322d4852549289e162e34562badcf286d3c22e2759c7e3",
+      "public_sha256": "5fe518ec5f30660c5f090312391b605be0be3fd4c48f92c0a3fec8e382426499",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_native_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_axial_native_block_morton_true_blocks_d8_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_true_blocks/allen15_axial_native_block_morton_true_blocks_d8_262k_10k_seed29.yaml",
+      "source_sha256": "148a709948707619ec1447e964221dd50398473fd66f1c5a62e0768684e0c16b",
+      "public_sha256": "353a1367a7fcb66c5cc559cf00380ceeab652580fd038be11fe88c028b0c131f",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_native_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_axial_native_block_morton_true_blocks_d8_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_true_blocks/allen15_axial_native_block_morton_true_blocks_d8_262k_10k_seed41.yaml",
+      "source_sha256": "d3ee64587690ebf8ffda7f8cb9bff3484da47f2e78598e610b6149bea9193240",
+      "public_sha256": "cf27b56c89b79565b97f10182c6efcb83c3a5542030c27850e5f0631ed58b0e9",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_seed53.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_pack3d_extension_262k_10k_seed53",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_unet_extension/allen15_pack3d_262k_10k_seed53.yaml",
+      "source_sha256": "ad965d5a0377bb44336b8082fd8c5550c5c3f68eca7923e1071fcf0482747d1d",
+      "public_sha256": "dc1c729ccd53314302705e4da580b352a81bb4f4a9354f857abc730c8666eb19",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_seed67.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_pack3d_extension_262k_10k_seed67",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_unet_extension/allen15_pack3d_262k_10k_seed67.yaml",
+      "source_sha256": "5c910bd2fbc0e309be3633c9d766ecb42bfe7472e045426a9928ec7039410a6f",
+      "public_sha256": "77a2299ade533009334572fbd585c9bef801d6a79b2c3df75f41bc82921d1c4e",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/allen15/axial_seed83.yaml",
+      "original_run_id": "rebuttal_20260726_allen15_pack3d_extension_262k_10k_seed83",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/allen15_unet_extension/allen15_pack3d_262k_10k_seed83.yaml",
+      "source_sha256": "3923e888294c8a847ade9409e4e04680b6a97561a5dc7b9170e84846841ee994",
+      "public_sha256": "18257a46715684b4067a5e723f1b43153f9d72d9638332c885580a127bda3d49",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/axial_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_axial_current_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_axial_current_262k_10k_seed13.yaml",
+      "source_sha256": "08fed908d73784ed3d6c7da440be35223ea3ffe6f7c1536ee32249b3fd624212",
+      "public_sha256": "06723659c0c27178d7a78f7702f001b49881f3733f3308a718ac031ae22bf468",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/axial_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_axial_current_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_axial_current_262k_10k_seed29.yaml",
+      "source_sha256": "f51733214fc5fa845f2481e07d9c1de8317978ceb3667f53b1205786f596caa6",
+      "public_sha256": "69f2a864c8b16b59ddcf21e47b00ec66a210505861bf5795ed7b44fba637ecc5",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/axial_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_axial_current_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_axial_current_262k_10k_seed41.yaml",
+      "source_sha256": "10fc72882d61ab3f0bdd823eadf00643d629173a5723735892ea33f946633662",
+      "public_sha256": "6b5a37766afb3dc4fb270b21c5d43fcaa76889e87290bdd9279eeb3f36ba49d4",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/packed_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_packed_current_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_packed_current_262k_10k_seed13.yaml",
+      "source_sha256": "abb6917d0b5b0cc084e07c90cabc461319cf4e2c27aeaeb89478ec03439f39d3",
+      "public_sha256": "06eb9f1cd3229f91998a6906d708f06dfc5adacea184e0f99e1b4f5a43fa5be8",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/packed_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_packed_current_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_packed_current_262k_10k_seed29.yaml",
+      "source_sha256": "773a363984357efce23d182a21e00ea3602390b7d4b19ae63e505ad7f62f0b0a",
+      "public_sha256": "da8843d67b37c3ffbc876f6de6382ccbafd273195a70146cb94c1e9a3801d313",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/packed_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_packed_current_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_packed_current_262k_10k_seed41.yaml",
+      "source_sha256": "4913fac19cfe9a0630426d792b1c5755b31cd4ef0d0bdb14c135328fa17145b6",
+      "public_sha256": "ee88842a64cc97ffbb21f71aecb209a5949d008463f6732596c76cfa159c489f",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/separable_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_separable_current_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_separable_current_262k_10k_seed13.yaml",
+      "source_sha256": "a07ab0e21969a2a9daa1be30ef31df2464d0275e8e4fcb74a0257337f0458b63",
+      "public_sha256": "ffa1b5d015e2a043cbb820d3b20b7fc00d6a879902f4fb95e86bab792becea2c",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/separable_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_separable_current_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_separable_current_262k_10k_seed29.yaml",
+      "source_sha256": "5b55a1403d9fe293cc4972cacb7d70d458e1f7613de0524f0e0f03a313ef0f03",
+      "public_sha256": "d9af3d478755dcf25fd41e2d453c973539d73d4d244d175a0089e386bfd03df8",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/heart/separable_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_msd_heart_separable_current_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/heart_separable_current_262k_10k_seed41.yaml",
+      "source_sha256": "89d111bcc396c531d70573c136a3ac183feb3d476e22a68b4936c92af0da4b0c",
+      "public_sha256": "4ae7be2284ad458fa9a6de05b688130484b69a77a96f550b86e609256a53f407",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/axial_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_axial_current_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_axial_current_262k_10k_seed13.yaml",
+      "source_sha256": "a8b796f7dad8e6b1078341b415af28351c24057a0bb742512ae87a1bb7def757",
+      "public_sha256": "3a792d352f2bad9105c8154b78d8f2587120f593e7262bce14cb5c31abfe3409",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/axial_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_axial_current_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_axial_current_262k_10k_seed29.yaml",
+      "source_sha256": "cbf56faf38541228ac3f94fee5602ca4b4a36b7ed5c5fd38e3d65e7f6f8aac23",
+      "public_sha256": "c29c32277ef547664f4893f2475a0d0f7a6ed790d0ace0d8bca5f8411102f55b",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/axial_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_axial_current_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_axial_current_262k_10k_seed41.yaml",
+      "source_sha256": "e6b6caf48f625116545eb66b7f3e6ee9f6a0d6708c1d5dcf95e3c5de191548e8",
+      "public_sha256": "fd0defb46322ac66097668101f1aaa913f31d02261851fd05691c9101ec35822",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/packed_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_packed_current_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_packed_current_262k_10k_seed13.yaml",
+      "source_sha256": "d428599536a4d75631b7f74cf6faa5ca61c1af5c6ac50f76d5be7056a3c2b841",
+      "public_sha256": "56713d2ce2f05e8267c47b2c24b34247869b38c65acbd83583556ed42d0fdfbf",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/packed_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_packed_current_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_packed_current_262k_10k_seed29.yaml",
+      "source_sha256": "bd20fb69f7c1cfbe70a7a18d8a08a41973e421b5c380dcf53ab31badcb122379",
+      "public_sha256": "ae254e1ec52f00f8fb0f0d64eaa4a07647a982a3abbc10ee3924075e3573abac",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/packed_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_packed_current_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_packed_current_262k_10k_seed41.yaml",
+      "source_sha256": "9bc23642b12fb6dcaaafcef55c7679b4243efe42cf4aa6b091576fe297516d3f",
+      "public_sha256": "ade32b61b2780b398cbc3992296fb123f80e0c65cbaec664b8a0aa0413e82d2b",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/separable_seed13.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_separable_current_262k_10k_seed13",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_separable_current_262k_10k_seed13.yaml",
+      "source_sha256": "da31096669482f767705fa813f880b61d2b4905228374f66781caa033f9f139b",
+      "public_sha256": "43326196cbba99dc284cf918c02bbf423f6ed06e1af8f5435df53ee032c1c987",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/separable_seed29.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_separable_current_262k_10k_seed29",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_separable_current_262k_10k_seed29.yaml",
+      "source_sha256": "cc32d619f920226bf945ab8fd5e6a427af94e38fda91e6be2a092d0a28bc3828",
+      "public_sha256": "f58429b3339aa468ac41b1dce96c6024f30a44c3f3da6668ed47c5598c559983",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    },
+    {
+      "file": "reproduce/configs/msd/spleen/separable_seed41.yaml",
+      "original_run_id": "rebuttal_20260726_msd_spleen_separable_current_262k_10k_seed41",
+      "source": "camera_ready/2026-11-04/evidence/configs/rebuttal/configs/msd_262k/spleen_separable_current_262k_10k_seed41.yaml",
+      "source_sha256": "77567502400142def1dafc5d895a2419b7f9ee5b4f6c03ab7298c6f33257668d",
+      "public_sha256": "d72c8951d1a9a8af2ebdd1a6f6d5d6ef190b9d696b920e7a8a56464ac284f526",
+      "changes": [
+        "run/output namespace",
+        "explicit manifest/data-root arguments",
+        "removed tracking metadata",
+        "removed obsolete launcher, evidence-status and historical grouping metadata"
+      ]
+    }
+  ]
+}

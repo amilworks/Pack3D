@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Read the paper
+    url: https://arxiv.org/abs/2610.38694
+    about: Geometry Matters in Packed 3D Attention (NeurIPS 2026), on arXiv.
+  - name: Project website
+    url: https://amilworks.github.io/Pack3D/
+    about: The paper's story in one page, with interactive figures.

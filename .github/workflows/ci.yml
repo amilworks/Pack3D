@@ -1,0 +1,73 @@
+name: Tests
+"on":
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  cpu:
+    name: Python ${{ matrix.python }}, PyTorch ${{ matrix.torch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The oldest supported versions.
+          - python: "3.11"
+            torch: "2.11.0"
+            constraints: ""
+          # The environment of the paper's reproduction runs (the constraints need Python 3.12+).
+          - python: "3.12"
+            torch: "2.11.0"
+            constraints: "reproduce/constraints-tested.txt"
+          # The newest PyTorch release.
+          - python: "3.13"
+            torch: "latest"
+            constraints: ""
+    env:
+      CUDA_VISIBLE_DEVICES: ""
+      OMP_NUM_THREADS: "2"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      TORCH_VERSION: ${{ matrix.torch }}
+      CONSTRAINTS: ${{ matrix.constraints }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install PyTorch (CPU build)
+        run: |
+          if [ "$TORCH_VERSION" = latest ]; then spec=torch; else spec="torch==$TORCH_VERSION"; fi
+          python -m pip install "$spec" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install PACK3D
+        run: python -m pip install -e ".[dev,reproduce]" ${CONSTRAINTS:+-c "$CONSTRAINTS"}
+      - name: Lint
+        run: ruff check src tests examples reproduce/*.py reproduce/data benchmarks tools
+      - name: Test
+        run: python -m pytest -q
+      - name: Run the examples
+        run: |
+          python examples/minimal_attention.py
+          python examples/repacking_equivariance.py
+          python examples/repack_test.py
+      - name: Recompute the six-seed summary from the frozen results
+        run: python reproduce/aggregate.py
+      - name: Check the release
+        run: python tools/check_release.py
+      - name: Build the package
+        run: |
+          python -m build
+          python -m twine check --strict dist/*
+      - name: Import the wheel outside the checkout
+        run: |
+          python -m pip uninstall -y pack3d
+          python -m pip install --no-deps dist/*.whl
+          cd "$RUNNER_TEMP"
+          python -c "import pack3d; print(pack3d.__version__, pack3d.__file__)"

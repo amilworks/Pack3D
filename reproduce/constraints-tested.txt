@@ -1,0 +1,9 @@
+# Optional reproduction stack validated on Python 3.12, Linux, 2026-11-06.
+# Install the appropriate PyTorch 2.11 wheel separately (CPU or CUDA).
+numpy==2.4.4
+monai==1.5.2
+scipy==1.17.1
+nibabel==5.4.2
+PyYAML==6.0.3
+tifffile==2026.10.15
+imagecodecs==2026.10.10

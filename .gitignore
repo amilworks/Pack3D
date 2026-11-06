@@ -1,0 +1,36 @@
+# Generated Python/build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+build/
+dist/
+coverage.xml
+.coverage
+
+# Local experiments and datasets; curated results/ stays versioned.
+/artifacts/
+/data/
+/checkpoints/
+/wandb/
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.nii
+*.nii.gz
+
+# Local credentials and editor state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.DS_Store
+.vscode/
+.idea/
+
+# Local tooling. The website in website/ is static and versioned as it is.
+node_modules/

@@ -1,0 +1,6 @@
+Method,Dice,FG recall,Predicted FG
+Otsu per crop,0.5021,0.8108,0.1239
+Adaptive local,0.2171,0.8967,0.3802
+Gaussian + Otsu,0.3565,0.8763,0.2079
+Otsu + component cleanup,0.5004,0.7882,0.1197
+Train-fitted threshold,0.5576,0.7224,0.0896

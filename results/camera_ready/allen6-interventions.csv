@@ -1,0 +1,7 @@
+Intervention,Mean Dice,SD,$\Delta$
+Unchanged,0.8531,0.0005,+0.0000
+Common K/V permutation,0.8532,0.0005,+0.0000
+Key-only permutation,0.8305,0.0038,-0.0226
+Value-only permutation,0.8197,0.0038,-0.0334
+Zero compressed output,0.6775,0.0184,-0.1756
+Same-layer cross-sample,0.6700,0.0100,-0.1831

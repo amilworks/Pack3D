@@ -1,0 +1,106 @@
+phase: pack3d_reproduction
+run_id: allen15_axial_seed53
+seed: 53
+ablation: pack3d_lg_rope_d8_predesc
+public_method_name: Pack3D-LG-RoPE depth8 + token U-Net decoder
+data:
+  dataset: allen_multistructure
+  root: null
+  manifest: null
+  batch_size: 1
+  max_train_samples: 0
+  max_val_samples: 0
+  num_workers: 4
+  expected_channel_set: structure_bf_dna
+training:
+  max_steps: 10000
+  eval_every: 1000
+  eval_batches: 120
+  aux_every: 500
+  return_aux: false
+  halo_masking: false
+  loss: dice_ce
+  dice_loss_weight: 1.0
+  lr: 0.0002
+  weight_decay: 0.01
+  precision: bf16
+model:
+  name: hypernsa_lm
+  input_shape:
+  - 32
+  - 512
+  - 256
+  in_channels: 3
+  patch_shape:
+  - 1
+  - 4
+  - 4
+  dim: 512
+  depth: 8
+  heads: 8
+  kv_heads: 2
+  dim_head: 64
+  block_shape:
+  - 1
+  - 4
+  - 4
+  local_radius:
+  - 1
+  - 1
+  - 1
+  layout: raster_block
+  route_score_mode: compressed_attention_mass
+  route_backend: triton_streaming
+  route_granularity: query_block_shared
+  route_share_tile_size: 16
+  route_block_q: 16
+  route_block_c: 256
+  route_distance_normalization: grid_diagonal_squared
+  allow_raw_distance_on_probability_route: false
+  route_center_distance_weight: 0.0
+  route_shape_penalty_weight: 0.02
+  num_summary_atoms: 1
+  atom_assignment_mode: single_atom
+  atom_balance_loss_weight: 0.0
+  atom_entropy_loss_weight: 0.0
+  atom_orthogonality_loss_weight: 0.0
+  num_selected_blocks: 0
+  route_residual_mode: none
+  residual_weight: 0.0
+  branch_gate_mode: softmax
+  branch_mixer_mode: local_residual_global
+  branch_layer_scale: true
+  branch_layer_scale_init:
+    local: 1.0
+    compressed: 0.25
+    selected: 0.0
+  local_attention_backend: triton
+  local_attention_block_n: 16
+  branch_output_fusion: standard
+  separate_branch_kv: true
+  packed_branch_kv_projection: true
+  route_select_grad: false
+  skip_disabled_local_branch: true
+  coarse_attention_backend: sdpa
+  coarse_summary_pool_size: 16
+  use_triton_kernel: true
+  route_materialize_scores_in_aux: false
+  enabled_branches:
+  - local
+  - compressed
+  pos_encoding: axial_rope
+  rotary_base: 10000.0
+  structure_conditioning: structure_id_embedding
+  structure_conditioning_location: pre_backbone_tokens
+  num_structures: 15
+  segmentation_head: monai_basic_unet
+  monai_decoder_project_dim: 32
+  monai_decoder_features:
+  - 32
+  - 32
+  - 64
+  - 128
+  - 256
+  - 32
+  monai_decoder_upsample: deconv
+  monai_decoder_raw_input_skip: false

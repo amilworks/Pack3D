@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+message: "If you use PACK3D, please cite the paper below."
+title: "PACK3D: Geometry Matters in Packed 3D Attention"
+type: software
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/amilworks/Pack3D"
+url: "https://amilworks.github.io/Pack3D/"
+abstract: >-
+  PACK3D is a local-global attention operator for packed 3D token fields that separates memory
+  layout from attention geometry. It attends exactly within a coordinate-defined neighborhood,
+  sees the whole field through pooled summaries, and rotates queries and keys with axial RoPE at
+  token-grid coordinates. The operator is equivariant to any repacking that carries coordinates,
+  neighborhoods, summary memberships, and within-block slots along with the tokens.
+keywords:
+  - attention
+  - rotary position embedding
+  - 3D
+  - packed sequences
+  - volumetric segmentation
+  - microscopy
+authors:
+  - family-names: Khan
+    given-names: Amil
+    affiliation: "University of California, Santa Barbara"
+  - family-names: Subrahmanya
+    given-names: Anantajit
+    affiliation: "University of California, Santa Barbara"
+  - family-names: Manjunath
+    given-names: "B. S."
+    affiliation: "University of California, Santa Barbara"
+identifiers:
+  - type: url
+    value: "https://arxiv.org/abs/2610.38694"
+    description: "The paper on arXiv"
+preferred-citation:
+  type: conference-paper
+  title: "Geometry Matters in Packed 3D Attention"
+  authors:
+    - family-names: Khan
+      given-names: Amil
+    - family-names: Subrahmanya
+      given-names: Anantajit
+    - family-names: Manjunath
+      given-names: "B. S."
+  collection-title: "Advances in Neural Information Processing Systems"
+  conference:
+    name: "NeurIPS 2026"
+    city: Sydney
+    country: AU
+  year: 2026
+  url: "https://arxiv.org/abs/2610.38694"
+  identifiers:
+    - type: other
+      value: "arXiv:2610.38694"
+      description: "arXiv identifier"

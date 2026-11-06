@@ -1,0 +1,45 @@
+phase: smoke
+run_id: smoke
+seed: 7
+data:
+  dataset: msd
+  batch_size: 1
+  num_workers: 0
+training:
+  max_steps: 2
+  eval_every: 1
+  eval_batches: 1
+  aux_every: 1
+  return_aux: false
+  halo_masking: false
+  loss: dice_ce
+  dice_loss_weight: 1.0
+  lr: 0.0002
+  weight_decay: 0.01
+  precision: fp32
+model:
+  name: hypernsa_lm
+  input_shape: [4, 4, 4]
+  patch_shape: [1, 1, 1]
+  in_channels: 1
+  dim: 16
+  depth: 1
+  heads: 1
+  kv_heads: 1
+  dim_head: 16
+  block_shape: [2, 2, 2]
+  local_radius: [1, 1, 1]
+  layout: native_block_morton
+  num_summary_atoms: 1
+  atom_assignment_mode: single_atom
+  num_selected_blocks: 0
+  enabled_branches: [local, compressed]
+  branch_mixer_mode: local_residual_global
+  branch_layer_scale: true
+  branch_layer_scale_init: {local: 1.0, compressed: 0.25, selected: 0.0}
+  pos_encoding: axial_rope
+  separate_branch_kv: true
+  coarse_summary_pool_size: 2
+  coarse_attention_backend: sdpa
+  local_attention_backend: torch
+  segmentation_head: linear
