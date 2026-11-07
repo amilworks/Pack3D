@@ -13,3 +13,4 @@ further.
 | [Corrections](corrections.md) | see the scientific corrections made after review, and why |
 | [Release validation](validation.md) | see which checks this release passed, and repeat them |
 | [The project website](pages.md) | deploy or edit the website in `website/` |
+| [The website's design system](design-system.md) | build a new figure, section or control for the website from its tokens and components |

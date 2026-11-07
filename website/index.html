@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="at-top stage-top">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -43,13 +43,19 @@
 <meta name="citation_arxiv_id" content="2610.38694">
 <meta name="citation_abstract_html_url" content="https://amilworks.github.io/Pack3D/">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"ScholarlyArticle","headline":"Geometry Matters in Packed 3D Attention","name":"Geometry Matters in Packed 3D Attention","alternateName":"PACK3D","abstract":"Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. Raster, Morton, and block-contiguous layouts change the position and leave the coordinate alone. A positional mechanism indexed by sequence position can therefore learn the memory layout rather than the object, and accuracy on the training layout cannot reveal that it has. We introduce PACK3D, a local–global attention operator that separates memory layout from attention geometry. It attends exactly within a coordinate-defined neighborhood, sees the whole field through pooled summaries, and rotates queries and keys with axial RoPE at token-grid coordinates. Because keys are rotated before pooling, each query-to-summary logit is a weighted sum of query–key terms evaluated at the summarized tokens' displacements from the query. The operator is equivariant to any repacking that carries coordinates, neighborhoods, summary memberships, and within-block slots along with the tokens. On Allen WTC-11 microscopy at 262k tokens, PACK3D and a matched packed-sequence RoPE control reach comparable Dice on the training layout. Repacking the same validation volumes then costs the packed control 0.048 macro Dice on average, with a loss in all six seeds, while PACK3D changes by 0.0001. On MSD Heart and Spleen, sequence indexing again changes more predictions under repacking, at little cost in Dice. PACK3D also exceeds a parameter-matched 3D U-Net by 0.009 Dice over six seeds, and a full PACK3D layer runs within 7–31% of window-attention latency while adding a global pathway. Geometry, not storage order, should index attention over packed 3D fields.","author":[{"@type":"Person","name":"Amil Khan","affiliation":{"@type":"Organization","name":"Department of Electrical & Computer Engineering","parentOrganization":{"@type":"CollegeOrUniversity","name":"University of California, Santa Barbara"}}},{"@type":"Person","name":"Anantajit Subrahmanya","affiliation":{"@type":"Organization","name":"Department of Electrical & Computer Engineering","parentOrganization":{"@type":"CollegeOrUniversity","name":"University of California, Santa Barbara"}}},{"@type":"Person","name":"B.S. Manjunath","affiliation":{"@type":"Organization","name":"Department of Electrical & Computer Engineering","parentOrganization":{"@type":"CollegeOrUniversity","name":"University of California, Santa Barbara"}}}],"datePublished":"2026","inLanguage":"en","keywords":["packed 3D attention","positional encoding","rotary position embedding","axial RoPE","sparse attention","3D microscopy","volumetric segmentation","packing equivariance"],"isPartOf":{"@type":"CreativeWorkSeries","name":"Advances in Neural Information Processing Systems"},"publication":{"@type":"PublicationEvent","name":"NeurIPS 2026","location":{"@type":"Place","name":"Sydney, Australia"}},"sameAs":"https://arxiv.org/abs/2610.38694","identifier":{"@type":"PropertyValue","propertyID":"arXiv","value":"2610.38694"},"associatedMedia":{"@type":"MediaObject","contentUrl":"https://arxiv.org/pdf/2610.38694","encodingFormat":"application/pdf"},"url":"https://amilworks.github.io/Pack3D/","mainEntityOfPage":"https://amilworks.github.io/Pack3D/","image":"https://amilworks.github.io/Pack3D/social.png"}</script>
+<noscript><style>.toc:focus-within .toc-menu { opacity: 1; visibility: visible; transform: none; }</style></noscript>
 <link rel="preload" href="fonts/inter-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>@font-face{font-family:"Inter";src:url(fonts/inter-latin-standard-normal.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"Inter";src:url(fonts/inter-latin-standard-italic.woff2) format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"DM Mono";src:url(fonts/dm-mono-latin-400-normal.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"DM Mono";src:url(fonts/dm-mono-latin-500-normal.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
 <style>
-/* Layout: a single reading column (about 66ch) that opens into wide "benches" where the demos and
-   charts live. Every bench is a white sheet with Figure 1's dashed rule, so the page reads like the
-   paper's figure spread out over a long table. */
+/* PACK3D's design system. The reference, with the reasons, is docs/design-system.md.
+   The page is a sheet of paper lifted off a dark stage. Depth comes from fills, not outlines: a group
+   is a wash of ink, a chosen option is lifted out of its tray, a menu is a small sheet. Lines are kept
+   for data (axes, grids, table rules) and for the hairline under the bar. Color carries meaning: teal
+   is PACK3D and the coordinate, coral is packed RoPE and the memory position.
+   Layout: one reading column (about 66ch) that opens into wide sheets, the benches, where the
+   figures live. */
 :root {
+  /* color */
   --bg: #F3F5F4;
   --surface: #FFFFFF;
   --surface-2: #F8FAF9;
@@ -71,14 +77,44 @@
   --tint-teal: #8EDDCB;
   --tint-coral: #FFB4B6;
   --track: #EEF1EF;
-  --shadow: 0 1px 0 rgba(15, 21, 19, 0.04);
+  /* type */
   --font-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --fs-control: 0.9rem;       /* buttons, the breadcrumb, menu rows, the two encodings */
+  --fs-control-sm: 0.84rem;   /* chips, small buttons, disclosures */
+  --fs-meta: 0.8rem;          /* the quieter words inside a control or a label */
+  /* layout */
   --col: 42rem;
   --wide: 76rem;
-  --radius: 14px;
-  --sheet-r: clamp(22px, 3.4vw, 48px);
+  /* radius: corners nest, so an inner corner is the outer corner less the padding between them */
+  --r-xs: 6px;                /* marks: meters, regions of the Figure 1 map */
+  --r-sm: 10px;               /* controls and rows: chips, menu rows, readouts, frames, tips */
+  --r-md: 13px;               /* groups: trays (10 + 3), stats, code, callouts, choice cards */
+  --r-lg: 16px;               /* small sheets: menus (10 + 6), cards that sit on the page */
+  --r-xl: 20px;               /* sheets: the benches */
+  --sheet-r: clamp(22px, 3.4vw, 48px);   /* the page itself, where it meets the stage */
+  /* fills: the ink at low strength, so one fill works on any surface and in either theme */
+  --wash-1: color-mix(in oklab, var(--ink) 4.5%, transparent);   /* a group at rest: stats, readouts, code */
+  --wash-2: color-mix(in oklab, var(--ink) 7%, transparent);     /* trays, quiet buttons, hover on a row */
+  --wash-3: color-mix(in oklab, var(--ink) 10%, transparent);    /* hover on a quiet button, an open menu */
+  --wash-4: color-mix(in oklab, var(--ink) 14%, transparent);    /* pressed */
+  --teal-1: color-mix(in oklab, var(--teal) 15%, transparent);   /* the primary action, a PACK3D callout */
+  --teal-2: color-mix(in oklab, var(--teal) 22%, transparent);   /* its hover */
+  --teal-3: color-mix(in oklab, var(--teal) 28%, transparent);   /* pressed */
+  --coral-1: color-mix(in oklab, var(--coral) 14%, transparent); /* a packed RoPE callout */
+  /* elevation: a sheet, a chosen option lifted out of its tray, and a menu */
+  --sheet-shadow: 0 1px 2px rgba(15, 21, 19, 0.04), 0 12px 32px -20px rgba(15, 21, 19, 0.22);
+  --lift: #FFFFFF;
+  --lift-shadow: 0 1px 2px rgba(15, 21, 19, 0.09), 0 0 0 0.5px rgba(15, 21, 19, 0.1);
+  --pop: #FFFFFF;
+  --pop-rule: rgba(15, 21, 19, 0.09);
+  --pop-shadow: 0 22px 48px -18px rgba(15, 21, 19, 0.28), 0 4px 14px -6px rgba(15, 21, 19, 0.12);
+  /* motion: brief, and only in answer to something */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-1: 0.15s;               /* a fill on hover */
+  --t-2: 0.25s;               /* a change of state */
+  --t-3: 0.4s;                /* a change of place: the chapter in the breadcrumb, the bar between stage and page, a meter */
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -103,7 +139,12 @@
     --tint-teal: #1F5F51;
     --tint-coral: #6B2F33;
     --track: #1C2422;
-    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+    --sheet-shadow: 0 0 0 1px rgba(232, 238, 235, 0.055), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+    --lift: rgba(232, 238, 235, 0.13);
+    --lift-shadow: none;
+    --pop: #161D1B;
+    --pop-rule: rgba(232, 238, 235, 0.09);
+    --pop-shadow: 0 24px 52px -16px rgba(0, 0, 0, 0.75), 0 4px 14px -6px rgba(0, 0, 0, 0.5);
     color-scheme: dark;
   }
 }
@@ -129,14 +170,23 @@
   --tint-teal: #1F5F51;
   --tint-coral: #6B2F33;
   --track: #1C2422;
-  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --sheet-shadow: 0 0 0 1px rgba(232, 238, 235, 0.055), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+  --lift: rgba(232, 238, 235, 0.13);
+  --lift-shadow: none;
+  --pop: #161D1B;
+  --pop-rule: rgba(232, 238, 235, 0.09);
+  --pop-shadow: 0 24px 52px -16px rgba(0, 0, 0, 0.75), 0 4px 14px -6px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  /* every transition and animation is instant; the opening shows a still frame of its own */
+  *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0s !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
 body {
   background: var(--bg);
   color: var(--ink);
@@ -155,7 +205,7 @@ body::before {
 }
 a { color: inherit; text-decoration-color: var(--teal); text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
 @media (hover: hover) { a:hover { text-decoration-thickness: 2.5px; } }
-:focus-visible { outline: 2.5px solid var(--teal); outline-offset: 3px; border-radius: 4px; }
+:focus-visible { outline: 2.5px solid var(--teal); outline-offset: 3px; }
 ::selection { background: var(--tint-teal); }
 
 .gutter {
@@ -212,79 +262,228 @@ p { margin: 0; }
 strong { font-weight: 600; }
 em { font-style: italic; }
 
-/* ------------------------------------------------------------------ top bar */
+/* ------------------------------------------------------------------ top bar
+   A one-step breadcrumb: the wordmark, then the chapter you are reading. The chapter opens the contents
+   as a small sheet: under a resting mouse after a short pause (app.js), and on a click, a tap or the
+   keyboard, which keep it open until a choice, a click elsewhere or Escape. */
 .topbar {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
-  background: color-mix(in oklab, var(--bg) 88%, transparent);
-  backdrop-filter: saturate(1.4) blur(10px);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
-  border-bottom: 1px solid var(--rule);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
+  backdrop-filter: saturate(1.5) blur(16px);
+  -webkit-backdrop-filter: saturate(1.5) blur(16px);
+  border-bottom: 1px solid color-mix(in oklab, var(--rule) 80%, transparent);
+  transition: background-color var(--t-3), border-color var(--t-3);
 }
-.topbar-in { display: flex; align-items: center; gap: 18px; height: 52px; }
+/* at the very top the bar has no edge: it is the stage */
+.topbar.at-start { background-color: var(--bg); border-bottom-color: transparent; }
+.topbar-in { display: flex; align-items: center; gap: 16px; height: 52px; }
+.crumbs { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
 .wordmark {
-  font-family: var(--font-display); font-weight: 650; font-size: 1.05rem; letter-spacing: -0.012em;
-  text-decoration: none; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  font-family: var(--font-display); font-weight: 650; font-size: 1rem; line-height: 1; letter-spacing: -0.012em;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; flex: none;
+  padding: 8px; margin-left: -8px; border-radius: var(--r-sm); transition: background-color var(--t-1);
 }
 .wordmark .cube { width: 18px; height: 18px; }
-.wm-text { display: grid; line-height: 1.08; }
-.wm-sub { font-family: var(--font-body); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.01em; color: var(--ink-3); }
-.chapters { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); padding-right: 24px; }
-.chapters::-webkit-scrollbar { display: none; }
-.chapters a {
-  font-size: 0.82rem; color: var(--ink-2); text-decoration: none; white-space: nowrap;
-  padding: 6px 10px; border-radius: 999px;
+.badge {
+  display: inline-flex; align-items: center; flex: none; white-space: nowrap;
+  font: 500 0.68rem/1 var(--font-body); letter-spacing: 0.01em; color: var(--ink-3);
+  border: 1px solid var(--rule); border-radius: 999px; padding: 4px 8px;
 }
-@media (hover: hover) { .chapters a:hover { color: var(--ink); background: var(--surface); } }
-.chapters a.on { color: var(--ink); background: var(--surface); box-shadow: inset 0 0 0 1px var(--rule); }
-.topbar .btn { padding: 7px 14px; font-size: 0.84rem; }
-.top-links { display: flex; gap: 8px; flex: none; }
-.progress { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; background: var(--teal); }
-/* over the dark stage at the end, the bar goes dark with it */
-.topbar { transition: background-color 0.35s, border-color 0.35s; }
-.topbar.on-end {
-  --bg: #060A09; --surface: #18201E; --ink: #EEF3F1; --ink-2: #B4BEBA; --ink-3: #8C9A95; --rule: rgba(238, 243, 241, 0.13);
-  color: var(--ink); color-scheme: dark;
+.crumb-sep { flex: none; margin-left: 4px; color: var(--ink-3); opacity: 0.55; font-weight: 300; font-size: 1.15rem; line-height: 1; }
+.toc { position: relative; min-width: 0; }
+.toc-btn {
+  appearance: none; border: 0; margin: 0; background: transparent; color: var(--ink); cursor: pointer;
+  font: 500 var(--fs-control)/1.2 var(--font-body); letter-spacing: -0.006em;
+  display: flex; align-items: center; gap: 6px; max-width: 100%; padding: 7px 9px 7px 10px; border-radius: var(--r-sm);
+  transition: background-color var(--t-1);
 }
-@media (max-width: 760px) { .chapters { display: none; } .topbar-in { justify-content: space-between; } }
+.toc-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toc-btn .chev { flex: none; width: 12px; height: 12px; color: var(--ink-3); transition: transform var(--t-2) var(--ease); }
+.toc.open .toc-btn { background: var(--wash-3); }
+.toc.open .toc-btn .chev { transform: rotate(180deg); }
+/* the chapter name changes as you read, arriving from the direction you scrolled */
+.toc-label.swap { animation: crumb-in var(--t-3) var(--ease); }
+@keyframes crumb-in { from { opacity: 0; transform: translateY(var(--dy, 0.45em)); } }
+.toc-menu {
+  position: absolute; top: calc(100% + 10px); left: -12px; width: 300px; z-index: 1;
+  max-height: calc(100svh - 72px - env(safe-area-inset-top, 0px)); overflow-y: auto; overscroll-behavior: contain;
+  padding: 6px; border-radius: var(--r-lg); background: var(--pop); border: 1px solid var(--pop-rule); box-shadow: var(--pop-shadow);
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(0.98); transform-origin: 30px 0;
+  transition: opacity var(--t-1) ease, transform var(--t-2) var(--ease), visibility 0s linear var(--t-2);
+}
+.toc.open .toc-menu { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+/* an unseen bridge over the gap under the chapter, so a mouse on its way down to the menu stays inside */
+@media (hover: hover) and (min-width: 561px) {
+  .toc.open::after { content: ""; position: absolute; left: -12px; top: 100%; width: 300px; height: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .toc-label.swap { animation: none; } .toc-menu { transform: none; } }
+.toc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.toc-list a {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r-sm);
+  color: var(--ink); text-decoration: none; font-size: var(--fs-control); line-height: 1.3; font-weight: 500;
+  transition: background-color var(--t-1);
+}
+.toc-list .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toc-list .n, .toc-list .m { margin-left: auto; padding-left: 12px; flex: none; color: var(--ink-3); }
+.toc-list .n { font-family: var(--font-mono); font-size: 0.76rem; min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+.toc-list .m { font-size: var(--fs-meta); }
+.toc-list a:focus-visible { outline: none; background: var(--wash-3); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--teal) 60%, transparent); }
+.toc-list a:active { background: var(--wash-4); }
+/* the chapter you are in carries a check where its number was */
+.toc-list a[aria-current] .n { display: none; }
+.toc-list a[aria-current]::after {
+  content: ""; margin-left: auto; flex: none; width: 16px; height: 16px; background: var(--mint-ink);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.4l3 3 6-6.8' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.4l3 3 6-6.8' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.toc-menu hr { border: 0; height: 1px; margin: 6px 10px; background: var(--pop-rule); }
+.toc-narrow { display: none; }
+.top-links { display: flex; align-items: center; gap: 4px; flex: none; }
+.progress { position: absolute; left: 0; bottom: -1px; height: 1px; width: 0; background: var(--teal); }
+@media (hover: hover) {
+  .wordmark:hover, .toc-btn:hover, .toc-list a:hover { background: var(--wash-2); }
+}
+/* the dark stage (the opening, the end, and the bar over them) carries its own tokens; every control reads them */
+.hero, .end, .topbar.on-stage, .topbar.on-end {
+  --bg: #060A09; --surface: #151C1A; --surface-2: #101614; --ink: #EEF3F1; --ink-2: #B4BEBA; --ink-3: #8C9A95;
+  --rule: rgba(238, 243, 241, 0.14); --teal: #19AC8B; --mint-ink: #5FE0C3;
+  --lift: rgba(238, 243, 241, 0.14); --lift-shadow: none;
+  --pop: #121917; --pop-rule: rgba(238, 243, 241, 0.09);
+  --pop-shadow: 0 26px 56px -16px rgba(0, 0, 0, 0.85), 0 4px 14px -6px rgba(0, 0, 0, 0.6);
+  /* fills are mixed from the ink, so they are mixed again from the stage's ink */
+  --wash-1: color-mix(in oklab, var(--ink) 4.5%, transparent);
+  --wash-2: color-mix(in oklab, var(--ink) 7%, transparent);
+  --wash-3: color-mix(in oklab, var(--ink) 10%, transparent);
+  --wash-4: color-mix(in oklab, var(--ink) 14%, transparent);
+  --teal-1: color-mix(in oklab, var(--teal) 15%, transparent);
+  --teal-2: color-mix(in oklab, var(--teal) 22%, transparent);
+  --teal-3: color-mix(in oklab, var(--teal) 28%, transparent);
+  color-scheme: dark;
+}
+.topbar.on-end, .topbar.on-stage { color: var(--ink); }
+@media (max-width: 900px) { .wm-venue { display: none; } }
+@media (max-width: 560px) {
+  .toc { position: static; }   /* the sheet spans the bar on a phone */
+  .toc-menu {
+    top: calc(100% + 6px); left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px));
+    width: auto; transform-origin: 50% 0;
+  }
+  .toc-list a { padding: 11px 12px; font-size: 1rem; }
+  hr.toc-narrow { display: block; }
+  .toc-list.toc-narrow { display: grid; }
+  .top-links .top-code { display: none; }   /* the code is one tap away, in the contents */
+}
 
-/* ------------------------------------------------------------------ buttons and chips */
+/* ------------------------------------------------------------------ buttons and chips
+   Quiet controls: no outlines and no solid ink. An action is a soft wash, a primary action a wash of
+   teal, and a choice sits in a tray with the chosen option lifted out of it. One weight throughout,
+   so choosing never shifts a word. */
 .btn {
-  appearance: none; border: 1px solid var(--ink); background: var(--ink); color: var(--bg);
-  font: 600 0.95rem/1 var(--font-body); padding: 12px 18px; border-radius: 999px; cursor: pointer;
-  text-decoration: none; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  appearance: none; border: 0; margin: 0; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
+  font: 500 var(--fs-control)/1.2 var(--font-body); letter-spacing: -0.006em;
+  padding: 10px 16px; border-radius: 999px;
+  color: var(--mint-ink); background: var(--teal-1);
+  transition: background-color var(--t-1), color var(--t-1);
 }
-@media (hover: hover) { .btn:hover { background: color-mix(in oklab, var(--ink) 86%, var(--teal)); } }
-.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
-@media (hover: hover) { .btn.ghost:hover { border-color: var(--ink); background: var(--surface); } }
-.btn.teal { background: var(--teal); border-color: var(--teal); color: #06201A; }
-@media (hover: hover) { .btn.teal:hover { background: color-mix(in oklab, var(--teal) 86%, var(--ink)); } }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn.ghost { color: var(--ink); background: var(--wash-2); }
+.btn.plain { color: var(--ink-2); background: transparent; }
+.btn.sm { font-size: var(--fs-control-sm); padding: 7px 12px; }
+.btn:active { background: var(--teal-3); }
+.btn.ghost:active, .btn.plain:active { background: var(--wash-4); }
+@media (hover: hover) {
+  .btn:hover { background: var(--teal-2); }
+  .btn.ghost:hover { background: var(--wash-3); }
+  .btn.plain:hover { color: var(--ink); background: var(--wash-2); }
+}
+.chips {
+  display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--r-md); max-width: 100%;
+  background: var(--wash-2);
+}
 .chip {
-  appearance: none; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);
-  font: 600 0.82rem/1 var(--font-body); padding: 8px 12px; border-radius: 999px; cursor: pointer;
+  appearance: none; border: 0; margin: 0; cursor: pointer; background: transparent; color: var(--ink-2);
+  font: 500 var(--fs-control-sm)/1.2 var(--font-body); letter-spacing: -0.004em; padding: 7px 12px; border-radius: var(--r-sm);
+  transition: background-color var(--t-1), color var(--t-1), box-shadow var(--t-1);
 }
-@media (hover: hover) { .chip:hover { color: var(--ink); border-color: var(--ink-3); } }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.chip .k { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.7; margin-left: 4px; }
-.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--ink-2); cursor: pointer; user-select: none; }
-.toggle input { accent-color: var(--teal); width: 16px; height: 16px; }
+.chip[aria-pressed="true"] { color: var(--ink); background: var(--lift); box-shadow: var(--lift-shadow); }
+@media (hover: hover) { .chip:not([aria-pressed="true"]):hover { color: var(--ink); background: var(--wash-1); } }
 
-/* ------------------------------------------------------------------ hero */
-.hero { padding-block: clamp(28px, 5vw, 64px) clamp(36px, 6vw, 72px); }
-.hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: center; }
-@media (max-width: 920px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
-.hero .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 20px; font-size: 0.98rem; color: var(--ink-2); }
-.hero .meta b { color: var(--ink); font-weight: 600; }
-.hero .meta .affil { flex-basis: 100%; line-height: 1.45; }
-.hero .lede { margin-top: 22px; max-width: 36rem; }
-.hero .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
-.hero-figure { display: grid; gap: 12px; min-width: 0; }
-.hero-canvas-wrap { position: relative; aspect-ratio: 1.08 / 1; width: 100%; max-width: 640px; margin-inline: auto; }
-.hero-canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hero-caption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
-.legend-ramp { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--ink-3); font-family: var(--font-mono); }
-.legend-ramp i { display: block; width: 120px; height: 8px; border-radius: 4px; }
-.layout-name { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-2); }
+/* ------------------------------------------------------------------ hero
+   The page opens on the dark stage it closes on. A WebGL field of 32,768 tokens fills the first
+   screen and the reader is the query; the paper's sheet slides up over the stage below the fold. */
+.hero {
+  --s-bg: #060A09; --s-ink: #EEF3F1; --s-ink-2: #B4BEBA; --s-ink-3: #8C9A95; --s-rule: rgba(238, 243, 241, 0.16);
+  position: relative; overflow: hidden; display: flex; color: var(--s-ink); color-scheme: dark;
+  background: radial-gradient(55% 65% at 68% 50%, rgba(128, 98, 220, 0.16), transparent 70%), var(--s-bg);
+  min-height: calc(100svh - 53px + var(--sheet-r));
+  margin-bottom: calc(-1 * var(--sheet-r));
+}
+.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-in {
+  position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: 28px;
+  padding-top: clamp(28px, 7vh, 88px); padding-bottom: calc(var(--sheet-r) + clamp(18px, 3.5vh, 40px));
+}
+.hero-head, .hero-byline, .hero-foot { width: 100%; }
+.hero-foot { margin-top: auto; }
+/* where the cube is drawn: the right of the stage on wide screens, under the title on narrow ones */
+.hero-field { position: absolute; top: 0; right: 0; bottom: calc(var(--sheet-r) + 110px); width: 60%; pointer-events: none; }
+.hero .eyebrow { color: #5FE0C3; }
+.hero h1 {
+  margin-top: 18px; max-width: 11.5ch; font-weight: 320; font-size: clamp(2.7rem, 6.2vw, 6.2rem); line-height: 1;
+  letter-spacing: -0.034em; color: var(--s-ink); text-shadow: 0 0 36px rgba(6, 10, 9, 0.85);
+}
+.hero h1 .tail { display: block; }
+.hero .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.98rem; color: var(--s-ink-2); text-shadow: 0 0 18px rgba(6, 10, 9, 0.9); }
+.hero .meta b { color: var(--s-ink); font-weight: 600; }
+.hero .meta .affil { flex-basis: 100%; line-height: 1.45; color: var(--s-ink-3); }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+.hero-foot { display: grid; gap: 14px; }
+.hero-bar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; }
+.hero-hint { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; color: var(--s-ink-2); text-shadow: 0 0 14px rgba(6, 10, 9, 0.9); }
+.qdot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 14px rgba(255, 255, 255, 0.75); }
+.hero-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+/* the two encodings and the four orders sit in trays, like every other choice on the page */
+.seg, .hero .chips {
+  display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-md);
+  background: var(--wash-2);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.seg button {
+  appearance: none; border: 0; margin: 0; background: transparent; color: var(--ink-2); cursor: pointer;
+  font: 500 var(--fs-control)/1.2 var(--font-body); letter-spacing: -0.006em;
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r-sm);
+  transition: background-color var(--t-2), box-shadow var(--t-2);
+}
+.seg b { font-weight: 500; color: var(--ink); }
+.seg span { font-size: var(--fs-meta); color: var(--ink-3); }
+.seg button[aria-pressed="true"] { background: var(--lift); box-shadow: var(--lift-shadow); }
+@media (hover: hover) { .seg button:not([aria-pressed="true"]):hover { background: var(--wash-1); } }
+.hero .chip { padding: 8px 13px; font-size: var(--fs-control); }
+.hero-read { font-family: var(--font-mono); font-size: 0.76rem; color: var(--s-ink-3); font-variant-numeric: tabular-nums; text-shadow: 0 0 12px rgba(6, 10, 9, 0.9); }
+.hero-q { position: absolute; left: 0; top: 0; z-index: 1; font: 500 0.74rem/1 var(--font-mono); color: #FFFFFF; opacity: 0; pointer-events: none; transition: opacity var(--t-3); text-shadow: 0 0 8px rgba(6, 10, 9, 0.95); }
+.hero-q.on { opacity: 0.85; }
+.hero.no-gl .hero-hint, .hero.no-gl .hero-controls, .hero.no-gl .hero-q { display: none; }
+@media (max-width: 920px) {
+  .hero { min-height: 0; }
+  .hero-in { padding-top: clamp(20px, 4vh, 40px); }
+  .hero h1 { max-width: none; }
+  .hero-head { order: 1; }
+  .hero-field {
+    order: 2; position: relative; inset: auto; width: auto; aspect-ratio: 1 / 0.85;
+    margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  }
+  .hero-foot { order: 3; margin-top: 0; }
+  .hero-byline { order: 4; }
+}
+@media (max-width: 760px) { .seg span { display: none; } }
+/* the paper's sheet slides up over the stage */
+.standfirst {
+  position: relative; z-index: 2; background: var(--bg); border-radius: var(--sheet-r) var(--sheet-r) 0 0;
+  box-shadow: 0 -1px 0 var(--rule), 0 -40px 70px -36px rgba(0, 0, 0, 0.6); padding-block: clamp(48px, 7vw, 96px) 0;
+}
+.standfirst .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+html.at-top { background-color: #060A09; }
+html.stage-top body::before { background: #060A09; }   /* the strip under a phone's status bar follows the stage */
 
 /* ------------------------------------------------------------------ chapters */
 .chapter { padding-block: clamp(56px, 9vw, 120px) 0; scroll-margin-top: 60px; }
@@ -294,40 +493,33 @@ em { font-style: italic; }
 .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3.5vw, 48px); align-items: start; }
 @media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr); } }
 
-/* the bench: where demos and charts live */
+/* the bench: a sheet where the figures live. It is told apart from the page by its fill and a soft
+   shadow; what sits on it is told apart by a wash, never by an outline. */
 .bench {
   background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sheet-shadow);
   position: relative;
-  padding: clamp(14px, 2.4vw, 28px);
+  padding: clamp(16px, 2.4vw, 28px);
   margin-top: 28px;
   min-width: 0;
 }
-.bench::after {
-  content: ""; position: absolute; inset: 6px; border-radius: calc(var(--radius) - 4px);
-  border: 1.5px dashed var(--rule); pointer-events: none;
-}
-.bench > * { position: relative; z-index: 1; }
+.bench > * { position: relative; }
 .bench-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
 .bench-title { font-weight: 600; font-size: 1.02rem; }
-.bench-sub { color: var(--ink-3); font-size: 0.86rem; }
+.bench-sub { color: var(--ink-3); font-size: var(--fs-meta); font-weight: 500; }
 .bench-foot { margin-top: 12px; color: var(--ink-3); font-size: 0.84rem; line-height: 1.5; }
-.bench.mint { background: var(--mint); }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 14px; }
 .readouts { display: flex; flex-wrap: wrap; gap: 10px; }
 .readout {
-  border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; background: var(--surface-2);
+  border-radius: var(--r-sm); padding: 9px 12px; background: var(--wash-1);
   display: grid; gap: 2px; min-width: 0;
 }
 .readout .lab { font-size: 0.74rem; color: var(--ink-3); font-family: var(--font-mono); letter-spacing: 0.01em; }
 .readout .val { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1.02rem; }
 
 /* ------------------------------------------------------------------ the lab */
-.lab-grid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-@media (max-width: 900px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
-.lab-3d { position: relative; aspect-ratio: 1.12 / 1; width: 100%; }
-.lab-3d canvas, .lab-slices canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lab-slices canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .lab-slices { position: relative; aspect-ratio: 2 / 1.06; width: 100%; }
 .ribbon-wrap { position: relative; width: 100%; margin-top: 14px; }
 .ribbon-wrap canvas { width: 100%; display: block; }
@@ -335,19 +527,12 @@ em { font-style: italic; }
 .nw { white-space: nowrap; }
 #ropeGrid { max-width: 460px; margin-inline: auto; }
 .readout .lab sub { font-size: 0.85em; }
-.view-label { font-family: var(--font-body); font-weight: 600; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
-.steps { display: grid; gap: 12px; counter-reset: step; }
-.step {
-  border-left: 2px solid var(--rule); padding: 4px 0 4px 16px; color: var(--ink-2); cursor: pointer;
-  transition: border-color .2s, color .2s;
-}
-@media (hover: hover) { .step:hover { color: var(--ink); } }
-.step.on { border-color: var(--teal); color: var(--ink); }
-.step b { color: var(--ink); }
+/* a figure's label is a caption in sentence case: capitals would turn the variable z into Z */
+.view-label { font-family: var(--font-body); font-weight: 500; font-size: var(--fs-meta); color: var(--ink-3); }
 
 /* ------------------------------------------------------------------ big numbers */
 .bignums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.bignum { border-radius: 12px; padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--rule); display: grid; gap: 4px; align-content: start; min-width: 0; }
+.bignum { border-radius: var(--r-md); padding: 16px 18px; background: var(--wash-1); display: grid; gap: 4px; align-content: start; min-width: 0; }
 .bignum .who { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; }
 .bignum .v {
   font-family: var(--font-display); font-weight: 420; font-size: clamp(2.1rem, 4.2vw, 3.3rem); line-height: 1;
@@ -370,22 +555,37 @@ em { font-style: italic; }
 .chart-wrap { position: relative; min-width: 0; }
 .tip {
   position: fixed; z-index: 40; pointer-events: none; background: var(--ink); color: var(--bg);
-  font-size: 0.8rem; line-height: 1.35; padding: 7px 10px; border-radius: 8px; max-width: 260px;
-  opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s;
+  font-size: 0.8rem; line-height: 1.35; padding: 7px 10px; border-radius: var(--r-sm); max-width: 260px;
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.45);
+  opacity: 0; transform: translateY(4px); transition: opacity var(--t-1), transform var(--t-1);
   font-variant-numeric: tabular-nums;
 }
 .tip.on { opacity: 1; transform: none; }
-details.numbers { margin-top: 12px; font-size: 0.86rem; color: var(--ink-2); }
-details.numbers summary { cursor: pointer; color: var(--ink-3); font-weight: 600; }
+/* a disclosure is a quiet button with a chevron that turns as it opens */
+details.numbers { margin-top: 12px; font-size: var(--fs-control-sm); color: var(--ink-2); }
+details.numbers summary {
+  list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px 7px 9px; margin-left: -9px; border-radius: var(--r-sm); color: var(--ink-2); font-weight: 500;
+  transition: background-color var(--t-1), color var(--t-1);
+}
+details.numbers summary::-webkit-details-marker { display: none; }
+details.numbers summary::before {
+  content: ""; flex: none; width: 12px; height: 12px; background: currentColor; transition: transform var(--t-2) var(--ease);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4.6 3 7.6 6l-3 3' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4.6 3 7.6 6l-3 3' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+details.numbers[open] summary::before { transform: rotate(90deg); }
+details.numbers summary:active { background: var(--wash-4); }
+@media (hover: hover) { details.numbers summary:hover { background: var(--wash-2); color: var(--ink); } }
 .table-wrap { overflow-x: auto; margin-top: 8px; }
 table.data { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.84rem; min-width: 100%; }
 table.data th, table.data td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
 table.data th:first-child, table.data td:first-child { text-align: left; }
-table.data th { color: var(--ink-3); font-weight: 600; }
+table.data th { color: var(--ink-3); font-weight: 500; }
 
 .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .field { display: grid; gap: 8px; min-width: 0; }
-.field canvas { width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--rule); image-rendering: pixelated; }
+.field canvas { width: 100%; aspect-ratio: 1 / 1; border-radius: var(--r-sm); background: var(--wash-1); box-shadow: inset 0 0 0 1px var(--wash-2); image-rendering: pixelated; }
 .field .cap { font-size: 0.84rem; color: var(--ink-2); }
 .field .cap b { color: var(--ink); }
 
@@ -398,35 +598,40 @@ table.data th { color: var(--ink-3); font-weight: 600; }
 .dial-card .cap { font-size: 0.78rem; color: var(--ink-3); text-align: center; }
 .svg-ink { fill: var(--ink); } .svg-ink2 { fill: var(--ink-2); } .svg-ink3 { fill: var(--ink-3); }
 .stroke-rule { stroke: var(--rule); } .stroke-grid { stroke: var(--grid); } .stroke-ink { stroke: var(--ink); } .stroke-ink3 { stroke: var(--ink-3); }
-.meter { height: 12px; border-radius: 6px; background: var(--track); overflow: hidden; position: relative; }
-.meter i { position: absolute; inset: 0 auto 0 0; background: var(--teal); border-radius: 6px; transition: width .5s cubic-bezier(.2, .8, .2, 1); }
+.meter { height: 12px; border-radius: var(--r-xs); background: var(--track); overflow: hidden; position: relative; }
+.meter i { position: absolute; inset: 0 auto 0 0; background: var(--teal); border-radius: var(--r-xs); transition: width var(--t-3) var(--ease); }
 
 .tags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 560px) { .tags { grid-template-columns: minmax(0, 1fr); } }
 .tag {
-  display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--rule); border-radius: 10px;
-  padding: 10px 12px; background: var(--surface-2); cursor: pointer; font-size: 0.92rem; line-height: 1.35;
+  display: flex; gap: 10px; align-items: flex-start; border-radius: var(--r-md);
+  padding: 11px 13px; background: var(--wash-1); cursor: pointer; font-size: 0.92rem; line-height: 1.35;
+  transition: background-color var(--t-1);
 }
+@media (hover: hover) { .tag:hover { background: var(--wash-2); } }
 .tag input { margin-top: 3px; accent-color: var(--teal); width: 16px; height: 16px; flex: none; }
 .tag small { display: block; color: var(--ink-3); font-size: 0.8rem; }
+/* a callout is a tint of the color it speaks for, with that color's dot before its title */
 .verdict {
-  margin-top: 14px; border-radius: 12px; padding: 14px 16px; border: 1.5px solid var(--teal); background: var(--mint);
-  display: grid; gap: 4px; transition: border-color .2s, background .2s;
+  margin-top: 14px; border-radius: var(--r-md); padding: 14px 16px; background: var(--teal-1);
+  display: grid; gap: 4px; transition: background-color var(--t-2);
 }
-.verdict.off { border-color: var(--coral); background: color-mix(in oklab, var(--coral) 9%, var(--surface)); }
-.verdict b { font-size: 1.02rem; }
+.verdict.off { background: var(--coral-1); }
+.verdict b { display: flex; align-items: center; gap: 8px; font-size: 1.02rem; font-weight: 600; }
+.verdict b::before { content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--teal); transition: background-color var(--t-2); }
+.verdict.off b::before { background: var(--coral); }
 
 /* figure tour */
 /* Figure 1 always sits on white, its own background, in both themes */
 .tour-view {
-  position: relative; overflow: hidden; border-radius: 10px; aspect-ratio: 2 / 1; margin-top: 14px;
-  background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--rule); cursor: zoom-in; touch-action: manipulation;
+  position: relative; overflow: hidden; border-radius: var(--r-sm); aspect-ratio: 2 / 1; margin-top: 14px;
+  background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--wash-2); cursor: zoom-in; touch-action: manipulation;
 }
 .tour-view.zoomed { cursor: zoom-out; }
 @media (max-width: 700px) { .tour-view { aspect-ratio: 4 / 3; } }
 .tour-view img { position: absolute; left: 0; top: 0; width: 100%; height: auto; max-width: none; transform-origin: 0 0; transition: transform 1.1s cubic-bezier(.3, .7, .1, 1); user-select: none; -webkit-user-drag: none; }
 .tour-spot {
-  position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: 10px; pointer-events: none; opacity: 0;
+  position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: var(--r-sm); pointer-events: none; opacity: 0;
   box-shadow: 0 0 0 1.5px rgba(0, 183, 150, 0.9), 0 0 0 200vmax rgba(255, 255, 255, 0.6);
   transition: left 1.1s cubic-bezier(.3, .7, .1, 1), top 1.1s cubic-bezier(.3, .7, .1, 1), width 1.1s cubic-bezier(.3, .7, .1, 1), height 1.1s cubic-bezier(.3, .7, .1, 1), opacity .5s;
 }
@@ -439,9 +644,8 @@ table.data th { color: var(--ink-3); font-weight: 600; }
 .tour-text b { font-size: 1.16rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
 .tour-text p { color: var(--ink-2); font-size: 1rem; line-height: 1.55; }
 .tour-nav { display: flex; gap: 8px; flex-wrap: wrap; }
-.tour-nav .btn { padding: 10px 16px; }
 /* the minimap: Figure 1 in miniature, each part a button */
-.tour-map { position: relative; border-radius: 8px; background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--rule); aspect-ratio: 3016.58 / 1080; }
+.tour-map { position: relative; border-radius: var(--r-sm); background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--wash-2); aspect-ratio: 3016.58 / 1080; }
 .tour-map img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.85; pointer-events: none; user-select: none; }
 .map-r {
   position: absolute; appearance: none; padding: 0; margin: 0; background: transparent; cursor: pointer; border-radius: 4px;
@@ -461,18 +665,18 @@ table.data th { color: var(--ink-3); font-weight: 600; }
 /* claims and recipe */
 .claims { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 760px) { .claims { grid-template-columns: minmax(0, 1fr); } }
-.claim { border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; background: var(--surface); display: grid; gap: 6px; align-content: start; }
+.claim { border-radius: var(--r-lg); padding: 18px 20px; background: var(--surface); box-shadow: var(--sheet-shadow); display: grid; gap: 6px; align-content: start; }
 .claim h3 { font-size: 1.02rem; }
 .claim ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--ink-2); font-size: 0.95rem; }
 pre.code {
-  margin: 0; overflow-x: auto; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 12px; padding: 16px;
+  margin: 0; overflow-x: auto; background: var(--wash-1); border-radius: var(--r-md); padding: 16px 18px;
   font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; color: var(--ink);
 }
 pre.code .c { color: var(--ink-3); }
 pre.code .k { color: var(--mint-ink); font-weight: 600; }
 .cite-box { display: grid; gap: 10px; }
 .abstract { font-size: 1.04rem; line-height: 1.68; color: var(--ink); max-width: 66ch; }
-.noscript-note { max-width: var(--wide); margin: 16px auto 0; padding-block: 12px; border-radius: 10px; background: var(--mint); color: var(--ink); font-size: 0.95rem; }
+.noscript-note { max-width: var(--wide); margin: 16px auto 0; padding-block: 12px; border-radius: var(--r-md); background: var(--mint); color: var(--ink); font-size: 0.95rem; }
 .copy-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .copy-note { font-size: 0.84rem; color: var(--ink-3); }
 
@@ -530,17 +734,14 @@ main {
 .end:not(.js) .end-theatre { display: none; }
 .end-canvas-wrap { position: relative; width: 100%; aspect-ratio: 2.3 / 1; }
 @media (max-width: 640px) { .end-canvas-wrap { aspect-ratio: 1 / 1; } }
-.end-canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: pan-y; border-radius: 12px; }
+.end-canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: pan-y; border-radius: var(--r-md); }
 .end-canvas-wrap canvas:focus-visible { outline: 2px solid var(--e-mint); outline-offset: 4px; }
 .end-memory { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-top: 6px; }
 .end-mlab, .end-count { font-family: var(--font-mono); font-size: 0.74rem; color: var(--e-ink-3); letter-spacing: 0.02em; }
 .end-count { min-width: 10ch; text-align: right; font-variant-numeric: tabular-nums; }
 .end-ribbon { position: relative; height: 14px; }
-.end-ribbon canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 4px; cursor: crosshair; touch-action: pan-y; }
+.end-ribbon canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: var(--r-xs); cursor: crosshair; touch-action: pan-y; }
 .end-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 18px; }
-.end .chip { background: transparent; color: var(--e-ink-2); border-color: rgba(238, 243, 241, 0.2); }
-@media (hover: hover) { .end .chip:hover { color: var(--e-ink); border-color: rgba(238, 243, 241, 0.5); } }
-.end .chip[aria-pressed="true"] { background: var(--e-ink); color: var(--e-bg); border-color: var(--e-ink); }
 .end-again { margin-left: auto; }
 .end-read {
   margin-top: 16px; min-height: 1.5em; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5;
@@ -575,7 +776,7 @@ html.at-end { background-color: #060A09; }
   margin-top: clamp(32px, 4.5vw, 52px); padding-top: 20px; border-top: 1px solid var(--e-rule); font-size: 0.86rem;
 }
 .end-base .end-arxiv { font-family: var(--font-mono); font-size: 0.8rem; color: var(--e-ink-2); }
-.end-base .end-top { font-weight: 600; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; }
+.end-base .end-top { font-weight: 500; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; }
 @media (hover: hover) { .end-base .end-top:hover { color: var(--e-mint); } }
 .tip.on-dark { background: #EEF3F1; color: #0B0F0E; }
 @media print {
@@ -603,13 +804,13 @@ html.at-end { background-color: #060A09; }
    tips in app.js, and the outlined mark is the one the open tip describes. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 a, button, label, summary, .chip, .btn, .map-r, #labSlices, #labRibbon, svg.chart { touch-action: manipulation; }
-canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r { -webkit-tap-highlight-color: transparent; }
+canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r, .seg button, .toc-btn, .toc-list a, .wordmark, .tag { -webkit-tap-highlight-color: transparent; }
 .chart .is-tapped { stroke: var(--ink) !important; stroke-width: 2.5px !important; }
 @media (hover: hover) { .touch-only { display: none; } }
 @media (hover: none) {
   .mouse-only { display: none; }
-  .btn, .chip { transition: transform .1s ease; }
-  .btn:active, .chip:active { transform: scale(0.96); }
+  .btn, .chip, .seg button, .toc-btn { transition: transform .1s ease, background-color var(--t-1), color var(--t-1), box-shadow var(--t-1); }
+  .btn:active, .chip:active, .seg button:active, .toc-btn:active { transform: scale(0.97); }
   .map-r:active { background: rgba(0, 183, 150, 0.14); }
   .tip { font-size: 0.86rem; }
 }
@@ -618,28 +819,51 @@ canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r { -webkit-tap-high
 
 </head>
 <body>
-<header class="topbar">
+<header class="topbar on-stage at-start">
   <div class="topbar-in gutter wide">
-    <a class="wordmark" href="#top" aria-label="PACK3D NeurIPS 2026, back to top">
-      <svg class="cube" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 18 6v8.6L10 19 2 14.6V6z" fill="var(--teal)"/><path d="M10 1.5 18 6l-8 4.4L2 6z" fill="var(--mint-ink)" opacity=".55"/><path d="M10 10.4V19" stroke="var(--surface)" stroke-width="1.2"/></svg>
-      <span class="wm-text"><span class="wm-name">PACK3D</span> <span class="wm-sub">NeurIPS 2026</span></span>
-    </a>
-    <nav class="chapters" aria-label="Chapters">
-      <a href="#two-indices">Two indices</a>
-      <a href="#blind-spot">The blind spot</a>
-      <a href="#operator">The operator</a>
-      <a href="#figure">Figure 1</a>
-      <a href="#contract">The contract</a>
-      <a href="#test">The test</a>
-      <a href="#msd">Second domain</a>
-      <a href="#branch">Inside the branch</a>
-      <a href="#unet">U-Net</a>
-      <a href="#systems">Cost</a>
-      <a href="#limits">Limits</a>
+    <nav class="crumbs" aria-label="Where you are">
+      <a class="wordmark" href="#top" aria-label="PACK3D, back to the top">
+        <svg class="cube" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 18 6v8.6L10 19 2 14.6V6z" fill="var(--teal)"/><path d="M10 1.5 18 6l-8 4.4L2 6z" fill="var(--mint-ink)" opacity=".55"/><path d="M10 10.4V19" stroke="var(--surface)" stroke-width="1.2"/></svg>
+        <span>PACK3D</span>
+      </a>
+      <span class="badge wm-venue">NeurIPS 2026</span>
+      <span class="crumb-sep" aria-hidden="true">/</span>
+      <div class="toc" id="toc">
+        <button class="toc-btn" id="tocBtn" type="button" aria-expanded="false" aria-controls="tocMenu">
+          <span class="toc-label" id="tocLabel">Contents</span>
+          <svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.6 6 7.6l3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="toc-menu" id="tocMenu">
+          <ol class="toc-list" aria-label="Chapters">
+            <li><a href="#two-indices" data-n="1"><span class="t">Two indices</span><span class="n">1</span></a></li>
+            <li><a href="#blind-spot" data-n="2"><span class="t">The blind spot</span><span class="n">2</span></a></li>
+            <li><a href="#operator" data-n="3"><span class="t">The operator</span><span class="n">3</span></a></li>
+            <li><a href="#figure" data-short="Figure 1"><span class="t">Figure 1, step by step</span></a></li>
+            <li><a href="#contract" data-n="4"><span class="t">The contract</span><span class="n">4</span></a></li>
+            <li><a href="#test" data-n="5"><span class="t">The result</span><span class="badge">Main result</span><span class="n">5</span></a></li>
+            <li><a href="#msd" data-n="6"><span class="t">Second domain</span><span class="n">6</span></a></li>
+            <li><a href="#branch" data-n="7"><span class="t">Inside the branch</span><span class="n">7</span></a></li>
+            <li><a href="#unet" data-n="8"><span class="t">U-Net</span><span class="n">8</span></a></li>
+            <li><a href="#systems" data-n="9"><span class="t">Cost</span><span class="n">9</span></a></li>
+            <li><a href="#limits" data-n="10"><span class="t">Limits</span><span class="n">10</span></a></li>
+          </ol>
+          <hr>
+          <ul class="toc-list" aria-label="Take it home">
+            <li><a href="#recipe"><span class="t">Run the test yourself</span></a></li>
+            <li><a href="#abstract"><span class="t">Abstract</span></a></li>
+            <li><a href="#cite"><span class="t">Cite</span><span class="m">BibTeX</span></a></li>
+          </ul>
+          <hr class="toc-narrow">
+          <ul class="toc-list toc-narrow" aria-label="Elsewhere">
+            <li><a href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener"><span class="t">Read the paper</span><span class="m">arXiv ↗</span></a></li>
+            <li><a href="https://github.com/amilworks/Pack3D" target="_blank" rel="noopener"><span class="t">Get the code</span><span class="m">GitHub ↗</span></a></li>
+          </ul>
+        </div>
+      </div>
     </nav>
     <div class="top-links">
-      <a class="btn ghost" href="https://github.com/amilworks/Pack3D" target="_blank" rel="noopener">Code</a>
-      <a class="btn" href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">Paper</a>
+      <a class="btn plain sm top-code" href="https://github.com/amilworks/Pack3D" target="_blank" rel="noopener">Code</a>
+      <a class="btn sm" href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">Paper</a>
     </div>
   </div>
   <div class="progress" id="progress"></div>
@@ -648,39 +872,58 @@ canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r { -webkit-tap-high
 <main id="top">
 <noscript><p class="noscript-note gutter">The interactive figures on this page need JavaScript. Every sentence and number is readable without it, and the paper is linked from the top bar.</p></noscript>
 <!-- ================================================================== hero -->
-<section class="hero gutter">
-  <div class="wide hero-grid">
-    <div>
+<!-- The opening: a field of 32,768 tokens on the dark stage, and the reader is the query. Light shows
+     what each position encoding treats as near the query: tokens near in memory for packed RoPE
+     (coral), tokens near in the sample for PACK3D (teal), which also sees every block through its
+     summary. Drawn by initHero in app.js. -->
+<section class="hero" id="hero">
+  <canvas class="hero-canvas" id="heroCanvas" role="img" aria-label="A cube of 32,768 tokens on a dark stage, with a bright query point moving through it. In teal, PACK3D lights the tokens near the query in space, and faintly the summary of every block. In coral, packed RoPE lights the tokens near the query in memory, which follow the storage order through the cube."></canvas>
+  <div class="hero-in gutter">
+    <div class="wide hero-head">
       <p class="eyebrow keep-case">NeurIPS 2026 · Sydney, Australia</p>
-      <h1 style="margin-top:16px" id="title">Geometry Matters in Packed 3D Attention</h1>
+      <h1 id="title">Geometry Matters <span class="tail">in Packed 3D Attention</span></h1>
+    </div>
+    <div class="wide hero-byline">
       <div class="meta">
         <span><b>Amil Khan</b></span><span><b>Anantajit Subrahmanya</b></span><span><b>B.S. Manjunath</b></span>
         <span class="affil">Department of Electrical &amp; Computer Engineering<br>University of California, Santa Barbara</span>
       </div>
-      <p class="lede">Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. <strong>PACK3D</strong> attends by the coordinate. A model that attends by memory position can learn the storage order instead of the object, and accuracy on the training layout cannot tell you which one it learned.</p>
       <div class="cta">
         <a class="btn" href="https://arxiv.org/abs/2610.38694" target="_blank" rel="noopener">Read the paper</a>
         <a class="btn ghost" href="https://github.com/amilworks/Pack3D" target="_blank" rel="noopener">Get the code</a>
-        <a class="btn ghost" href="#test">Jump to the result</a>
-        <a class="btn ghost" href="#cite">Cite</a>
       </div>
     </div>
-    <figure class="hero-figure" style="margin:0">
-      <div class="hero-canvas-wrap" id="heroWrap">
-        <canvas id="heroCanvas" role="img" aria-label="A cube of 4,096 tokens, colored by the memory position each token occupies under the selected storage order."></canvas>
+    <div class="hero-field" id="heroField" aria-hidden="true"></div>
+    <div class="wide hero-foot">
+      <div class="hero-bar">
+        <p class="hero-hint"><i class="qdot"></i><span class="mouse-only">You are the query. Move through the field.</span><span class="touch-only">You are the query. Tap the field to move it.</span></p>
+        <p class="hero-read" id="heroRead"></p>
       </div>
-      <div class="hero-caption">
-        <div class="chips" id="heroChips" role="group" aria-label="Storage order">
-          <button class="chip" data-layout="raster" aria-pressed="true">Raster</button>
-          <button class="chip" data-layout="morton" aria-pressed="false">Morton</button>
-          <button class="chip" data-layout="blocks" aria-pressed="false">Blocks</button>
-          <button class="chip" data-layout="repack" aria-pressed="false">Repacked</button>
-          <button class="chip" id="heroPlay" aria-pressed="false" title="Cycle through the orders">Play</button>
+      <div class="hero-controls">
+        <div class="seg" id="heroModes" role="group" aria-label="Which position encoding the light shows">
+          <button type="button" data-mode="0" aria-pressed="false"><i class="dot coral"></i><b>Packed RoPE</b><span>near in memory</span></button>
+          <button type="button" data-mode="1" aria-pressed="true"><i class="dot teal"></i><b>PACK3D</b><span>near in the sample</span></button>
         </div>
-        <div class="legend-ramp"><span>position 0</span><i id="heroRamp"></i><span>4,095</span></div>
+        <div class="chips" id="heroOrders" role="group" aria-label="Storage order">
+          <button class="chip" data-order="raster" aria-pressed="true">Raster</button>
+          <button class="chip" data-order="morton" aria-pressed="false">Morton</button>
+          <button class="chip" data-order="blocks" aria-pressed="false">Blocks</button>
+          <button class="chip" data-order="repack" aria-pressed="false">Repacked</button>
+        </div>
       </div>
-      <figcaption class="small muted">The same 16 × 16 × 16 volume of tokens, colored by the memory position each token lands in, with one corner cut away. Change the storage order and only the colors move: the volume stays where it is. A model that indexes position by memory order sees the colors.</figcaption>
-    </figure>
+    </div>
+  </div>
+  <span class="hero-q" id="heroQ" aria-hidden="true">q</span>
+</section>
+
+<!-- the paper's sheet begins: the words the opening leaves out -->
+<section class="standfirst gutter">
+  <div class="col">
+    <p class="lede">Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. <strong>PACK3D</strong> attends by the coordinate. A model that attends by memory position can learn the storage order instead of the object, and accuracy on the training layout cannot tell you which one it learned.</p>
+    <div class="cta">
+      <a class="btn ghost" href="#test">Jump to the result</a>
+      <a class="btn ghost" href="#cite">Cite</a>
+    </div>
   </div>
 </section>
 
@@ -895,7 +1138,7 @@ canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r { -webkit-tap-high
   <div class="wide bench" id="repackBench">
     <div class="bench-head">
       <span class="bench-title"><span class="nw">Allen-15</span> · 262,144 tokens · six seeds · 120 validation crops</span>
-      <button class="btn teal" id="replay" type="button">Repack the memory</button>
+      <button class="btn" id="replay" type="button">Repack the memory</button>
     </div>
     <div class="split" style="align-items:center">
       <div class="chart-wrap"><svg id="slope" class="chart" role="img" aria-label="Macro Dice on the training layout and after the pure repack, per seed and on average"></svg></div>
@@ -1150,7 +1393,7 @@ changed = mean(argmax(y_new) != argmax(y_ref))
           <button class="chip" type="button" data-layout="blocks" aria-pressed="false">Blocks</button>
           <button class="chip" type="button" data-layout="repack" aria-pressed="false">Repacked</button>
         </div>
-        <button class="chip end-again" type="button" id="endAgain">Build it again</button>
+        <button class="btn ghost sm end-again" type="button" id="endAgain">Build it again</button>
       </div>
       <p class="end-read" id="endRead">Point at a cube to read its two indices, or focus the word and walk the memory with ← and →.</p>
       <p class="end-cap" id="endCap">Every cube is a token with two indices: a coordinate <i>c</i> = (<i>z</i>, <i>y</i>, <i>x</i>) and a memory position <i>i</i>, which sets its color. The tokens arrive in memory order. Raster builds the word layer by layer, Morton in nested clusters, Blocks one brick at a time, and the repack moves whole z-layers. Four paths through memory build one word.</p>

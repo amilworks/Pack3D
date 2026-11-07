@@ -6,8 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- The website opens on a new figure: 32,768 tokens on a dark stage, where the reader is the query.
+  Light shows what each position encoding treats as near: tokens near in memory for packed RoPE,
+  tokens near in the sample, and every block through its summary, for PACK3D.
+- The website's top bar is a breadcrumb, the wordmark and the chapter being read, which opens the
+  contents on hover, a click, a tap or the keyboard. Buttons, option trays, figure sheets, stats,
+  cards and callouts follow one design system, written up in
+  [docs/design-system.md](docs/design-system.md).
+
 ### Fixed
 
+- Figure labels on the website no longer set variables in capitals, where the variable *z* read as *Z*.
 - The website works with touch on phones and tablets. The query and key tokens in the rotary-dials
   demo can be dragged with a finger, every chart opens its tooltip on a tap (the nearest mark within
   reach, outlined while its tip is up), a tap on the token field names the token, the closing word

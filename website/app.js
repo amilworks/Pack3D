@@ -138,111 +138,368 @@ function fitCanvas(canvas, cssW, cssH) {
   return ctx;
 }
 
-// ====================================================================== isometric volume
-// Figure 1's projection: x runs right-down, y left-down, z up; the viewer looks along (1, 1, 1).
-class IsoVolume {
-  constructor(canvas, N, present) {
-    this.canvas = canvas; this.N = N; this.present = present;
-    const F = [];
-    const open = (z, y, x) => z >= N || y >= N || x >= N || !present(z, y, x);
-    for (let z = 0; z < N; z++) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-      if (!present(z, y, x)) continue;
-      const v = (z * N + y) * N + x;
-      if (open(z + 1, y, x)) F.push({ v, t: 0, z, y, x });
-      if (open(z, y + 1, x)) F.push({ v, t: 1, z, y, x });
-      if (open(z, y, x + 1)) F.push({ v, t: 2, z, y, x });
-    }
-    F.sort((a, b) => (a.x + a.y + a.z) - (b.x + b.y + b.z));
-    this.faces = F;
-  }
-  layout() {
-    const r = this.canvas.getBoundingClientRect();
-    this.w = r.width; this.h = r.height;
-    this.ctx = fitCanvas(this.canvas, this.w, this.h);
-    const N = this.N;
-    this.s = Math.min(this.w / (2 * N + 1.2), this.h / (2 * N + 1.2));
-    this.ox = this.w / 2;
-    this.oy = this.h / 2 + 0;                // the volume's bounding box is centered: y runs -N s .. +N s
-  }
-  P(x, y, z) { const s = this.s; return [this.ox + (x - y) * s, this.oy + ((x + y) * 0.5 - z) * s]; }
-  poly(f) {
-    const { x, y, z } = f;
-    if (f.t === 0) return [this.P(x, y, z + 1), this.P(x + 1, y, z + 1), this.P(x + 1, y + 1, z + 1), this.P(x, y + 1, z + 1)];
-    if (f.t === 1) return [this.P(x, y + 1, z + 1), this.P(x + 1, y + 1, z + 1), this.P(x + 1, y + 1, z), this.P(x, y + 1, z)];
-    return [this.P(x + 1, y, z + 1), this.P(x + 1, y + 1, z + 1), this.P(x + 1, y + 1, z), this.P(x + 1, y, z)];
-  }
-  draw(colorOf, edge) {
-    const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.w, this.h);
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = Math.max(0.5, this.s * 0.07);
-    ctx.strokeStyle = edge;
-    for (const f of this.faces) {
-      const p = this.poly(f);
-      ctx.beginPath();
-      ctx.moveTo(p[0][0], p[0][1]);
-      for (let i = 1; i < 4; i++) ctx.lineTo(p[i][0], p[i][1]);
-      ctx.closePath();
-      ctx.fillStyle = colorOf(f.v, f.t);
-      ctx.fill();
-      ctx.stroke();
-    }
-  }
-}
-
-// ====================================================================== hero
+// ====================================================================== hero: you are the query
+// The page opens on the stage it closes on: a cube of 32,768 tokens, and the reader is the query.
+// Light shows what each position encoding treats as near the query. Packed RoPE indexes memory, so its
+// light follows the storage order wherever that runs through the cube (coral). PACK3D indexes the
+// sample, so its light is a ball around the query, and every block's summary glows faintly: the global
+// pathway (teal). The first time, the cube is packed token by token in memory order, the query lights
+// up the packed RoPE way, and then the light gathers into PACK3D's. WebGL: one point per token, and the
+// points add together like light.
 function initHero() {
-  const N = 16, H = N / 2;
-  const canvas = $('#heroCanvas');
-  const vol = new IsoVolume(canvas, N, (z, y, x) => !(z >= H && y >= H && x >= H));
-  const L = makeLayouts(N, 4, [5, 12, 0, 9, 14, 3, 7, 1, 10, 15, 6, 2, 13, 8, 4, 11]);
-  const n = N * N * N;
-  let cur = 'raster', from = null, to = null, t0 = 0, raf = 0, playing = false, timer = 0;
-  let shades = null;                                     // per voxel: [top, left, right] css strings
-  let rampF = RAMPS.slot();
-  const labs = (name) => { const s = L[name]; const out = new Array(n); for (let v = 0; v < n; v++) out[v] = rampF(s[v] / (n - 1)); return out; };
-  let A = labs('raster');
-  function bake(colors) { shades = colors.map((c) => faceShades(c).map(css)); }
-  function render() { vol.draw((v, t) => shades[v][t], tok('--surface')); }
-  function setRamp() {
-    const g = $('#heroRamp');
-    const stops = [0, 0.25, 0.5, 0.75, 1].map((t) => css(rampF(t)) + ' ' + (t * 100) + '%').join(',');
-    g.style.background = `linear-gradient(90deg, ${stops})`;
+  const hero = $('#hero'), canvas = $('#heroCanvas'), read = $('#heroRead'), qlab = $('#heroQ');
+  const gl = canvas.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'high-performance' });
+  if (!gl) { hero.classList.add('no-gl'); return; }
+  const N = 32, B = 4, n = N * N * N, NB = N / B, c = (N - 1) / 2;
+  const ORDERS = ['raster', 'morton', 'blocks', 'repack'];
+  const NAME = { raster: 'raster order', morton: 'Morton order', blocks: 'block order', repack: 'repacked order' };
+  // the repack moves whole z-layers to new places in memory, as the paper's does
+  const L = makeLayouts(N, B, [17, 4, 29, 11, 0, 22, 8, 31, 14, 26, 2, 19, 9, 24, 6, 28, 13, 1, 21, 16, 30, 5, 12, 25, 3, 18, 27, 10, 20, 7, 23, 15]);
+
+  // ---- the field, in model space (centered, z up), with every token's memory position under each order
+  const pos = new Float32Array(n * 3), mem = new Float32Array(n * 4);
+  for (let v = 0; v < n; v++) {
+    const x = v % N, y = Math.floor(v / N) % N, z = Math.floor(v / (N * N));
+    pos[3 * v] = x - c; pos[3 * v + 1] = z - c; pos[3 * v + 2] = y - c;
+    ORDERS.forEach((o, k) => { mem[4 * v + k] = L[o][v]; });
   }
-  function go(name) {
-    if (name === cur && !from) return;
-    $$('#heroChips [data-layout]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.layout === name)));
-    from = A; to = labs(name); cur = name; t0 = performance.now();
-    cancelAnimationFrame(raf);
-    const step = (now) => {
-      const t = RM ? 1 : clamp((now - t0) / 900, 0, 1), e = ease(t);
-      A = from.map((c, i) => mixLab(c, to[i], e));
-      bake(A); render();
-      if (t < 1) raf = requestAnimationFrame(step); else { from = null; A = to; }
+  // the block summaries: one at the center of each block, with its tokens' mean memory position under
+  // each order; and a thread from the query to every summary, the global pathway
+  const NS = NB * NB * NB, sPos = new Float32Array(NS * 3), sMem = new Float32Array(NS * 4);
+  for (let v = 0; v < n; v++) {
+    const x = v % N, y = Math.floor(v / N) % N, z = Math.floor(v / (N * N));
+    const s = (Math.floor(z / B) * NB + Math.floor(y / B)) * NB + Math.floor(x / B);
+    ORDERS.forEach((o, k) => { sMem[4 * s + k] += L[o][v] / (B * B * B); });
+  }
+  for (let s = 0; s < NS; s++) {
+    const x = s % NB, y = Math.floor(s / NB) % NB, z = Math.floor(s / (NB * NB));
+    sPos[3 * s] = (x + 0.5) * B - 0.5 - c; sPos[3 * s + 1] = (z + 0.5) * B - 0.5 - c; sPos[3 * s + 2] = (y + 0.5) * B - 0.5 - c;
+  }
+  // the streams: specks of light that flow from every summary into the query, a few per summary
+  const DOTS = 10, NF = NS * DOTS, fPos = new Float32Array(NF * 3), fMem = new Float32Array(NF * 4), fT = new Float32Array(NF);
+  for (let s = 0; s < NS; s++) {
+    const jitter = ((s * 2654435761) >>> 0) / 4294967296;  // so the streams do not pulse in step
+    for (let k = 0; k < DOTS; k++) {
+      const i = s * DOTS + k;
+      fPos.set(sPos.subarray(3 * s, 3 * s + 3), 3 * i);
+      fMem.set(sMem.subarray(4 * s, 4 * s + 4), 4 * i);
+      fT[i] = (k + jitter) / DOTS;
+    }
+  }
+
+  // ---- shaders
+  const FRAG = `precision mediump float;
+varying vec3 v_col;
+void main() {
+  float r = length(gl_PointCoord - 0.5) * 2.0;
+  if (r > 1.0) discard;
+  float a = 1.0 - r;
+  gl_FragColor = vec4(v_col * a * a, 1.0);
+}`;
+  const TOKENS = `attribute vec3 a_pos;
+attribute vec4 a_mem;
+uniform mat4 u_mvp;
+uniform vec2 u_shift;
+uniform float u_px, u_near, u_far, u_mid, u_n, u_mode, u_att, u_base, u_fill, u_head;
+uniform vec3 u_q;
+uniform vec4 u_qmem, u_ord;
+varying vec3 v_col;
+const vec3 BASE = vec3(0.70, 0.80, 0.77);
+const vec3 TEAL = vec3(0.37, 0.88, 0.76);
+const vec3 CORAL = vec3(1.0, 0.45, 0.46);
+void main() {
+  vec4 p = u_mvp * vec4(a_pos, 1.0);
+  p.xy += u_shift * p.w;
+  gl_Position = p;
+  float fog = mix(1.0, 0.28, clamp((p.w - u_near) / (u_far - u_near), 0.0, 1.0));
+  float m = dot(a_mem, u_ord);
+  float d = distance(a_pos, u_q);
+  float dm = m - dot(u_qmem, u_ord);
+  float w = u_att * mix(exp(-dm * dm / 800.0), exp(-d * d / 10.0), u_mode);
+  float behind = u_head - m;
+  float written = u_fill * step(0.0, behind);
+  float head = written * exp(-behind / (u_n * 0.01));
+  v_col = (BASE * 0.3 * u_base + mix(CORAL, TEAL, u_mode) * w * 1.6 + CORAL * (written * 0.12 + head * 0.9)) * fog;
+  // sizes follow depth only partly, so the nearest corner does not break into large specks
+  gl_PointSize = (0.2 * u_base + 0.9 * w + 0.5 * head) * u_px / mix(p.w, u_mid, 0.6);
+}`;
+  // a summary weighs the query by distance in the sample (PACK3D) or by distance in memory (packed RoPE)
+  const NEAR = `float d = distance(a_pos, u_q), dm = dot(a_mem - u_qmem, u_ord);
+  float w = mix(exp(-dm * dm / 4.5e6), exp(-d * d / 288.0), u_mode);
+  float fog = mix(1.0, 0.35, clamp((p.w - u_near) / (u_far - u_near), 0.0, 1.0));`;
+  const SUMS = `attribute vec3 a_pos;
+attribute vec4 a_mem;
+uniform mat4 u_mvp;
+uniform vec2 u_shift;
+uniform float u_px, u_near, u_far, u_size, u_amp, u_max, u_mode;
+uniform vec3 u_q;
+uniform vec4 u_qmem, u_ord;
+varying vec3 v_col;
+void main() {
+  vec4 p = u_mvp * vec4(a_pos, 1.0);
+  p.xy += u_shift * p.w;
+  gl_Position = p;
+  ${NEAR}
+  v_col = mix(vec3(1.0, 0.45, 0.46), vec3(0.37, 0.88, 0.76), u_mode) * u_amp * (0.12 + 0.88 * w) * fog;
+  gl_PointSize = min(u_size * u_px / p.w, u_max);
+}`;
+  const FLOW = `attribute vec3 a_pos;
+attribute vec4 a_mem;
+attribute float a_t;
+uniform mat4 u_mvp;
+uniform vec2 u_shift;
+uniform float u_px, u_near, u_far, u_amp, u_mode, u_time;
+uniform vec3 u_q;
+uniform vec4 u_qmem, u_ord;
+varying vec3 v_col;
+void main() {
+  float f = fract(a_t + u_time);                 // 0 at the summary, 1 arriving at the query
+  vec4 p = u_mvp * vec4(mix(a_pos, u_q, f), 1.0);
+  p.xy += u_shift * p.w;
+  gl_Position = p;
+  ${NEAR}
+  float edge = smoothstep(0.0, 0.12, f) * (1.0 - smoothstep(0.82, 1.0, f));
+  v_col = mix(vec3(1.0, 0.45, 0.46), vec3(0.37, 0.88, 0.76), u_mode) * u_amp * (0.06 + 0.94 * w) * edge * fog;
+  gl_PointSize = (0.17 + 0.18 * f) * u_px / p.w;
+}`;
+  const GLOW = `attribute vec3 a_pos;
+uniform mat4 u_mvp;
+uniform vec2 u_shift;
+uniform float u_px, u_near, u_far, u_size, u_amp, u_floor, u_sig, u_max;
+uniform vec3 u_q, u_col;
+varying vec3 v_col;
+void main() {
+  vec4 p = u_mvp * vec4(a_pos, 1.0);
+  p.xy += u_shift * p.w;
+  gl_Position = p;
+  float fog = mix(1.0, 0.35, clamp((p.w - u_near) / (u_far - u_near), 0.0, 1.0));
+  float d = distance(a_pos, u_q);
+  v_col = u_col * u_amp * (u_floor + (1.0 - u_floor) * exp(-d * d / (2.0 * u_sig * u_sig))) * fog;
+  gl_PointSize = min(u_size * u_px / p.w, u_max);
+}`;
+  const BACK_V = `attribute vec2 a_xy;
+varying vec2 v_xy;
+void main() { v_xy = a_xy; gl_Position = vec4(a_xy, 0.0, 1.0); }`;
+  const BACK_F = `precision mediump float;
+varying vec2 v_xy;
+uniform vec2 u_c, u_asp;
+uniform float u_r;
+void main() {
+  vec2 d = (v_xy - u_c) * u_asp;
+  gl_FragColor = vec4(vec3(0.0235, 0.039, 0.035) + vec3(0.50, 0.38, 0.86) * 0.13 * exp(-dot(d, d) / (2.0 * u_r * u_r)), 1.0);
+}`;
+  function program(vs, fs) {
+    const p = gl.createProgram();
+    [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]].forEach(([type, src]) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      gl.attachShader(p, s);
+    });
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    const u = {};
+    for (let i = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS) - 1; i >= 0; i--) { const name = gl.getActiveUniform(p, i).name; u[name] = gl.getUniformLocation(p, name); }
+    return { p, u, attr: (name) => gl.getAttribLocation(p, name) };
+  }
+  const buffer = (data, usage) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, usage || gl.STATIC_DRAW); return b; };
+  let pTok, pGlow, pBack, pSum, pFlow;
+  try {
+    pTok = program(TOKENS, FRAG); pGlow = program(GLOW, FRAG); pBack = program(BACK_V, BACK_F);
+    pSum = program(SUMS, FRAG); pFlow = program(FLOW, FRAG);
+  } catch (e) { console.error('hero', e); hero.classList.add('no-gl'); return; }
+  const bPos = buffer(pos), bMem = buffer(mem), bSum = buffer(sPos), bSumMem = buffer(sMem);
+  const bFlow = buffer(fPos), bFlowMem = buffer(fMem), bFlowT = buffer(fT);
+  const bQ = buffer(new Float32Array(3), gl.DYNAMIC_DRAW), bBack = buffer(new Float32Array([-1, -1, 3, -1, -1, 3]));
+  const maxPt = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1];
+  function bind(prog, name, buf, size) {
+    const a = prog.attr(name);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, size, gl.FLOAT, false, 0, 0);
+    return a;
+  }
+
+  // ---- the camera: a perspective view of the slowly turning cube, shifted right on wide screens
+  const FOV = 50 * Math.PI / 180, TAN = Math.tan(FOV / 2), RAD = Math.sqrt(3) * N / 2, TILT = 0.5;
+  let W = 0, H = 0, asp = 1, D = 80, fit = 0.8, shift = [0, 0], spin = 0.65;
+  const field = $('#heroField');
+  function resize() {                                      // the canvas covers the stage
+    const r = hero.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+    W = r.width; H = r.height; asp = W / H;
+    canvas.width = Math.round(W * d); canvas.height = Math.round(H * d);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  function place() {                                       // the cube fills #heroField, wherever the layout puts it
+    const r = hero.getBoundingClientRect(), f = field.getBoundingClientRect();
+    shift = [((f.left - r.left + f.width / 2) / W) * 2 - 1, 1 - ((f.top - r.top + f.height / 2) / H) * 2];
+    fit = Math.max(0.05, Math.min(f.width, f.height) / H);    // the cube's bounding sphere, in half-heights
+    D = RAD / (TAN * fit);
+  }
+  // rows of Rx(TILT) * Ry(spin); R^T takes a world vector back into the model
+  const rot = () => { const ca = Math.cos(spin), sa = Math.sin(spin), cb = Math.cos(TILT), sb = Math.sin(TILT); return [ca, 0, sa, sb * sa, cb, -sb * ca, -cb * sa, sb, cb * ca]; };
+  const back = (R, v) => [R[0] * v[0] + R[3] * v[1] + R[6] * v[2], R[1] * v[0] + R[4] * v[1] + R[7] * v[2], R[2] * v[0] + R[5] * v[1] + R[8] * v[2]];
+  function mul(a, b) {                                     // 4 x 4, column-major: a * b
+    const o = new Float32Array(16);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + j] * b[i * 4 + k]; o[i * 4 + j] = s; }
+    return o;
+  }
+  // the model-space point under a screen position, on the plane through the cube's center that faces the camera
+  function under(R, nx, ny) {
+    const o = back(R, [0, 0, D]), d = back(R, [(nx - shift[0]) * TAN * asp, (ny - shift[1]) * TAN, -1]), f = back(R, [0, 0, 1]);
+    const t = -(o[0] * f[0] + o[1] * f[1] + o[2] * f[2]) / (d[0] * f[0] + d[1] * f[1] + d[2] * f[2]);
+    return [[o[0] + t * d[0], o[1] + t * d[1], o[2] + t * d[2]], f];
+  }
+
+  // ---- state
+  let order = 'raster', ord = [1, 0, 0, 0], mode = RM ? 1 : 0, goal = mode, chose = false;
+  let t0 = -1, opening = !RM, packedAt = -1e9, last = 0, raf = 0, visible = false, said = '';
+  let aim = null, aimedAt = -1e9, aimFor = 2600;
+  const q = [0, 0, 0];
+  const drift = (t) => { const A = c * 0.62; return [A * Math.sin(t * 0.23), A * 0.75 * Math.sin(t * 0.31 + 1.2), A * Math.sin(t * 0.17 + 2.4)]; };
+  const modeBtns = $$('#heroModes [data-mode]'), orderBtns = $$('#heroOrders [data-order]');
+  const pressMode = (m) => modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.mode === m)));
+  const say = (s) => { if (s !== said) { read.textContent = s; said = s; } };
+  const PACK = 2.7;                                        // seconds to pack the cube in memory order
+  // how bright the lattice, the attention and the packing are at this moment
+  function levels(now) {
+    let base = 1, att = 1, fill = 0, head = 0, line = null;
+    if (opening) {
+      const t = (now - t0) / 1000;
+      base = clamp(t / 0.8, 0, 1);
+      head = n * ease(clamp((t - 0.5) / PACK, 0, 1));
+      fill = t < 0.5 + PACK ? 1 : 1 - clamp((t - 0.5 - PACK) / 0.7, 0, 1);
+      att = clamp((t - 3.4) / 0.8, 0, 1);
+      if (t >= 5.1 && !chose && goal === 0) { goal = 1; pressMode(1); }
+      line = t < 3.4 ? `packing ${intf(n)} tokens · ${NAME[order]}` : t < 5.1 ? 'packed RoPE · light on what is near in memory'
+        : t < 6.8 ? 'PACK3D · light on what is near in the sample' : null;
+      if (t > 6.8) opening = false;
+    } else {
+      const f = (now - packedAt) / 1000;                   // an order was chosen: pack the cube again in it
+      if (f < PACK + 0.7) {
+        head = n * ease(clamp(f / PACK, 0, 1));
+        fill = f < PACK ? 1 : 1 - clamp((f - PACK) / 0.7, 0, 1);
+        att = 0.25 + 0.75 * clamp((f - PACK) / 0.7, 0, 1);
+        if (f < PACK) line = `packing ${intf(n)} tokens · ${NAME[order]}`;
+      }
+    }
+    return { base, att, fill, head, line };
+  }
+
+  function draw(now) {
+    const dt = last ? Math.min(0.25, (now - last) / 1000) : 0;
+    last = now;
+    place();
+    if (!RM) spin += dt * 0.07;
+    const R = rot(), t = now / 1000, lim = c - 0.5;
+    // the query: under the pointer for a while after it moves, otherwise drifting through the cube
+    let g = q.slice();
+    if (aim && now - aimedAt < aimFor) {
+      const [m, f] = under(R, aim[0], aim[1]), k = RM ? 0 : c * 0.3 * Math.sin(t * 0.55);
+      g = [m[0] + f[0] * k, m[1] + f[1] * k, m[2] + f[2] * k];
+    } else if (!RM) g = drift(t);
+    const ease_ = RM ? 1 : 1 - Math.exp(-dt * 4);
+    for (let i = 0; i < 3; i++) q[i] += (clamp(g[i], -lim, lim) - q[i]) * ease_;
+    mode += (goal - mode) * ease_;
+    const lv = levels(now);
+    // the query's own token and its memory positions
+    const gx = Math.round(q[0] + c), gy = Math.round(q[2] + c), gz = Math.round(q[1] + c), v = (gz * N + gy) * N + gx;
+    const qmem = ORDERS.map((o) => L[o][v]);
+
+    const P = (() => { const f = 1 / TAN, nr = Math.max(1, D - RAD - 2), fr = D + RAD + 2; return new Float32Array([f / asp, 0, 0, 0, 0, f, 0, 0, 0, 0, (fr + nr) / (nr - fr), -1, 0, 0, (2 * fr * nr) / (nr - fr), 0]); })();
+    const V = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -D, 1]);
+    const Mo = new Float32Array([R[0], R[3], R[6], 0, R[1], R[4], R[7], 0, R[2], R[5], R[8], 0, 0, 0, 0, 1]);
+    const MVP = mul(P, mul(V, Mo)), px = (canvas.height / 2) / TAN, near = D - RAD, far = D + RAD;
+
+    // the stage: a dark ground and one low lavender light behind the cube
+    gl.disable(gl.BLEND);
+    gl.useProgram(pBack.p);
+    let a0 = bind(pBack, 'a_xy', bBack, 2);
+    gl.uniform2f(pBack.u.u_c, shift[0], shift[1]); gl.uniform2f(pBack.u.u_asp, asp, 1); gl.uniform1f(pBack.u.u_r, fit * 0.95);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.disableVertexAttribArray(a0);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);   // everything after adds like light
+
+    const glow = (buf, count, size, amp, floor, sig, col) => {
+      gl.useProgram(pGlow.p);
+      const a = bind(pGlow, 'a_pos', buf, 3), u = pGlow.u;
+      gl.uniformMatrix4fv(u.u_mvp, false, MVP); gl.uniform2f(u.u_shift, shift[0], shift[1]);
+      gl.uniform1f(u.u_px, px); gl.uniform1f(u.u_near, near); gl.uniform1f(u.u_far, far); gl.uniform1f(u.u_max, maxPt);
+      gl.uniform1f(u.u_size, size); gl.uniform1f(u.u_amp, amp); gl.uniform1f(u.u_floor, floor); gl.uniform1f(u.u_sig, sig);
+      gl.uniform3f(u.u_q, q[0], q[1], q[2]); gl.uniform3fv(u.u_col, col);
+      gl.drawArrays(gl.POINTS, 0, count);
+      gl.disableVertexAttribArray(a);
     };
-    raf = requestAnimationFrame(step);
+    // the global pathway: every block's summary glows, and light streams from each into the query, most
+    // from the blocks this encoding counts as near: near in the sample for PACK3D, near in memory for packed RoPE
+    const amp = lv.att * lv.base;
+    gl.useProgram(pSum.p);
+    let s1 = bind(pSum, 'a_pos', bSum, 3), s2 = bind(pSum, 'a_mem', bSumMem, 4), us = pSum.u;
+    gl.uniformMatrix4fv(us.u_mvp, false, MVP); gl.uniform2f(us.u_shift, shift[0], shift[1]);
+    gl.uniform1f(us.u_px, px); gl.uniform1f(us.u_near, near); gl.uniform1f(us.u_far, far); gl.uniform1f(us.u_max, maxPt);
+    gl.uniform1f(us.u_size, B * 1.6); gl.uniform1f(us.u_amp, 0.09 * amp); gl.uniform1f(us.u_mode, mode);
+    gl.uniform3f(us.u_q, q[0], q[1], q[2]); gl.uniform4fv(us.u_qmem, qmem); gl.uniform4fv(us.u_ord, ord);
+    gl.drawArrays(gl.POINTS, 0, NS);
+    gl.disableVertexAttribArray(s1); gl.disableVertexAttribArray(s2);
+    gl.useProgram(pFlow.p);
+    s1 = bind(pFlow, 'a_pos', bFlow, 3); s2 = bind(pFlow, 'a_mem', bFlowMem, 4);
+    const s3 = bind(pFlow, 'a_t', bFlowT, 1), uf = pFlow.u;
+    gl.uniformMatrix4fv(uf.u_mvp, false, MVP); gl.uniform2f(uf.u_shift, shift[0], shift[1]);
+    gl.uniform1f(uf.u_px, px); gl.uniform1f(uf.u_near, near); gl.uniform1f(uf.u_far, far);
+    gl.uniform1f(uf.u_amp, 1.1 * amp); gl.uniform1f(uf.u_mode, mode); gl.uniform1f(uf.u_time, RM ? 0.5 : t * 0.2);
+    gl.uniform3f(uf.u_q, q[0], q[1], q[2]); gl.uniform4fv(uf.u_qmem, qmem); gl.uniform4fv(uf.u_ord, ord);
+    gl.drawArrays(gl.POINTS, 0, NF);
+    gl.disableVertexAttribArray(s1); gl.disableVertexAttribArray(s2); gl.disableVertexAttribArray(s3);
+    // the tokens
+    gl.useProgram(pTok.p);
+    const a1 = bind(pTok, 'a_pos', bPos, 3), a2 = bind(pTok, 'a_mem', bMem, 4), u = pTok.u;
+    gl.uniformMatrix4fv(u.u_mvp, false, MVP); gl.uniform2f(u.u_shift, shift[0], shift[1]);
+    gl.uniform1f(u.u_px, px); gl.uniform1f(u.u_near, near); gl.uniform1f(u.u_far, far); gl.uniform1f(u.u_mid, D); gl.uniform1f(u.u_n, n);
+    gl.uniform1f(u.u_mode, mode); gl.uniform1f(u.u_att, lv.att); gl.uniform1f(u.u_base, lv.base);
+    gl.uniform1f(u.u_fill, lv.fill); gl.uniform1f(u.u_head, lv.head);
+    gl.uniform3f(u.u_q, q[0], q[1], q[2]); gl.uniform4fv(u.u_qmem, qmem); gl.uniform4fv(u.u_ord, ord);
+    gl.drawArrays(gl.POINTS, 0, n);
+    gl.disableVertexAttribArray(a1); gl.disableVertexAttribArray(a2);
+    // the query: a halo in the color of the light it casts, and a white core
+    gl.bindBuffer(gl.ARRAY_BUFFER, bQ); gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(q));
+    const tint = [1 - 0.63 * mode, 0.45 + 0.43 * mode, 0.46 + 0.3 * mode];
+    glow(bQ, 1, 16, 0.38 * lv.att, 1, 1, tint);
+    glow(bQ, 1, 1.3, 1.2 * lv.att, 1, 1, [1, 1, 1]);
+
+    // the q label rides beside the query
+    const cx = MVP[0] * q[0] + MVP[4] * q[1] + MVP[8] * q[2] + MVP[12], cy = MVP[1] * q[0] + MVP[5] * q[1] + MVP[9] * q[2] + MVP[13];
+    const cw = MVP[3] * q[0] + MVP[7] * q[1] + MVP[11] * q[2] + MVP[15];
+    qlab.style.transform = `translate(${((cx / cw + shift[0] + 1) / 2) * W + 13}px, ${((1 - (cy / cw + shift[1])) / 2) * H - 21}px)`;
+    qlab.classList.toggle('on', lv.att > 0.6);
+    say(lv.line || `q = (${gz}, ${gy}, ${gx}) · memory i = ${intf(L[order][v])} · ${NAME[order]}`);
   }
-  function resize() { vol.layout(); bake(A); render(); }
-  $$('#heroChips [data-layout]').forEach((b) => b.addEventListener('click', () => { stop(); go(b.dataset.layout); }));
-  const order = ['raster', 'morton', 'blocks', 'repack'];
-  const playBtn = $('#heroPlay');
-  function stop() { playing = false; clearInterval(timer); playBtn.setAttribute('aria-pressed', 'false'); playBtn.textContent = 'Play'; }
-  function play() {
-    playing = true; playBtn.setAttribute('aria-pressed', 'true'); playBtn.textContent = 'Pause';
-    clearInterval(timer);
-    timer = setInterval(() => { go(order[(order.indexOf(cur) + 1) % order.length]); }, 2600);
-  }
-  playBtn.addEventListener('click', () => (playing ? stop() : play()));
-  new ResizeObserver(resize).observe($('#heroWrap'));
-  onTheme(() => { rampF = RAMPS.slot(); A = labs(cur); setRamp(); bake(A); render(); });
-  setRamp(); resize();
-  if (!RM) {
-    // a quiet start: the orders begin to cycle once the hero is in view
-    const io = new IntersectionObserver((es) => {
-      es.forEach((e) => { if (e.isIntersecting && !playing && !io._done) { io._done = true; setTimeout(play, 1600); } if (!e.isIntersecting && playing) stop(); });
-    }, { threshold: 0.4 });
-    io.observe(canvas);
-  }
+  const loop = (now) => { raf = 0; draw(now); if (visible && !RM) raf = requestAnimationFrame(loop); };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+
+  // ---- the reader
+  const ndc = (ev) => { const r = canvas.getBoundingClientRect(); return [((ev.clientX - r.left) / r.width) * 2 - 1, 1 - ((ev.clientY - r.top) / r.height) * 2]; };
+  hero.addEventListener('pointermove', (ev) => { if (ev.pointerType === 'touch') return; aim = ndc(ev); aimedAt = performance.now(); aimFor = 2600; kick(); });
+  hero.addEventListener('click', (ev) => {               // a finger taps where the query should go
+    if (!byFinger(ev) || ev.target.closest('a, button')) return;
+    aim = ndc(ev); aimedAt = performance.now(); aimFor = 6000; kick();
+  });
+  modeBtns.forEach((b) => b.addEventListener('click', () => { chose = true; goal = +b.dataset.mode; pressMode(goal); kick(); }));
+  orderBtns.forEach((b) => b.addEventListener('click', () => {
+    order = b.dataset.order; ord = ORDERS.map((o) => (o === order ? 1 : 0));
+    orderBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    if (!RM) { opening = false; packedAt = performance.now(); }
+    kick();
+  }));
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); visible = false; hero.classList.add('no-gl'); });
+  new ResizeObserver(() => { resize(); kick(); }).observe(hero);
+  resize();
+  const start = drift(performance.now() / 1000);
+  for (let i = 0; i < 3; i++) q[i] = RM ? 0 : start[i];
+  pressMode(goal);
+  // the opening plays the first time the stage is in view; the field only runs while it is
+  new IntersectionObserver((es) => {
+    visible = es.some((e) => e.isIntersecting);
+    if (visible && t0 < 0) t0 = performance.now();
+    if (visible) kick();
+  }).observe(hero);
 }
 
 // ====================================================================== theme changes
@@ -1559,18 +1816,87 @@ function initEnd() {
 
 // ====================================================================== nav, copy
 function initNav() {
-  const links = $$('.chapters a'), bar = $('#progress');
-  const secs = links.map((a) => $(a.getAttribute('href')));
-  const topbar = $('.topbar'), main = $('main');
+  const bar = $('#progress'), topbar = $('.topbar'), main = $('main'), sheet = $('.standfirst');
+  // the breadcrumb: PACK3D / the chapter you are reading, which opens the contents
+  const toc = $('#toc'), btn = $('#tocBtn'), menu = $('#tocMenu'), label = $('#tocLabel');
+  const links = $$('a', menu);
+  const spots = links.filter((a) => a.hash).map((a) => ({ a, s: $(a.hash), name: a.dataset.short || $('.t', a).textContent }))
+    .filter((p) => p.s);
+  let cur = -2, openedAt = 0;
+  const setCur = (i) => {
+    if (i === cur) return;
+    const first = cur === -2;
+    label.style.setProperty('--dy', (i > cur ? 0.45 : -0.45) + 'em');
+    cur = i;
+    spots.forEach((p, j) => (j === i ? p.a.setAttribute('aria-current', 'location') : p.a.removeAttribute('aria-current')));
+    label.textContent = i < 0 ? 'Contents' : spots[i].name;
+    btn.setAttribute('aria-label', i < 0 ? 'Contents' : `Contents, now reading ${spots[i].name}`);
+    label.classList.remove('swap');
+    if (!first) { void label.offsetWidth; label.classList.add('swap'); }
+  };
+  const isOpen = () => toc.classList.contains('open');
+  const shown = () => links.filter((a) => a.offsetParent);
+  // pinned: opened by a click, a tap or the keyboard, so it stays until a choice, a click elsewhere or Escape.
+  // Opened by a resting mouse, it closes again when the mouse leaves.
+  let pinned = false, hoverT = 0;
+  const later = (f, ms) => { clearTimeout(hoverT); hoverT = setTimeout(f, ms); };
+  const open = (focus, pin = true) => {
+    clearTimeout(hoverT);
+    pinned = pinned || pin;
+    if (!isOpen()) { toc.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); openedAt = window.scrollY; }
+    if (focus) (spots[cur] ? spots[cur].a : shown()[0]).focus({ preventScroll: true });
+  };
+  const close = (refocus) => {
+    clearTimeout(hoverT);
+    pinned = false;
+    if (!isOpen()) return;
+    toc.classList.remove('open'); btn.setAttribute('aria-expanded', 'false');
+    if (refocus) btn.focus({ preventScroll: true });
+  };
+  // a click on a menu the mouse already opened keeps it open, rather than shutting it as the reader arrives
+  btn.addEventListener('click', () => (isOpen() && pinned ? close(false) : open(false)));
+  // a mouse resting on the chapter opens the contents: a short pause first, so passing over the bar opens
+  // nothing, and a short grace after leaving, so the way down to the menu keeps it open
+  toc.addEventListener('pointerenter', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    if (isOpen()) clearTimeout(hoverT); else later(() => open(false, false), 110);
+  });
+  toc.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && !pinned) later(() => close(false), 260); });
+  btn.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); open(true); } });
+  menu.addEventListener('keydown', (e) => {
+    const list = shown(), k = list.indexOf(document.activeElement);
+    const go = (j) => { e.preventDefault(); list[(j + list.length) % list.length].focus(); };
+    if (e.key === 'ArrowDown') go(k + 1);
+    else if (e.key === 'ArrowUp') go(k < 0 ? -1 : k - 1);
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(-1);
+    else if (/^[0-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      // the numbers the menu shows are shortcuts while it is open: 1 to 9, and 0 for chapter 10
+      const a = links.find((x) => x.dataset.n === (e.key === '0' ? '10' : e.key));
+      if (a) { e.preventDefault(); a.click(); }
+    }
+  });
+  menu.addEventListener('click', (e) => { if (e.target.closest('a')) close(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) close(toc.contains(document.activeElement)); });
+  document.addEventListener('pointerdown', (e) => { if (!toc.contains(e.target)) close(false); });
+  // tabbing out closes it; a click that leaves focus nowhere (Safari does not focus links) does not
+  toc.addEventListener('focusout', (e) => { if (e.relatedTarget && !toc.contains(e.relatedTarget)) close(false); });
+
   const onScroll = () => {
     const h = document.documentElement, max = h.scrollHeight - h.clientHeight;
     const mb = main.getBoundingClientRect().bottom;
+    const onStage = !!sheet && sheet.getBoundingClientRect().top > topbar.offsetHeight;   // the opening is under the bar
     topbar.classList.toggle('on-end', mb < topbar.offsetHeight);
+    topbar.classList.toggle('on-stage', onStage);
+    topbar.classList.toggle('at-start', window.scrollY < 4);
     h.classList.toggle('at-end', mb < window.innerHeight);         // overscroll past the end shows the stage
+    h.classList.toggle('at-top', onStage);                         // and so does overscroll above the opening
+    h.classList.toggle('stage-top', onStage || mb < topbar.offsetHeight);
     bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
-    let cur = -1;
-    secs.forEach((s, i) => { if (s && s.getBoundingClientRect().top < window.innerHeight * 0.35) cur = i; });
-    links.forEach((a, i) => a.classList.toggle('on', i === cur));
+    let i = -1;
+    spots.forEach((p, j) => { if (p.s.getBoundingClientRect().top < window.innerHeight * 0.35) i = j; });
+    setCur(i);
+    if (isOpen() && Math.abs(window.scrollY - openedAt) > 120) close(false);
   };
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
@@ -1586,8 +1912,8 @@ function initNav() {
 }
 
 // ====================================================================== boot
-const parts = [initHero, initLab, initRope, initPool, initTour, initContract, initSlope, initFields, initNamed, initMSD, initBranch, initUnet, initSystems, initEnd, initNav];
-// each part starts in its own task, hero first, so the page can paint between them and no single task runs long
+const parts = [initNav, initHero, initLab, initRope, initPool, initTour, initContract, initSlope, initFields, initNamed, initMSD, initBranch, initUnet, initSystems, initEnd];
+// each part starts in its own task, the bar and the hero first, so the page can paint between them and no single task runs long
 const boot = () => {
   let i = 0;
   const next = () => {

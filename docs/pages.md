@@ -43,6 +43,10 @@ and the checkout does not keep credentials. The workflow deploys only from the d
 Every number on the page was traced to the camera-ready paper when the site was built. If you edit a
 number, check it against the paper.
 
+The page's look comes from one small design system: its tokens sit at the top of the styles in
+`index.html`, and [The website's design system](design-system.md) explains them and the components
+built from them. Build new parts of the page from those.
+
 ## Search engines
 
 `index.html` and `sitemap.xml` name the site's address, `https://amilworks.github.io/Pack3D/`, in
