@@ -11,7 +11,8 @@ page, instead of writing a one-off value into a rule.
 ## Principles
 
 1. **The page is a sheet of paper lifted off a dark stage.** The reading column and its figures sit on
-   the sheet. The stage shows at the opening and at the end, and it is dark in both themes.
+   the sheet. The stage shows at the opening, through one window in the result chapter, and at the
+   end, and it is dark in both themes.
 2. **Fills, not outlines.** A group is a wash of ink, a figure sits on a sheet with a soft shadow, a
    chosen option is lifted out of its tray. Nothing gets a border to look like a box. Lines are kept
    for information; the list is under [Lines](#lines).
@@ -47,6 +48,7 @@ page, instead of writing a one-off value into a rule.
 | `--teal` | `#00B796` | `#19AC8B` | PACK3D, the primary action, the focus ring |
 | `--mint-ink` | `#00735D` | `#5FE0C3` | Teal text: eyebrows, primary buttons, the current-chapter check |
 | `--coral` | `#FF7276` | `#C9474F` | Packed RoPE |
+| `--coral-ink` | `#C2414A` | `#FF8F94` | Coral text: what a sequence-indexed model reads, its count of changed predictions |
 | `--orange`, `--green` | `#FFAA4D`, `#8FE07A` | `#FFB15E`, `#7BD866` | The query and the key in the lab |
 | `--lav` | `#997ADB` | `#9479D8` | Separable PE, the members of a block in the summary figure |
 | `--warm`, `--neutral-2` | `#9E978E`, `#5F5B56` | `#A39C93`, `#D2CCC4` | Baselines: the U-Net, SDPA, window attention, ablations |
@@ -135,7 +137,8 @@ still frame.
 | Breadcrumb | `.crumbs`, `.toc-btn` | The wordmark, then the chapter you are reading, which opens the contents. A mouse that rests on it for 0.11s opens them, and they close 0.26s after it leaves, so the way down to the menu keeps them open. A click, a tap or the keyboard opens them to stay, until a choice, a click elsewhere or Escape |
 | Contents | `.toc-menu`, `.toc-list` | A `--pop` sheet of `--r-lg` with 6px of padding; rows of `--r-sm`; numbers in DM Mono; a check on the current chapter; hairline dividers |
 | Badge | `.badge` | The one outlined element: a pill with a `--rule` outline and ink-3 text. A badge labels; it never holds content |
-| Frame | `.field canvas`, `.tour-view`, `.tour-map` | `--r-sm` with a ring at `--wash-2`: a picture's edge is part of the data |
+| Frame | `.tour-view`, `.tour-map` | `--r-sm` with a ring at `--wash-2`: a picture's edge is part of the data |
+| Stage window | `.stage-window` | The stage inside the page, for a figure drawn in light: the full width of the screen and most of its height, `--sheet-r` corners, the stage's tokens in both themes |
 | Tip | `.tip` | The one inverted surface, ink on the page color, `--r-sm`. It speaks over a figure, so it stands apart from it |
 | Meter | `.meter` | `--track` with a teal or coral fill, `--r-xs` |
 | Table | `table.data` | Rules in `--grid` between rows, headers in Inter 500 ink-3, numbers right-aligned in tabular figures |
@@ -158,9 +161,24 @@ Lines carry information. These are the only places they appear:
 
 A sheet, card, stat, readout, code block, button or tray never gets an outline.
 
+## Moments
+
+Three figures each take most of a screen, as pauses in the story, and together they tell it in order:
+
+| Moment | Where | What it shows |
+| :--- | :--- | :--- |
+| Paths | The opening, `.hero` (`initPaths`) | The premise: to store a 3D field you draw one path through it. One glowing path joins memory position *i* to *i* + 1 through 512 tokens and morphs through raster, Morton, Hilbert, blocks and a repack while the volume turns |
+| Two readings | The first screen of the paper, `#readings` (`initReadings`) | The idea: every letter of the title is a token with a place on the page and a place in memory, threaded together. The storage order rearranges the memory line; the words stay put |
+| Repack | Chapter 5, a stage window, `#repackStage` (`initRepackStage`) | The evidence: one crop's 262,144 positions under each model. After the repack, one spark for each changed prediction, at the paper's rates: about 18 for PACK3D, about 3,215 for packed RoPE |
+
+Each moment plays by itself when it comes into view and stops as soon as the reader takes its controls.
+Each pauses while off screen. With reduced motion, each shows a still frame that still answers its
+controls. On a phone each keeps its order of reading, figure first, and stays inside one screen's
+width; a drag on a figure turns it only when it is sideways, so the page still scrolls.
+
 ## The dark stage
 
-The opening (`.hero`), the end (`.end`) and the top bar while it sits over either use the stage's
+The opening (`.hero`), the stage window (`.stage-window`), the end (`.end`) and the top bar while it sits over the stage use the stage's
 tokens, in both themes: `--bg` `#060A09`, `--ink` `#EEF3F1`, `--ink-2` `#B4BEBA`, `--ink-3` `#8C9A95`,
 `--teal` `#19AC8B` and `--mint-ink` `#5FE0C3`, with a lavender lamp behind the figure. The stage also
 mixes its fills again from its own ink, so any button, tray or menu placed on it works without styles

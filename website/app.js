@@ -138,368 +138,253 @@ function fitCanvas(canvas, cssW, cssH) {
   return ctx;
 }
 
-// ====================================================================== hero: you are the query
-// The page opens on the stage it closes on: a cube of 32,768 tokens, and the reader is the query.
-// Light shows what each position encoding treats as near the query. Packed RoPE indexes memory, so its
-// light follows the storage order wherever that runs through the cube (coral). PACK3D indexes the
-// sample, so its light is a ball around the query, and every block's summary glows faintly: the global
-// pathway (teal). The first time, the cube is packed token by token in memory order, the query lights
-// up the packed RoPE way, and then the light gathers into PACK3D's. WebGL: one point per token, and the
-// points add together like light.
-function initHero() {
-  const hero = $('#hero'), canvas = $('#heroCanvas'), read = $('#heroRead'), qlab = $('#heroQ');
-  const gl = canvas.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'high-performance' });
-  if (!gl) { hero.classList.add('no-gl'); return; }
-  const N = 32, B = 4, n = N * N * N, NB = N / B, c = (N - 1) / 2;
-  const ORDERS = ['raster', 'morton', 'blocks', 'repack'];
-  const NAME = { raster: 'raster order', morton: 'Morton order', blocks: 'block order', repack: 'repacked order' };
-  // the repack moves whole z-layers to new places in memory, as the paper's does
-  const L = makeLayouts(N, B, [17, 4, 29, 11, 0, 22, 8, 31, 14, 26, 2, 19, 9, 24, 6, 28, 13, 1, 21, 16, 30, 5, 12, 25, 3, 18, 27, 10, 20, 7, 23, 15]);
-
-  // ---- the field, in model space (centered, z up), with every token's memory position under each order
-  const pos = new Float32Array(n * 3), mem = new Float32Array(n * 4);
-  for (let v = 0; v < n; v++) {
-    const x = v % N, y = Math.floor(v / N) % N, z = Math.floor(v / (N * N));
-    pos[3 * v] = x - c; pos[3 * v + 1] = z - c; pos[3 * v + 2] = y - c;
-    ORDERS.forEach((o, k) => { mem[4 * v + k] = L[o][v]; });
-  }
-  // the block summaries: one at the center of each block, with its tokens' mean memory position under
-  // each order; and a thread from the query to every summary, the global pathway
-  const NS = NB * NB * NB, sPos = new Float32Array(NS * 3), sMem = new Float32Array(NS * 4);
-  for (let v = 0; v < n; v++) {
-    const x = v % N, y = Math.floor(v / N) % N, z = Math.floor(v / (N * N));
-    const s = (Math.floor(z / B) * NB + Math.floor(y / B)) * NB + Math.floor(x / B);
-    ORDERS.forEach((o, k) => { sMem[4 * s + k] += L[o][v] / (B * B * B); });
-  }
-  for (let s = 0; s < NS; s++) {
-    const x = s % NB, y = Math.floor(s / NB) % NB, z = Math.floor(s / (NB * NB));
-    sPos[3 * s] = (x + 0.5) * B - 0.5 - c; sPos[3 * s + 1] = (z + 0.5) * B - 0.5 - c; sPos[3 * s + 2] = (y + 0.5) * B - 0.5 - c;
-  }
-  // the streams: specks of light that flow from every summary into the query, a few per summary
-  const DOTS = 10, NF = NS * DOTS, fPos = new Float32Array(NF * 3), fMem = new Float32Array(NF * 4), fT = new Float32Array(NF);
-  for (let s = 0; s < NS; s++) {
-    const jitter = ((s * 2654435761) >>> 0) / 4294967296;  // so the streams do not pulse in step
-    for (let k = 0; k < DOTS; k++) {
-      const i = s * DOTS + k;
-      fPos.set(sPos.subarray(3 * s, 3 * s + 3), 3 * i);
-      fMem.set(sMem.subarray(4 * s, 4 * s + 4), 4 * i);
-      fT[i] = (k + jitter) / DOTS;
+// ====================================================================== the opening: paths through memory
+// To store a 3D field you draw one path through it. The opening draws that path through an 8 x 8 x 8 field
+// of tokens, one line from each memory position to the next, and morphs it from one storage order to the
+// next while the volume turns: raster, Morton, Hilbert, 4 x 4 x 4 blocks, and a repack that moves whole
+// layers. The tokens never move; only the path does. A mint head runs along memory, as at the end.
+function hilbert3(x, y, z, bits) {                      // Skilling's transpose, then its bits interleaved
+  const X = [x, y, z], M = 1 << (bits - 1);
+  for (let Q = M; Q > 1; Q >>= 1) {
+    const P = Q - 1;
+    for (let i = 0; i < 3; i++) {
+      if (X[i] & Q) X[0] ^= P;
+      else { const t = (X[0] ^ X[i]) & P; X[0] ^= t; X[i] ^= t; }
     }
   }
+  for (let i = 1; i < 3; i++) X[i] ^= X[i - 1];
+  let t = 0;
+  for (let Q = M; Q > 1; Q >>= 1) if (X[2] & Q) t ^= Q - 1;
+  for (let i = 0; i < 3; i++) X[i] ^= t;
+  let h = 0;
+  for (let b = bits - 1; b >= 0; b--) for (let i = 0; i < 3; i++) h = (h << 1) | ((X[i] >> b) & 1);
+  return h;
+}
+function initPaths() {
+  const hero = $('#hero'), canvas = $('#heroCanvas'), field = $('#heroField');
+  if (!hero || !canvas || !field) return;
+  const g = canvas.getContext('2d');
+  if (!g) { hero.classList.add('no-canvas'); return; }
+  const N = 8, NT = N * N * N;
+  const L = makeLayouts(N, 4, [5, 2, 7, 0, 3, 6, 1, 4]);
+  const hil = new Int32Array(NT);
+  for (let v = 0; v < NT; v++) hil[v] = hilbert3(v % N, Math.floor(v / N) % N, Math.floor(v / (N * N)), 3);
+  const SLOTS = { raster: L.raster, morton: L.morton, hilbert: hil, blocks: L.blocks, repack: L.repack };
+  const ORDERS = ['raster', 'morton', 'hilbert', 'blocks', 'repack'];
+  const NAME = { raster: 'Raster order', morton: 'Morton order', hilbert: 'Hilbert order', blocks: '4 × 4 × 4 blocks', repack: 'Repacked: whole layers moved' };
+  const path = {};                                     // path[o][i]: the token at memory position i, centered
+  for (const o of ORDERS) {
+    const p = new Array(NT);
+    SLOTS[o].forEach((s, v) => { p[s] = [v % N - 3.5, Math.floor(v / N) % N - 3.5, Math.floor(v / (N * N)) - 3.5]; });
+    if (p.some((q) => !q)) throw new Error('order ' + o + ' is not a permutation');
+    path[o] = p;
+  }
+  const rampF = ramp(['#4B3AB0', '#7356D6', '#9A7DE6', '#C9B6F4', '#F7F3FE']);
+  const COL = Array.from({ length: NT }, (_, i) => lab2rgb(rampF(i / (NT - 1))).map((c) => Math.round(c * 255)));
+  const P = new Float32Array(NT * 3), S = new Float32Array(NT * 3);
+  let from = path.raster, to = path.raster, cur = 'raster', t0 = 0, auto = !RM, switchedAt = performance.now();
+  for (let i = 0; i < NT; i++) P.set(path.raster[i], i * 3);
+  const buttons = $$('#heroOrders [data-order]'), cap = $('#heroOrder');
+  function setOrder(o, byHand) {
+    if (byHand) auto = false;
+    if (o === cur) return;
+    const snap = []; for (let i = 0; i < NT; i++) snap.push([P[i * 3], P[i * 3 + 1], P[i * 3 + 2]]);
+    from = snap; to = path[o]; cur = o; t0 = performance.now(); switchedAt = t0;
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.order === o)));
+    cap.textContent = NAME[o];
+    kick();
+  }
+  buttons.forEach((b) => b.addEventListener('click', () => setOrder(b.dataset.order, true)));
 
-  // ---- shaders
-  const FRAG = `precision mediump float;
-varying vec3 v_col;
-void main() {
-  float r = length(gl_PointCoord - 0.5) * 2.0;
-  if (r > 1.0) discard;
-  float a = 1.0 - r;
-  gl_FragColor = vec4(v_col * a * a, 1.0);
-}`;
-  const TOKENS = `attribute vec3 a_pos;
-attribute vec4 a_mem;
-uniform mat4 u_mvp;
-uniform vec2 u_shift;
-uniform float u_px, u_near, u_far, u_mid, u_n, u_mode, u_att, u_base, u_fill, u_head;
-uniform vec3 u_q;
-uniform vec4 u_qmem, u_ord;
-varying vec3 v_col;
-const vec3 BASE = vec3(0.70, 0.80, 0.77);
-const vec3 TEAL = vec3(0.37, 0.88, 0.76);
-const vec3 CORAL = vec3(1.0, 0.45, 0.46);
-void main() {
-  vec4 p = u_mvp * vec4(a_pos, 1.0);
-  p.xy += u_shift * p.w;
-  gl_Position = p;
-  float fog = mix(1.0, 0.28, clamp((p.w - u_near) / (u_far - u_near), 0.0, 1.0));
-  float m = dot(a_mem, u_ord);
-  float d = distance(a_pos, u_q);
-  float dm = m - dot(u_qmem, u_ord);
-  float w = u_att * mix(exp(-dm * dm / 800.0), exp(-d * d / 10.0), u_mode);
-  float behind = u_head - m;
-  float written = u_fill * step(0.0, behind);
-  float head = written * exp(-behind / (u_n * 0.01));
-  v_col = (BASE * 0.3 * u_base + mix(CORAL, TEAL, u_mode) * w * 1.6 + CORAL * (written * 0.12 + head * 0.9)) * fog;
-  // sizes follow depth only partly, so the nearest corner does not break into large specks
-  gl_PointSize = (0.2 * u_base + 0.9 * w + 0.5 * head) * u_px / mix(p.w, u_mid, 0.6);
-}`;
-  // a summary weighs the query by distance in the sample (PACK3D) or by distance in memory (packed RoPE)
-  const NEAR = `float d = distance(a_pos, u_q), dm = dot(a_mem - u_qmem, u_ord);
-  float w = mix(exp(-dm * dm / 4.5e6), exp(-d * d / 288.0), u_mode);
-  float fog = mix(1.0, 0.35, clamp((p.w - u_near) / (u_far - u_near), 0.0, 1.0));`;
-  const SUMS = `attribute vec3 a_pos;
-attribute vec4 a_mem;
-uniform mat4 u_mvp;
-uniform vec2 u_shift;
-uniform float u_px, u_near, u_far, u_size, u_amp, u_max, u_mode;
-uniform vec3 u_q;
-uniform vec4 u_qmem, u_ord;
-varying vec3 v_col;
-void main() {
-  vec4 p = u_mvp * vec4(a_pos, 1.0);
-  p.xy += u_shift * p.w;
-  gl_Position = p;
-  ${NEAR}
-  v_col = mix(vec3(1.0, 0.45, 0.46), vec3(0.37, 0.88, 0.76), u_mode) * u_amp * (0.12 + 0.88 * w) * fog;
-  gl_PointSize = min(u_size * u_px / p.w, u_max);
-}`;
-  const FLOW = `attribute vec3 a_pos;
-attribute vec4 a_mem;
-attribute float a_t;
-uniform mat4 u_mvp;
-uniform vec2 u_shift;
-uniform float u_px, u_near, u_far, u_amp, u_mode, u_time;
-uniform vec3 u_q;
-uniform vec4 u_qmem, u_ord;
-varying vec3 v_col;
-void main() {
-  float f = fract(a_t + u_time);                 // 0 at the summary, 1 arriving at the query
-  vec4 p = u_mvp * vec4(mix(a_pos, u_q, f), 1.0);
-  p.xy += u_shift * p.w;
-  gl_Position = p;
-  ${NEAR}
-  float edge = smoothstep(0.0, 0.12, f) * (1.0 - smoothstep(0.82, 1.0, f));
-  v_col = mix(vec3(1.0, 0.45, 0.46), vec3(0.37, 0.88, 0.76), u_mode) * u_amp * (0.06 + 0.94 * w) * edge * fog;
-  gl_PointSize = (0.17 + 0.18 * f) * u_px / p.w;
-}`;
-  const GLOW = `attribute vec3 a_pos;
-uniform mat4 u_mvp;
-uniform vec2 u_shift;
-uniform float u_px, u_near, u_far, u_size, u_amp, u_floor, u_sig, u_max;
-uniform vec3 u_q, u_col;
-varying vec3 v_col;
-void main() {
-  vec4 p = u_mvp * vec4(a_pos, 1.0);
-  p.xy += u_shift * p.w;
-  gl_Position = p;
-  float fog = mix(1.0, 0.35, clamp((p.w - u_near) / (u_far - u_near), 0.0, 1.0));
-  float d = distance(a_pos, u_q);
-  v_col = u_col * u_amp * (u_floor + (1.0 - u_floor) * exp(-d * d / (2.0 * u_sig * u_sig))) * fog;
-  gl_PointSize = min(u_size * u_px / p.w, u_max);
-}`;
-  const BACK_V = `attribute vec2 a_xy;
-varying vec2 v_xy;
-void main() { v_xy = a_xy; gl_Position = vec4(a_xy, 0.0, 1.0); }`;
-  const BACK_F = `precision mediump float;
-varying vec2 v_xy;
-uniform vec2 u_c, u_asp;
-uniform float u_r;
-void main() {
-  vec2 d = (v_xy - u_c) * u_asp;
-  gl_FragColor = vec4(vec3(0.0235, 0.039, 0.035) + vec3(0.50, 0.38, 0.86) * 0.13 * exp(-dot(d, d) / (2.0 * u_r * u_r)), 1.0);
-}`;
-  function program(vs, fs) {
-    const p = gl.createProgram();
-    [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]].forEach(([type, src]) => {
-      const s = gl.createShader(type);
-      gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-      gl.attachShader(p, s);
-    });
-    gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
-    const u = {};
-    for (let i = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS) - 1; i >= 0; i--) { const name = gl.getActiveUniform(p, i).name; u[name] = gl.getUniformLocation(p, name); }
-    return { p, u, attr: (name) => gl.getAttribLocation(p, name) };
-  }
-  const buffer = (data, usage) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, usage || gl.STATIC_DRAW); return b; };
-  let pTok, pGlow, pBack, pSum, pFlow;
-  try {
-    pTok = program(TOKENS, FRAG); pGlow = program(GLOW, FRAG); pBack = program(BACK_V, BACK_F);
-    pSum = program(SUMS, FRAG); pFlow = program(FLOW, FRAG);
-  } catch (e) { console.error('hero', e); hero.classList.add('no-gl'); return; }
-  const bPos = buffer(pos), bMem = buffer(mem), bSum = buffer(sPos), bSumMem = buffer(sMem);
-  const bFlow = buffer(fPos), bFlowMem = buffer(fMem), bFlowT = buffer(fT);
-  const bQ = buffer(new Float32Array(3), gl.DYNAMIC_DRAW), bBack = buffer(new Float32Array([-1, -1, 3, -1, -1, 3]));
-  const maxPt = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1];
-  function bind(prog, name, buf, size) {
-    const a = prog.attr(name);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, size, gl.FLOAT, false, 0, 0);
-    return a;
-  }
+  // the camera: a slow turn, and a drag (sideways on a phone, so the page still scrolls)
+  let yaw = 0.7, pitch = 0.36, drag = null;
+  canvas.addEventListener('pointerdown', (e) => { drag = [e.clientX, e.clientY, yaw, pitch]; canvas.setPointerCapture(e.pointerId); canvas.classList.add('grabbing'); auto = false; });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    yaw = drag[2] + (e.clientX - drag[0]) * 0.008;
+    pitch = clamp(drag[3] + (e.clientY - drag[1]) * 0.006, -1.2, 1.2);
+    kick();
+  });
+  const endDrag = () => { drag = null; canvas.classList.remove('grabbing'); };
+  canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
 
-  // ---- the camera: a perspective view of the slowly turning cube, shifted right on wide screens
-  const FOV = 50 * Math.PI / 180, TAN = Math.tan(FOV / 2), RAD = Math.sqrt(3) * N / 2, TILT = 0.5;
-  let W = 0, H = 0, asp = 1, D = 80, fit = 0.8, shift = [0, 0], spin = 0.65;
-  const field = $('#heroField');
-  function resize() {                                      // the canvas covers the stage
-    const r = hero.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
-    W = r.width; H = r.height; asp = W / H;
-    canvas.width = Math.round(W * d); canvas.height = Math.round(H * d);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+  let W = 0, H = 0;
+  const resize = () => { W = hero.clientWidth; H = hero.clientHeight; fitCanvas(canvas, W, H); kick(); };
+  let visible = true, raf = 0, last = 0, head = 0;
+  function kick() { if (!raf && visible) raf = requestAnimationFrame(frame); }
+  function frame(now) {
+    raf = 0;
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0; last = now;
+    if (auto && visible && now - switchedAt > 5200) setOrder(ORDERS[(ORDERS.indexOf(cur) + 1) % ORDERS.length]);
+    const m = RM ? 1 : Math.min(1, (now - t0) / 1700), e = ease(m);
+    for (let i = 0; i < NT; i++) for (let k = 0; k < 3; k++) P[i * 3 + k] = from[i][k] + (to[i][k] - from[i][k]) * e;
+    if (!RM && !drag) yaw += 0.09 * dt;
+    if (!RM) head = (head + dt * 70) % (NT + 120);
+    draw();
+    if (!RM && visible) raf = requestAnimationFrame(frame);
+    else if (m < 1) raf = requestAnimationFrame(frame);
   }
-  function place() {                                       // the cube fills #heroField, wherever the layout puts it
-    const r = hero.getBoundingClientRect(), f = field.getBoundingClientRect();
-    shift = [((f.left - r.left + f.width / 2) / W) * 2 - 1, 1 - ((f.top - r.top + f.height / 2) / H) * 2];
-    fit = Math.max(0.05, Math.min(f.width, f.height) / H);    // the cube's bounding sphere, in half-heights
-    D = RAD / (TAN * fit);
-  }
-  // rows of Rx(TILT) * Ry(spin); R^T takes a world vector back into the model
-  const rot = () => { const ca = Math.cos(spin), sa = Math.sin(spin), cb = Math.cos(TILT), sb = Math.sin(TILT); return [ca, 0, sa, sb * sa, cb, -sb * ca, -cb * sa, sb, cb * ca]; };
-  const back = (R, v) => [R[0] * v[0] + R[3] * v[1] + R[6] * v[2], R[1] * v[0] + R[4] * v[1] + R[7] * v[2], R[2] * v[0] + R[5] * v[1] + R[8] * v[2]];
-  function mul(a, b) {                                     // 4 x 4, column-major: a * b
-    const o = new Float32Array(16);
-    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + j] * b[i * 4 + k]; o[i * 4 + j] = s; }
-    return o;
-  }
-  // the model-space point under a screen position, on the plane through the cube's center that faces the camera
-  function under(R, nx, ny) {
-    const o = back(R, [0, 0, D]), d = back(R, [(nx - shift[0]) * TAN * asp, (ny - shift[1]) * TAN, -1]), f = back(R, [0, 0, 1]);
-    const t = -(o[0] * f[0] + o[1] * f[1] + o[2] * f[2]) / (d[0] * f[0] + d[1] * f[1] + d[2] * f[2]);
-    return [[o[0] + t * d[0], o[1] + t * d[1], o[2] + t * d[2]], f];
-  }
-
-  // ---- state
-  let order = 'raster', ord = [1, 0, 0, 0], mode = RM ? 1 : 0, goal = mode, chose = false;
-  let t0 = -1, opening = !RM, packedAt = -1e9, last = 0, raf = 0, visible = false, said = '';
-  let aim = null, aimedAt = -1e9, aimFor = 2600;
-  const q = [0, 0, 0];
-  const drift = (t) => { const A = c * 0.62; return [A * Math.sin(t * 0.23), A * 0.75 * Math.sin(t * 0.31 + 1.2), A * Math.sin(t * 0.17 + 2.4)]; };
-  const modeBtns = $$('#heroModes [data-mode]'), orderBtns = $$('#heroOrders [data-order]');
-  const pressMode = (m) => modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.mode === m)));
-  const say = (s) => { if (s !== said) { read.textContent = s; said = s; } };
-  const PACK = 2.7;                                        // seconds to pack the cube in memory order
-  // how bright the lattice, the attention and the packing are at this moment
-  function levels(now) {
-    let base = 1, att = 1, fill = 0, head = 0, line = null;
-    if (opening) {
-      const t = (now - t0) / 1000;
-      base = clamp(t / 0.8, 0, 1);
-      head = n * ease(clamp((t - 0.5) / PACK, 0, 1));
-      fill = t < 0.5 + PACK ? 1 : 1 - clamp((t - 0.5 - PACK) / 0.7, 0, 1);
-      att = clamp((t - 3.4) / 0.8, 0, 1);
-      if (t >= 5.1 && !chose && goal === 0) { goal = 1; pressMode(1); }
-      line = t < 3.4 ? `packing ${intf(n)} tokens · ${NAME[order]}` : t < 5.1 ? 'packed RoPE · light on what is near in memory'
-        : t < 6.8 ? 'PACK3D · light on what is near in the sample' : null;
-      if (t > 6.8) opening = false;
-    } else {
-      const f = (now - packedAt) / 1000;                   // an order was chosen: pack the cube again in it
-      if (f < PACK + 0.7) {
-        head = n * ease(clamp(f / PACK, 0, 1));
-        fill = f < PACK ? 1 : 1 - clamp((f - PACK) / 0.7, 0, 1);
-        att = 0.25 + 0.75 * clamp((f - PACK) / 0.7, 0, 1);
-        if (f < PACK) line = `packing ${intf(n)} tokens · ${NAME[order]}`;
+  function draw() {
+    const hr = hero.getBoundingClientRect(), r = field.getBoundingClientRect();
+    const cx = r.left - hr.left + r.width / 2, cy = r.top - hr.top + r.height / 2, sc = Math.min(r.width, r.height) / 12.6;
+    const cyw = Math.cos(yaw), syw = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), Dv = 26;
+    for (let i = 0; i < NT; i++) {
+      const x = P[i * 3], y = P[i * 3 + 2], z = P[i * 3 + 1];          // layers run up the screen
+      const x1 = x * cyw + z * syw, z1 = -x * syw + z * cyw;
+      const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp, f = Dv / (Dv - z2);
+      S[i * 3] = cx + x1 * sc * f; S[i * 3 + 1] = cy - y2 * sc * f; S[i * 3 + 2] = z2;
+    }
+    g.clearRect(0, 0, W, H);
+    g.globalCompositeOperation = 'lighter'; g.lineCap = 'round'; g.lineJoin = 'round';
+    const k = Math.max(0.7, Math.min(1.25, sc / 34));              // line weights follow the sculpture's size
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 1; i < NT; i++) {
+        const a = i * 3 - 3, b = i * 3, near = ((S[a + 2] + S[b + 2]) / 2 + 7) / 14;
+        const hd = head - i, lit = !RM && hd >= 0 && hd < 46 ? 1 - hd / 46 : 0, c = COL[i];
+        if (pass === 0) { g.lineWidth = 7 * k * (0.7 + 0.5 * near); g.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.045 + 0.05 * near + 0.12 * lit})`; }
+        else {
+          g.lineWidth = k * (1.5 * (0.75 + 0.5 * near) + 1.4 * lit);
+          g.strokeStyle = lit > 0
+            ? `rgba(${Math.round(c[0] + (95 - c[0]) * lit)},${Math.round(c[1] + (224 - c[1]) * lit)},${Math.round(c[2] + (195 - c[2]) * lit)},${0.5 + 0.5 * lit})`
+            : `rgba(${c[0]},${c[1]},${c[2]},${0.32 + 0.5 * near})`;
+        }
+        g.beginPath(); g.moveTo(S[a], S[a + 1]); g.lineTo(S[b], S[b + 1]); g.stroke();
       }
     }
-    return { base, att, fill, head, line };
+    for (let i = 0; i < NT; i++) {
+      const near = (S[i * 3 + 2] + 7) / 14, c = COL[i];
+      g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.18 + 0.4 * near})`;
+      g.beginPath(); g.arc(S[i * 3], S[i * 3 + 1], k * (1.3 + 1.2 * near), 0, Math.PI * 2); g.fill();
+    }
+    const hi = Math.floor(head);
+    if (!RM && hi < NT) {
+      g.shadowColor = '#5FE0C3'; g.shadowBlur = 18; g.fillStyle = '#C9FFF1';
+      g.beginPath(); g.arc(S[hi * 3], S[hi * 3 + 1], 3.6 * k, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
+    }
+    g.globalCompositeOperation = 'source-over';
   }
-
-  function draw(now) {
-    const dt = last ? Math.min(0.25, (now - last) / 1000) : 0;
-    last = now;
-    place();
-    if (!RM) spin += dt * 0.07;
-    const R = rot(), t = now / 1000, lim = c - 0.5;
-    // the query: under the pointer for a while after it moves, otherwise drifting through the cube
-    let g = q.slice();
-    if (aim && now - aimedAt < aimFor) {
-      const [m, f] = under(R, aim[0], aim[1]), k = RM ? 0 : c * 0.3 * Math.sin(t * 0.55);
-      g = [m[0] + f[0] * k, m[1] + f[1] * k, m[2] + f[2] * k];
-    } else if (!RM) g = drift(t);
-    const ease_ = RM ? 1 : 1 - Math.exp(-dt * 4);
-    for (let i = 0; i < 3; i++) q[i] += (clamp(g[i], -lim, lim) - q[i]) * ease_;
-    mode += (goal - mode) * ease_;
-    const lv = levels(now);
-    // the query's own token and its memory positions
-    const gx = Math.round(q[0] + c), gy = Math.round(q[2] + c), gz = Math.round(q[1] + c), v = (gz * N + gy) * N + gx;
-    const qmem = ORDERS.map((o) => L[o][v]);
-
-    const P = (() => { const f = 1 / TAN, nr = Math.max(1, D - RAD - 2), fr = D + RAD + 2; return new Float32Array([f / asp, 0, 0, 0, 0, f, 0, 0, 0, 0, (fr + nr) / (nr - fr), -1, 0, 0, (2 * fr * nr) / (nr - fr), 0]); })();
-    const V = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -D, 1]);
-    const Mo = new Float32Array([R[0], R[3], R[6], 0, R[1], R[4], R[7], 0, R[2], R[5], R[8], 0, 0, 0, 0, 1]);
-    const MVP = mul(P, mul(V, Mo)), px = (canvas.height / 2) / TAN, near = D - RAD, far = D + RAD;
-
-    // the stage: a dark ground and one low lavender light behind the cube
-    gl.disable(gl.BLEND);
-    gl.useProgram(pBack.p);
-    let a0 = bind(pBack, 'a_xy', bBack, 2);
-    gl.uniform2f(pBack.u.u_c, shift[0], shift[1]); gl.uniform2f(pBack.u.u_asp, asp, 1); gl.uniform1f(pBack.u.u_r, fit * 0.95);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-    gl.disableVertexAttribArray(a0);
-    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);   // everything after adds like light
-
-    const glow = (buf, count, size, amp, floor, sig, col) => {
-      gl.useProgram(pGlow.p);
-      const a = bind(pGlow, 'a_pos', buf, 3), u = pGlow.u;
-      gl.uniformMatrix4fv(u.u_mvp, false, MVP); gl.uniform2f(u.u_shift, shift[0], shift[1]);
-      gl.uniform1f(u.u_px, px); gl.uniform1f(u.u_near, near); gl.uniform1f(u.u_far, far); gl.uniform1f(u.u_max, maxPt);
-      gl.uniform1f(u.u_size, size); gl.uniform1f(u.u_amp, amp); gl.uniform1f(u.u_floor, floor); gl.uniform1f(u.u_sig, sig);
-      gl.uniform3f(u.u_q, q[0], q[1], q[2]); gl.uniform3fv(u.u_col, col);
-      gl.drawArrays(gl.POINTS, 0, count);
-      gl.disableVertexAttribArray(a);
-    };
-    // the global pathway: every block's summary glows, and light streams from each into the query, most
-    // from the blocks this encoding counts as near: near in the sample for PACK3D, near in memory for packed RoPE
-    const amp = lv.att * lv.base;
-    gl.useProgram(pSum.p);
-    let s1 = bind(pSum, 'a_pos', bSum, 3), s2 = bind(pSum, 'a_mem', bSumMem, 4), us = pSum.u;
-    gl.uniformMatrix4fv(us.u_mvp, false, MVP); gl.uniform2f(us.u_shift, shift[0], shift[1]);
-    gl.uniform1f(us.u_px, px); gl.uniform1f(us.u_near, near); gl.uniform1f(us.u_far, far); gl.uniform1f(us.u_max, maxPt);
-    gl.uniform1f(us.u_size, B * 1.6); gl.uniform1f(us.u_amp, 0.09 * amp); gl.uniform1f(us.u_mode, mode);
-    gl.uniform3f(us.u_q, q[0], q[1], q[2]); gl.uniform4fv(us.u_qmem, qmem); gl.uniform4fv(us.u_ord, ord);
-    gl.drawArrays(gl.POINTS, 0, NS);
-    gl.disableVertexAttribArray(s1); gl.disableVertexAttribArray(s2);
-    gl.useProgram(pFlow.p);
-    s1 = bind(pFlow, 'a_pos', bFlow, 3); s2 = bind(pFlow, 'a_mem', bFlowMem, 4);
-    const s3 = bind(pFlow, 'a_t', bFlowT, 1), uf = pFlow.u;
-    gl.uniformMatrix4fv(uf.u_mvp, false, MVP); gl.uniform2f(uf.u_shift, shift[0], shift[1]);
-    gl.uniform1f(uf.u_px, px); gl.uniform1f(uf.u_near, near); gl.uniform1f(uf.u_far, far);
-    gl.uniform1f(uf.u_amp, 1.1 * amp); gl.uniform1f(uf.u_mode, mode); gl.uniform1f(uf.u_time, RM ? 0.5 : t * 0.2);
-    gl.uniform3f(uf.u_q, q[0], q[1], q[2]); gl.uniform4fv(uf.u_qmem, qmem); gl.uniform4fv(uf.u_ord, ord);
-    gl.drawArrays(gl.POINTS, 0, NF);
-    gl.disableVertexAttribArray(s1); gl.disableVertexAttribArray(s2); gl.disableVertexAttribArray(s3);
-    // the tokens
-    gl.useProgram(pTok.p);
-    const a1 = bind(pTok, 'a_pos', bPos, 3), a2 = bind(pTok, 'a_mem', bMem, 4), u = pTok.u;
-    gl.uniformMatrix4fv(u.u_mvp, false, MVP); gl.uniform2f(u.u_shift, shift[0], shift[1]);
-    gl.uniform1f(u.u_px, px); gl.uniform1f(u.u_near, near); gl.uniform1f(u.u_far, far); gl.uniform1f(u.u_mid, D); gl.uniform1f(u.u_n, n);
-    gl.uniform1f(u.u_mode, mode); gl.uniform1f(u.u_att, lv.att); gl.uniform1f(u.u_base, lv.base);
-    gl.uniform1f(u.u_fill, lv.fill); gl.uniform1f(u.u_head, lv.head);
-    gl.uniform3f(u.u_q, q[0], q[1], q[2]); gl.uniform4fv(u.u_qmem, qmem); gl.uniform4fv(u.u_ord, ord);
-    gl.drawArrays(gl.POINTS, 0, n);
-    gl.disableVertexAttribArray(a1); gl.disableVertexAttribArray(a2);
-    // the query: a halo in the color of the light it casts, and a white core
-    gl.bindBuffer(gl.ARRAY_BUFFER, bQ); gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(q));
-    const tint = [1 - 0.63 * mode, 0.45 + 0.43 * mode, 0.46 + 0.3 * mode];
-    glow(bQ, 1, 16, 0.38 * lv.att, 1, 1, tint);
-    glow(bQ, 1, 1.3, 1.2 * lv.att, 1, 1, [1, 1, 1]);
-
-    // the q label rides beside the query
-    const cx = MVP[0] * q[0] + MVP[4] * q[1] + MVP[8] * q[2] + MVP[12], cy = MVP[1] * q[0] + MVP[5] * q[1] + MVP[9] * q[2] + MVP[13];
-    const cw = MVP[3] * q[0] + MVP[7] * q[1] + MVP[11] * q[2] + MVP[15];
-    qlab.style.transform = `translate(${((cx / cw + shift[0] + 1) / 2) * W + 13}px, ${((1 - (cy / cw + shift[1])) / 2) * H - 21}px)`;
-    qlab.classList.toggle('on', lv.att > 0.6);
-    say(lv.line || `q = (${gz}, ${gy}, ${gx}) · memory i = ${intf(L[order][v])} · ${NAME[order]}`);
-  }
-  const loop = (now) => { raf = 0; draw(now); if (visible && !RM) raf = requestAnimationFrame(loop); };
-  const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
-
-  // ---- the reader
-  const ndc = (ev) => { const r = canvas.getBoundingClientRect(); return [((ev.clientX - r.left) / r.width) * 2 - 1, 1 - ((ev.clientY - r.top) / r.height) * 2]; };
-  hero.addEventListener('pointermove', (ev) => { if (ev.pointerType === 'touch') return; aim = ndc(ev); aimedAt = performance.now(); aimFor = 2600; kick(); });
-  hero.addEventListener('click', (ev) => {               // a finger taps where the query should go
-    if (!byFinger(ev) || ev.target.closest('a, button')) return;
-    aim = ndc(ev); aimedAt = performance.now(); aimFor = 6000; kick();
-  });
-  modeBtns.forEach((b) => b.addEventListener('click', () => { chose = true; goal = +b.dataset.mode; pressMode(goal); kick(); }));
-  orderBtns.forEach((b) => b.addEventListener('click', () => {
-    order = b.dataset.order; ord = ORDERS.map((o) => (o === order ? 1 : 0));
-    orderBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    if (!RM) { opening = false; packedAt = performance.now(); }
-    kick();
-  }));
-  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); visible = false; hero.classList.add('no-gl'); });
-  new ResizeObserver(() => { resize(); kick(); }).observe(hero);
+  new ResizeObserver(resize).observe(hero);
   resize();
-  const start = drift(performance.now() / 1000);
-  for (let i = 0; i < 3; i++) q[i] = RM ? 0 : start[i];
-  pressMode(goal);
-  // the opening plays the first time the stage is in view; the field only runs while it is
+  // the path runs only while the opening is in view
   new IntersectionObserver((es) => {
-    visible = es.some((e) => e.isIntersecting);
-    if (visible && t0 < 0) t0 = performance.now();
-    if (visible) kick();
+    visible = es.some((x) => x.isIntersecting);
+    if (visible) { last = 0; kick(); }
   }).observe(hero);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = 0; kick(); } });
+}
+
+// ====================================================================== two readings: the title as a packed sequence
+// The paper's sheet opens on its idea, drawn with the title. Every letter is a token with two indices: its
+// place on the page, a coordinate (row, column), and its place in memory under the storage order. A thread
+// ties each letter to its memory slot. Change the order and the memory line, and the threads, rearrange;
+// the words stay where they are. PACK3D reads the words; a model that indexes memory reads the line.
+function initReadings() {
+  const fig = $('#rdFig'), big = $('#rdBig'), memEl = $('#rdMem'), cv = $('#rdCanvas');
+  if (!fig || !big || !memEl || !cv) return;
+  const ROWS = ['GEOMETRY', 'MATTERS'], T = [];
+  big.querySelectorAll('.rd-row').forEach((rowEl, r) => {
+    rowEl.textContent = '';
+    [...ROWS[r]].forEach((ch, c) => {
+      const s = document.createElement('span');
+      s.className = 'rd-L'; s.textContent = ch;
+      rowEl.appendChild(s); T.push({ ch, r, c, el: s });
+    });
+  });
+  const n = T.length;
+  // the site's four orders, on the 2 x 8 field of the title
+  const KEY = {
+    raster: (t) => t.r * 8 + t.c,
+    morton: (t) => (t.c & 1) | (t.r << 1) | ((t.c >> 1) << 2),
+    blocks: (t) => (t.c >> 2) * 8 + t.r * 4 + (t.c & 3),           // two 2 x 4 blocks, raster inside each
+    repack: (t) => (1 - t.r) * 8 + t.c,                             // the two rows trade places, each kept whole
+  };
+  const ORDERS = ['raster', 'morton', 'blocks', 'repack'];
+  const NAME = { raster: 'raster order', morton: 'Morton order', blocks: 'blocks of 2 × 4', repack: 'a repacked order: the rows moved whole' };
+  const slot = {};
+  for (const o of ORDERS) {
+    const s = T.map((t, k) => [KEY[o](t), k]).sort((a, b) => a[0] - b[0]);
+    slot[o] = new Int32Array(n); s.forEach(([, k], i) => { slot[o][k] = i; });
+  }
+  const buttons = $$('#rdOrders [data-order]'), note = $('#rdNote'), seqEl = $('#rdSeq'), oname = $('#rdOrderName');
+  const NOTE = note.innerHTML;                         // "point at" for a mouse, "tap" for a finger
+  let cur = 'raster', prev = 'raster', t0 = 0, auto = !RM, switchedAt = 0, hov = -1, visible = false, raf = 0;
+  function setOrder(o, byHand) {
+    if (byHand) auto = false;
+    if (o === cur) return;
+    prev = cur; cur = o; t0 = performance.now(); switchedAt = t0;
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.order === o)));
+    oname.textContent = NAME[o];
+    const seq = new Array(n); T.forEach((t, k) => { seq[slot[o][k]] = t.ch; });
+    seqEl.textContent = seq.join('');
+    seqEl.classList.toggle('bad', o !== 'raster');
+    if (hov >= 0) say(hov);
+    kick();
+  }
+  buttons.forEach((b) => b.addEventListener('click', () => setOrder(b.dataset.order, true)));
+  const say = (k) => { const t = T[k]; note.textContent = `“${t.ch}”  ·  coordinate (row ${t.r}, column ${t.c})  ·  memory position i = ${slot[cur][k]}`; };
+  const pick = (k) => { T.forEach((t, j) => t.el.classList.toggle('on', j === k)); hov = k; if (k >= 0) say(k); else note.innerHTML = NOTE; kick(); };
+  T.forEach((t, k) => {
+    t.el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') pick(k); });
+    t.el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') pick(-1); });
+    t.el.addEventListener('click', () => { auto = false; pick(hov === k ? -1 : k); });
+  });
+  document.addEventListener('pointerdown', (e) => { if (hov >= 0 && !big.contains(e.target)) pick(-1); });
+
+  let W = 0, H = 0, ctx = null, SW = 40, MX = 0, MY = 0, col = null;
+  const rgb = (hex) => hex2rgb(hex).map((c) => Math.round(c * 255)).join(',');
+  function colors() { col = { ink: rgb(tok('--ink')), ink3: rgb(tok('--ink-3')), lav: rgb(tok('--lav')), mint: rgb(tok('--mint-ink')) }; }
+  function layout() {
+    const fr = fig.getBoundingClientRect(), rr = big.querySelector('.rd-row').getBoundingClientRect(), mr = memEl.getBoundingClientRect();
+    SW = Math.max(14, rr.width / n);
+    MX = rr.left - fr.left; MY = mr.top - fr.top;
+    memEl.style.height = Math.round(SW * 1.06 + (SW >= 26 ? 26 : 8)) + 'px';
+    W = fig.clientWidth; H = fig.clientHeight;
+    ctx = fitCanvas(cv, W, H);
+    kick();
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(draw); }
+  function draw(now) {
+    raf = 0;
+    if (!ctx) return;
+    if (auto && visible && now - switchedAt > 4200) setOrder(ORDERS[(ORDERS.indexOf(cur) + 1) % ORDERS.length]);
+    const m = RM ? 1 : Math.min(1, (now - t0) / 1300), e = ease(m);
+    const fr = fig.getBoundingClientRect();
+    ctx.clearRect(0, 0, W, H);
+    const sh = SW * 1.06, r = Math.min(9, SW * 0.2);
+    ctx.textAlign = 'center';
+    for (let i = 0; i < n; i++) {                      // the memory: fifteen slots in a row
+      const x = MX + i * SW;
+      ctx.fillStyle = `rgba(${col.ink},0.05)`;
+      ctx.beginPath(); ctx.roundRect(x + SW * 0.06, MY, SW * 0.88, sh, r); ctx.fill();
+      if (SW >= 26) { ctx.fillStyle = `rgba(${col.ink3},1)`; ctx.font = '400 11px "DM Mono", ui-monospace, monospace'; ctx.fillText(String(i), x + SW / 2, MY + sh + 18); }
+    }
+    T.forEach((t, k) => {
+      const lr = t.el.getBoundingClientRect();
+      const sx = lr.left - fr.left + lr.width / 2, sy = lr.top - fr.top + lr.height * 0.84;
+      const i = slot[prev][k] + (slot[cur][k] - slot[prev][k]) * e;
+      const ex = MX + i * SW + SW / 2, ey = MY - 3;
+      const on = hov === k, dim = hov >= 0 && !on;
+      const gr = ctx.createLinearGradient(sx, sy, ex, ey);
+      gr.addColorStop(0, on ? `rgba(${col.mint},0.9)` : `rgba(${col.ink},${dim ? 0.04 : 0.14})`);
+      gr.addColorStop(1, on ? `rgba(${col.mint},1)` : `rgba(${col.lav},${dim ? 0.18 : 0.85})`);
+      ctx.strokeStyle = gr; ctx.lineWidth = on ? 2.2 : 1.4;
+      const dy = (ey - sy) * 0.55;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.bezierCurveTo(sx, sy + dy, ex, ey - dy, ex, ey); ctx.stroke();
+      ctx.fillStyle = on ? `rgba(${col.mint},1)` : `rgba(${col.ink},1)`;
+      ctx.font = `500 ${Math.round(SW * 0.5)}px "DM Mono", ui-monospace, monospace`; ctx.textBaseline = 'middle';
+      ctx.fillText(t.ch, ex, MY + sh * 0.53); ctx.textBaseline = 'alphabetic';
+    });
+    if (m < 1 || (auto && visible)) kick();
+  }
+  colors();
+  onTheme(() => { colors(); kick(); });
+  new ResizeObserver(layout).observe(fig);
+  document.fonts.ready.then(layout);
+  // the orders change on their own while the figure is in view, until the reader picks one
+  new IntersectionObserver((es) => {
+    visible = es.some((x) => x.isIntersecting);
+    if (visible) { if (!switchedAt) switchedAt = performance.now(); kick(); }
+  }, { threshold: 0.4 }).observe(fig);
 }
 
 // ====================================================================== theme changes
@@ -1170,30 +1055,234 @@ function initSlope() {
   }
 }
 
-// ====================================================================== changed-prediction fields
-function initFields() {
-  const R = D.repack, N = 262144;
-  const nAx = Math.round(mean(R.chg_ax) / 100 * N), nPk = Math.round(mean(R.chg_pk) / 100 * N);
-  const cap = (id, lab, pct, cnt, extra) => { $(id).nextElementSibling.innerHTML = `<span class="dot ${lab === 'PACK3D' ? 'teal' : 'coral'}"></span> <b>${lab}: ${pct}%</b> of positions, about ${intf(cnt)} per crop${extra || ''}`; };
-  cap('#fieldAx', 'PACK3D', mean(R.chg_ax).toFixed(4), nAx, ', each circled so it can be seen');
-  cap('#fieldPk', 'Packed RoPE', mean(R.chg_pk).toFixed(2), nPk);
-  $('#fieldAx').setAttribute('aria-label', `262,144 positions with about ${intf(nAx)} lit, each circled`);
-  $('#fieldPk').setAttribute('aria-label', `262,144 positions with about ${intf(nPk)} lit`);
-  function paint(id, count, colTok, ring) {
-    const c = $(id), ctx = c.getContext('2d'), w = 512;
-    ctx.clearRect(0, 0, w, w);
-    let s = 12345 + count;
-    const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
-    ctx.fillStyle = tok(colTok);
-    const seen = new Set();
-    while (seen.size < count) { const p = Math.floor(rnd() * N); if (seen.has(p)) continue; seen.add(p); ctx.fillRect(p % w, Math.floor(p / w), 1, 1); }
-    if (ring) {                                   // one pixel in 262,144 is invisible on its own
-      ctx.strokeStyle = tok(colTok); ctx.lineWidth = 1.6;
-      seen.forEach((p) => { ctx.beginPath(); ctx.arc(p % w + 0.5, Math.floor(p / w) + 0.5, 9, 0, Math.PI * 2); ctx.stroke(); });
+// ====================================================================== how many predictions moved: the repack on a cell
+// One crop's worth of positions, 64 x 64 x 64, drawn as a cell for illustration, under each model. The memory
+// is repacked in sixteen groups, and then every prediction the repack changed lights up: about 18 for PACK3D
+// (teal, each circled so it can be seen) and about 3,215 for packed RoPE (coral), the paper's mean rates
+// times 262,144 positions. The paper does not map where in a crop the changes fall, so they are placed along
+// the cell's boundaries, where a segmentation is least sure. WebGL: one soft point per voxel drawn, added
+// together like light, in two viewports of one canvas. The volume is built only when the reader gets near.
+function initRepackStage() {
+  const stage = $('#repackStage'), canvas = $('#swCanvas');
+  if (!stage || !canvas) return;
+  const R = D.repack, G = 64, NV = G * G * G;
+  const rateAx = mean(R.chg_ax), ratePk = mean(R.chg_pk);
+  const nAx = Math.round(rateAx / 100 * NV), nPk = Math.round(ratePk / 100 * NV);
+  $('#swRA').textContent = `${rateAx.toFixed(4)}%`;
+  $('#swRB').textContent = `${ratePk.toFixed(2)}%`;
+  canvas.setAttribute('aria-label', `Two copies of one cell, ${intf(NV)} positions each, under the same repack. About ${nAx} predictions change under PACK3D, each circled, and about ${intf(nPk)} under packed RoPE.`);
+  const go = $('#swGo'), stateEl = $('#swState'), stateT = $('#swStateT'), cA = $('#swNA'), cB = $('#swNB');
+  const strips = [$('#swStripA'), $('#swStripB')];
+  let built = false;
+  new IntersectionObserver((es) => { if (!built && es.some((e) => e.isIntersecting)) { built = true; build(); } }, { rootMargin: '700px 0px' }).observe(stage);
+
+  function build() {
+    const gl = canvas.getContext('webgl', { antialias: false, alpha: true, premultipliedAlpha: true });
+    if (!gl) { stage.classList.add('no-gl'); return; }
+    // ---------------------------------------------------------------- a cell, as a segmented volume
+    let seed = 7;
+    const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const wob = (x, y, z) => 0.5 * Math.sin(3.1 * x + 1.7) * Math.sin(2.6 * y + 0.4) * Math.sin(2.9 * z + 2.1) + 0.3 * Math.sin(5.3 * x + 1.1 * y + 2.0) * Math.cos(4.1 * z - 0.7 * y);
+    const cls = new Uint8Array(NV);                   // 0 outside, 1 cytoplasm, 2 nucleus, 3 organelle
+    const at = (x, y, z) => (z * G + y) * G + x, P = (v) => (v - G / 2 + 0.5) / (G / 2);
+    for (let z = 0; z < G; z++) for (let y = 0; y < G; y++) for (let x = 0; x < G; x++) {
+      const px = P(x), py = P(y), pz = P(z);
+      if (Math.hypot(px / 0.93, py / 0.74, pz / 0.66) + 0.07 * wob(px, py, pz) >= 1) continue;
+      cls[at(x, y, z)] = Math.hypot((px - 0.16) / 0.42, (py + 0.04) / 0.35, (pz - 0.02) / 0.36) + 0.05 * wob(py, pz, px) < 1 ? 2 : 1;
     }
+    for (let m = 0; m < 40; m++) {                    // mitochondria: short walks through the cytoplasm
+      let x = 0, y = 0, z = 0, tries = 0;
+      do { x = 4 + Math.floor(rnd() * (G - 8)); y = 4 + Math.floor(rnd() * (G - 8)); z = 4 + Math.floor(rnd() * (G - 8)); } while (cls[at(x, y, z)] !== 1 && ++tries < 300);
+      let dx = rnd() - 0.5, dy = rnd() - 0.5, dz = (rnd() - 0.5) * 0.6;
+      for (let s = 0; s < 14; s++) {
+        const i = at(Math.round(x), Math.round(y), Math.round(z));
+        if (cls[i] !== 1) break;
+        cls[i] = 3;
+        dx += (rnd() - 0.5) * 0.5; dy += (rnd() - 0.5) * 0.5;
+        const l = Math.hypot(dx, dy, dz) || 1; x += dx / l; y += dy / l; z += (dz / l) * 0.8;
+      }
+    }
+    const NB = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    const differs = (x, y, z, c) => NB.some(([a, b, d]) => {
+      const X = x + a, Y = y + b, Z = z + d;
+      if (X < 0 || Y < 0 || Z < 0 || X >= G || Y >= G || Z >= G) return c !== 0;
+      return cls[at(X, Y, Z)] !== c;
+    });
+    const touches = (x, y, z, c) => NB.some(([a, b, d]) => {
+      const X = x + a, Y = y + b, Z = z + d;
+      return X >= 0 && Y >= 0 && Z >= 0 && X < G && Y < G && Z < G && cls[at(X, Y, Z)] === c;
+    });
+    const memb = [], env = [], edge = [], pos = [], col = [], size = [];
+    const C = { cyto: [0.42, 0.30, 0.86], memb: [0.66, 0.54, 1.0], nuc: [0.08, 0.62, 0.52], env: [0.30, 0.92, 0.76], mito: [1.0, 0.86, 0.78] };
+    const put = (x, y, z, rgb, k, s) => {
+      const j = () => (rnd() - 0.5) * 0.9 / (G / 2);
+      pos.push(P(x) + j(), P(y) + j(), P(z) + j()); col.push(rgb[0] * k, rgb[1] * k, rgb[2] * k); size.push(s);
+    };
+    for (let z = 0; z < G; z++) for (let y = 0; y < G; y++) for (let x = 0; x < G; x++) {
+      const c = cls[at(x, y, z)];
+      if (c === 0) { if (differs(x, y, z, 0)) edge.push([x, y, z]); continue; }
+      if (c === 1) {
+        if (differs(x, y, z, 1) && !touches(x, y, z, 2) && !touches(x, y, z, 3)) { memb.push([x, y, z]); if (rnd() < 0.55) put(x, y, z, C.memb, 0.36, 1.5); }
+        else if (rnd() < 0.08) put(x, y, z, C.cyto, 0.03, 3.4);
+      } else if (c === 2) {
+        if (differs(x, y, z, 2)) { env.push([x, y, z]); if (rnd() < 0.6) put(x, y, z, C.env, 0.26, 1.6); }
+        else if (rnd() < 0.2) put(x, y, z, C.nuc, 0.085, 2.6);
+      } else put(x, y, z, C.mito, 0.4, 1.4);
+    }
+    // the predictions the repack changes, at the paper's rates over all 262,144 positions
+    const pick = (list, k) => { const a = list.slice(), out = []; for (let i = 0; i < k && a.length; i++) out.push(a.splice(Math.floor(rnd() * a.length), 1)[0]); return out; };
+    const sparksPk = pick(memb.concat(env, edge), nPk), sparksAx = pick(env, nAx);
+
+    // ---------------------------------------------------------------- WebGL
+    const VS = `attribute vec3 a_pos; attribute vec3 a_col; attribute float a_size; attribute float a_t;
+uniform mat4 u_mvp; uniform float u_vox, u_k, u_time, u_mode, u_dist; uniform vec3 u_spark;
+varying vec3 v_col; varying float v_ring;
+void main() {
+  vec4 p = u_mvp * vec4(a_pos, 1.0);
+  gl_Position = p;
+  float fog = clamp((p.w - u_dist + 0.95) / 1.9, 0.0, 1.0);
+  if (u_mode < 0.5) { v_col = a_col * mix(1.2, 0.5, fog); v_ring = 0.0; gl_PointSize = a_size * u_vox / p.w; }
+  else {
+    float k = clamp((u_k - a_t) * 3.0, 0.0, 1.0);
+    float flare = 1.0 + 1.6 * exp(-pow((u_k - a_t) * 7.0, 2.0)) * step(a_t, u_k);
+    float tw = 0.85 + 0.15 * sin(u_time * 5.0 + a_t * 40.0);
+    v_col = u_spark * k * tw * flare * mix(1.0, 0.6, fog);
+    v_ring = u_mode > 1.5 ? 1.0 : 0.0;
+    gl_PointSize = (u_mode > 1.5 ? 5.2 : (1.5 + 1.1 * (flare - 1.0))) * u_vox / p.w * k;
   }
-  const draw = () => { paint('#fieldAx', nAx, '--teal', true); paint('#fieldPk', nPk, '--coral', false); };
-  onTheme(draw); draw();
+}`;
+    const FS = `precision mediump float; varying vec3 v_col; varying float v_ring;
+void main() {
+  float r = length(gl_PointCoord - 0.5) * 2.0;
+  float a = v_ring > 0.5 ? smoothstep(0.74, 0.82, r) * (1.0 - smoothstep(0.88, 0.98, r)) * 0.95 : exp(-r * r * 4.0) * step(r, 1.0);
+  vec3 c = v_col * a;
+  gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));   // valid premultiplied light over the stage
+}`;
+    const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog); gl.useProgram(prog);
+    const U = {}; ['u_mvp', 'u_vox', 'u_k', 'u_time', 'u_mode', 'u_dist', 'u_spark'].forEach((n) => { U[n] = gl.getUniformLocation(prog, n); });
+    const buf = (arr, n, name) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arr), gl.STATIC_DRAW); return { b, n, l: gl.getAttribLocation(prog, name) }; };
+    const bind = (...bs) => bs.forEach((x) => { gl.bindBuffer(gl.ARRAY_BUFFER, x.b); gl.enableVertexAttribArray(x.l); gl.vertexAttribPointer(x.l, x.n, gl.FLOAT, false, 0, 0); });
+    const NP = size.length;
+    const cell = [buf(pos, 3, 'a_pos'), buf(col, 3, 'a_col'), buf(size, 1, 'a_size'), buf(new Float32Array(NP), 1, 'a_t')];
+    const sparkSet = (list) => {
+      const p = [], t = [];
+      list.forEach(([x, y, z]) => { p.push(P(x), P(y), P(z)); t.push(rnd() * 0.75); });
+      return { n: list.length, b: [buf(p, 3, 'a_pos'), buf(new Float32Array(list.length * 3), 3, 'a_col'), buf(new Float32Array(list.length).fill(1), 1, 'a_size'), buf(t, 1, 'a_t')] };
+    };
+    const SPK = sparkSet(sparksPk), SAX = sparkSet(sparksAx);
+    gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE); gl.clearColor(0, 0, 0, 0);
+    const persp = (f, a, nn, fa) => { const t = 1 / Math.tan(f / 2); return [t / a, 0, 0, 0, 0, t, 0, 0, 0, 0, (fa + nn) / (nn - fa), -1, 0, 0, 2 * fa * nn / (nn - fa), 0]; };
+    const mul = (a, b) => { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; };
+    const view = (yaw, pitch, d) => {
+      const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+      return [cy, sp * sy, -cp * sy, 0, 0, cp, sp, 0, sy, -sp * cy, cp * cy, 0, 0, 0, -d, 1];
+    };
+
+    // ---------------------------------------------------------------- the memory strips: all positions in raster order
+    const SEG = 16, perm = [9, 3, 14, 0, 11, 6, 1, 13, 4, 15, 7, 2, 12, 5, 10, 8];
+    const SCOL = [[22, 28, 27], [96, 78, 150], [26, 150, 124], [235, 228, 240]];
+    let stripSrc = null;
+    function stripImage(w) {
+      const can = document.createElement('canvas'); can.width = w; can.height = 1;
+      const c2 = can.getContext('2d'), img = c2.createImageData(w, 1);
+      for (let px = 0; px < w; px++) {
+        const a = Math.floor(px / w * NV), b = Math.floor((px + 1) / w * NV); let r = 0, gg = 0, bl = 0;
+        for (let i = a; i < b; i++) { const c = SCOL[cls[i]]; r += c[0]; gg += c[1]; bl += c[2]; }
+        const k = Math.max(1, b - a); img.data.set([r / k, gg / k, bl / k, 255], px * 4);
+      }
+      c2.putImageData(img, 0, 0); return can;
+    }
+
+    // ---------------------------------------------------------------- the story: the training layout, the repack, the changes
+    let phase = 'before', t0 = performance.now(), visible = false, played = false, raf = 0, last = 0;
+    const D_ = { repack: 1700, restore: 1100 };
+    const STATE = {
+      before: 'Training layout: raster order',
+      repack: 'Repacking: the same 262,144 tokens, moved in memory in 16 groups',
+      after: 'Repacked. The same cell, the same two models, a new memory order',
+      restore: 'Back to the training layout',
+    };
+    function setPhase(p) {
+      phase = RM && p === 'repack' ? 'after' : RM && p === 'restore' ? 'before' : p;
+      t0 = performance.now();
+      stateEl.classList.toggle('hot', phase === 'after');
+      stateT.textContent = STATE[phase];
+      go.textContent = phase === 'after' || phase === 'repack' ? 'Restore the training layout' : 'Repack the memory';
+      kick();
+    }
+    go.addEventListener('click', () => { played = true; setPhase(phase === 'after' || phase === 'repack' ? 'restore' : 'repack'); });
+
+    let yaw = 0.6, pitch = 0.42, drag = null, W = 0, H = 0, dpr = 1;
+    canvas.addEventListener('pointerdown', (e) => { drag = [e.clientX, e.clientY, yaw, pitch]; canvas.setPointerCapture(e.pointerId); canvas.classList.add('grabbing'); });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      yaw = drag[2] + (e.clientX - drag[0]) * 0.008; pitch = clamp(drag[3] + (e.clientY - drag[1]) * 0.006, -0.4, 1.3); kick();
+    });
+    const endDrag = () => { drag = null; canvas.classList.remove('grabbing'); };
+    canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+    function resize() {
+      dpr = Math.min(2, window.devicePixelRatio || 1); W = stage.clientWidth; H = stage.clientHeight;
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      strips.forEach((s) => { s.width = Math.round(s.clientWidth * dpr); s.height = Math.round(s.clientHeight * dpr); });
+      stripSrc = stripImage(Math.max(64, strips[0].width));
+      kick();
+    }
+    function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+    function frame(now) {
+      raf = 0;
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0; last = now;
+      const el = now - t0;
+      if (phase === 'repack' && el > D_.repack) setPhase('after');
+      else if (phase === 'restore' && el > D_.restore) setPhase('before');
+      const e2 = now - t0;
+      const shuffle = phase === 'repack' ? ease(Math.min(1, e2 / D_.repack)) : phase === 'after' ? 1 : phase === 'restore' ? 1 - ease(Math.min(1, e2 / D_.restore)) : 0;
+      const kSpark = phase === 'after' ? (RM ? 1.4 : Math.min(1.4, e2 / 900)) : phase === 'restore' ? Math.max(0, 1 - e2 / 500) * 1.4 : 0;
+      const c = phase === 'after' ? (RM ? 1 : Math.min(1, e2 / 1100)) : phase === 'restore' ? Math.max(0, 1 - e2 / 500) : 0;
+      cA.textContent = intf(c * nAx); cB.textContent = intf(c * nPk);
+      if (!RM && !drag) yaw += dt * 0.12;
+      // the cells
+      gl.viewport(0, 0, canvas.width, canvas.height); gl.clear(gl.COLOR_BUFFER_BIT);
+      const cr = canvas.getBoundingClientRect();
+      ['#swA', '#swB'].forEach((id, side) => {
+        const r = $(id).getBoundingClientRect();
+        const x = (r.left - cr.left) * dpr, y = (cr.bottom - r.bottom) * dpr, w = r.width * dpr, h = r.height * dpr;
+        if (w < 2 || h < 2) return;
+        gl.viewport(x, y, w, h);
+        const dist = 3.45 / Math.min(1, w / h);
+        gl.uniformMatrix4fv(U.u_mvp, false, mul(persp(0.62, w / h, 0.1, 40), view(yaw, pitch, dist)));
+        gl.uniform1f(U.u_dist, dist);
+        gl.uniform1f(U.u_vox, (2 / G) * (h / 2) / Math.tan(0.31));
+        gl.uniform1f(U.u_time, now / 1000);
+        gl.uniform1f(U.u_mode, 0); bind(...cell); gl.drawArrays(gl.POINTS, 0, NP);
+        gl.uniform1f(U.u_k, kSpark);
+        if (side === 1) { gl.uniform3f(U.u_spark, 1.0, 0.45, 0.47); gl.uniform1f(U.u_mode, 1); bind(...SPK.b); gl.drawArrays(gl.POINTS, 0, SPK.n); }
+        else {
+          gl.uniform3f(U.u_spark, 0.37, 0.88, 0.76); gl.uniform1f(U.u_mode, 1); bind(...SAX.b); gl.drawArrays(gl.POINTS, 0, SAX.n);
+          gl.uniform1f(U.u_mode, 2); gl.drawArrays(gl.POINTS, 0, SAX.n);   // circled: one in 14,000 is too small to see
+        }
+      });
+      // the strips: the same repack under both models, sixteen groups sliding to their new places
+      strips.forEach((s) => {
+        const g2 = s.getContext('2d'), w = s.width, h = s.height, sw = w / SEG;
+        g2.clearRect(0, 0, w, h); g2.imageSmoothingEnabled = false;
+        for (let k = 0; k < SEG; k++) g2.drawImage(stripSrc, k * stripSrc.width / SEG, 0, stripSrc.width / SEG, 1, (k + (perm.indexOf(k) - k) * shuffle) * sw, 0, sw + 0.5, h);
+      });
+      const moving = phase === 'repack' || phase === 'restore' || (phase === 'after' && e2 < 1500);
+      if (visible && (!RM || moving || drag)) kick();
+    }
+    new ResizeObserver(resize).observe(stage);
+    resize();
+    // the repack plays by itself the first time the cells are well in view
+    new IntersectionObserver((es) => {
+      visible = es.some((x) => x.isIntersecting && x.intersectionRatio > 0.45);
+      if (visible) { last = 0; kick(); if (!played) { played = true; setTimeout(() => { if (phase === 'before') setPhase('repack'); }, 700); } }
+    }, { threshold: [0, 0.45, 0.7] }).observe(stage);
+    canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); stage.classList.add('no-gl'); });
+    setPhase(RM ? 'after' : 'before');
+    if (RM) played = true;
+  }
 }
 
 // ====================================================================== named switch
@@ -1912,8 +2001,8 @@ function initNav() {
 }
 
 // ====================================================================== boot
-const parts = [initNav, initHero, initLab, initRope, initPool, initTour, initContract, initSlope, initFields, initNamed, initMSD, initBranch, initUnet, initSystems, initEnd];
-// each part starts in its own task, the bar and the hero first, so the page can paint between them and no single task runs long
+const parts = [initNav, initPaths, initReadings, initLab, initRope, initPool, initTour, initContract, initSlope, initRepackStage, initNamed, initMSD, initBranch, initUnet, initSystems, initEnd];
+// each part starts in its own task, the bar and the opening first, so the page can paint between them and no single task runs long
 const boot = () => {
   let i = 0;
   const next = () => {

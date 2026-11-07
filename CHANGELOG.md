@@ -8,9 +8,11 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
-- The website opens on a new figure: 32,768 tokens on a dark stage, where the reader is the query.
-  Light shows what each position encoding treats as near: tokens near in memory for packed RoPE,
-  tokens near in the sample, and every block through its summary, for PACK3D.
+- The website tells its story in three full-screen figures. It opens on the storage orders drawn as
+  paths: one glowing path through 512 tokens, morphing through raster, Morton, Hilbert, blocks and a
+  repack. The paper's first screen threads the letters of the title to their places in memory. In the
+  result chapter, the same repack runs on a cell under both models, with one spark for each changed
+  prediction at the paper's rates; it replaces the two flat squares that showed those counts.
 - The website's top bar is a breadcrumb, the wordmark and the chapter being read, which opens the
   contents on hover, a click, a tap or the keyboard. Buttons, option trays, figure sheets, stats,
   cards and callouts follow one design system, written up in

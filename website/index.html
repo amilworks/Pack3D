@@ -68,6 +68,7 @@
   --mint-ink: #00735D;
   --teal: #00B796;
   --coral: #FF7276;
+  --coral-ink: #C2414A;
   --lav: #997ADB;
   --warm: #9E978E;
   --neutral-2: #5F5B56;
@@ -130,6 +131,7 @@
     --mint-ink: #5FE0C3;
     --teal: #19AC8B;
     --coral: #C9474F;
+    --coral-ink: #FF8F94;
     --lav: #9479D8;
     --warm: #A39C93;
     --neutral-2: #D2CCC4;
@@ -161,6 +163,7 @@
   --mint-ink: #5FE0C3;
   --teal: #19AC8B;
   --coral: #C9474F;
+  --coral-ink: #FF8F94;
   --lav: #9479D8;
   --warm: #A39C93;
   --neutral-2: #D2CCC4;
@@ -344,9 +347,9 @@ em { font-style: italic; }
   .wordmark:hover, .toc-btn:hover, .toc-list a:hover { background: var(--wash-2); }
 }
 /* the dark stage (the opening, the end, and the bar over them) carries its own tokens; every control reads them */
-.hero, .end, .topbar.on-stage, .topbar.on-end {
+.hero, .end, .stage-window, .topbar.on-stage, .topbar.on-end {
   --bg: #060A09; --surface: #151C1A; --surface-2: #101614; --ink: #EEF3F1; --ink-2: #B4BEBA; --ink-3: #8C9A95;
-  --rule: rgba(238, 243, 241, 0.14); --teal: #19AC8B; --mint-ink: #5FE0C3;
+  --rule: rgba(238, 243, 241, 0.14); --teal: #19AC8B; --mint-ink: #5FE0C3; --coral: #FF7276; --coral-ink: #FF9A9E;
   --lift: rgba(238, 243, 241, 0.14); --lift-shadow: none;
   --pop: #121917; --pop-rule: rgba(238, 243, 241, 0.09);
   --pop-shadow: 0 26px 56px -16px rgba(0, 0, 0, 0.85), 0 4px 14px -6px rgba(0, 0, 0, 0.6);
@@ -409,81 +412,105 @@ em { font-style: italic; }
 @media (hover: hover) { .chip:not([aria-pressed="true"]):hover { color: var(--ink); background: var(--wash-1); } }
 
 /* ------------------------------------------------------------------ hero
-   The page opens on the dark stage it closes on. A WebGL field of 32,768 tokens fills the first
-   screen and the reader is the query; the paper's sheet slides up over the stage below the fold. */
+   The page opens on the dark stage it closes on. To store a 3D field you draw one path through it: the
+   opening draws that path through 512 tokens and morphs it from one storage order to the next while the
+   volume turns. The paper's sheet slides up over the stage below the fold. */
 .hero {
-  --s-bg: #060A09; --s-ink: #EEF3F1; --s-ink-2: #B4BEBA; --s-ink-3: #8C9A95; --s-rule: rgba(238, 243, 241, 0.16);
-  position: relative; overflow: hidden; display: flex; color: var(--s-ink); color-scheme: dark;
-  background: radial-gradient(55% 65% at 68% 50%, rgba(128, 98, 220, 0.16), transparent 70%), var(--s-bg);
+  position: relative; overflow: hidden; display: flex; color: var(--ink);
+  background: radial-gradient(52% 62% at 69% 47%, rgba(128, 98, 220, 0.17), transparent 72%), var(--bg);
   min-height: calc(100svh - 53px + var(--sheet-r));
   margin-bottom: calc(-1 * var(--sheet-r));
 }
-.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* a drag turns the volume; on a phone only a sideways one, so the page still scrolls */
+.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: grab; }
+.hero-canvas.grabbing { cursor: grabbing; }
 .hero-in {
-  position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: 28px;
+  position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: 24px; pointer-events: none;
   padding-top: clamp(28px, 7vh, 88px); padding-bottom: calc(var(--sheet-r) + clamp(18px, 3.5vh, 40px));
 }
+.hero-head > *, .hero-byline > *, .hero-foot > * { pointer-events: auto; }
 .hero-head, .hero-byline, .hero-foot { width: 100%; }
-.hero-foot { margin-top: auto; }
-/* where the cube is drawn: the right of the stage on wide screens, under the title on narrow ones */
-.hero-field { position: absolute; top: 0; right: 0; bottom: calc(var(--sheet-r) + 110px); width: 60%; pointer-events: none; }
-.hero .eyebrow { color: #5FE0C3; }
+.hero-byline > * { max-width: min(38vw, 540px); }
+.hero-foot { margin-top: auto; display: grid; gap: 14px; justify-items: start; }
+/* where the sculpture is drawn: the right of the stage on wide screens, under the title on narrow ones */
+.hero-field { position: absolute; top: 0; right: 0; bottom: calc(var(--sheet-r) + 104px); width: 62%; pointer-events: none; }
+.hero .eyebrow { color: var(--mint-ink); }
 .hero h1 {
   margin-top: 18px; max-width: 11.5ch; font-weight: 320; font-size: clamp(2.7rem, 6.2vw, 6.2rem); line-height: 1;
-  letter-spacing: -0.034em; color: var(--s-ink); text-shadow: 0 0 36px rgba(6, 10, 9, 0.85);
+  letter-spacing: -0.034em; text-shadow: 0 0 36px rgba(6, 10, 9, 0.85);
 }
 .hero h1 .tail { display: block; }
-.hero .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.98rem; color: var(--s-ink-2); text-shadow: 0 0 18px rgba(6, 10, 9, 0.9); }
-.hero .meta b { color: var(--s-ink); font-weight: 600; }
-.hero .meta .affil { flex-basis: 100%; line-height: 1.45; color: var(--s-ink-3); }
-.hero .cta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
-.hero-foot { display: grid; gap: 14px; }
-.hero-bar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; }
-.hero-hint { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; color: var(--s-ink-2); text-shadow: 0 0 14px rgba(6, 10, 9, 0.9); }
-.qdot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 14px rgba(255, 255, 255, 0.75); }
-.hero-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
-/* the two encodings and the four orders sit in trays, like every other choice on the page */
-.seg, .hero .chips {
-  display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-md);
-  background: var(--wash-2);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-}
-.seg button {
-  appearance: none; border: 0; margin: 0; background: transparent; color: var(--ink-2); cursor: pointer;
-  font: 500 var(--fs-control)/1.2 var(--font-body); letter-spacing: -0.006em;
-  display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r-sm);
-  transition: background-color var(--t-2), box-shadow var(--t-2);
-}
-.seg b { font-weight: 500; color: var(--ink); }
-.seg span { font-size: var(--fs-meta); color: var(--ink-3); }
-.seg button[aria-pressed="true"] { background: var(--lift); box-shadow: var(--lift-shadow); }
-@media (hover: hover) { .seg button:not([aria-pressed="true"]):hover { background: var(--wash-1); } }
+.hero-lede { max-width: 36ch; font-size: clamp(1.02rem, 1.2vw, 1.14rem); line-height: 1.52; color: var(--ink-2); text-shadow: 0 0 18px rgba(6, 10, 9, 0.9); }
+.hero-lede strong { color: var(--ink); }
+.hero .meta { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.98rem; color: var(--ink-2); text-shadow: 0 0 18px rgba(6, 10, 9, 0.9); }
+.hero .meta b { color: var(--ink); font-weight: 600; }
+.hero .meta .affil { flex-basis: 100%; line-height: 1.45; color: var(--ink-3); }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.hero-cap { font-size: 0.92rem; color: var(--ink-2); text-shadow: 0 0 14px rgba(6, 10, 9, 0.9); }
+.hero-cap b { color: var(--ink); font-weight: 600; }
+.hero-sub { color: var(--ink-3); }
+.hero .chips { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .hero .chip { padding: 8px 13px; font-size: var(--fs-control); }
-.hero-read { font-family: var(--font-mono); font-size: 0.76rem; color: var(--s-ink-3); font-variant-numeric: tabular-nums; text-shadow: 0 0 12px rgba(6, 10, 9, 0.9); }
-.hero-q { position: absolute; left: 0; top: 0; z-index: 1; font: 500 0.74rem/1 var(--font-mono); color: #FFFFFF; opacity: 0; pointer-events: none; transition: opacity var(--t-3); text-shadow: 0 0 8px rgba(6, 10, 9, 0.95); }
-.hero-q.on { opacity: 0.85; }
-.hero.no-gl .hero-hint, .hero.no-gl .hero-controls, .hero.no-gl .hero-q { display: none; }
+.hero.no-canvas .hero-foot { display: none; }
 @media (max-width: 920px) {
   .hero { min-height: 0; }
-  .hero-in { padding-top: clamp(20px, 4vh, 40px); }
+  .hero-in { padding-top: clamp(20px, 4vh, 40px); gap: 18px; }
   .hero h1 { max-width: none; }
   .hero-head { order: 1; }
   .hero-field {
-    order: 2; position: relative; inset: auto; width: auto; aspect-ratio: 1 / 0.85;
+    order: 2; position: relative; inset: auto; width: auto; aspect-ratio: 1 / 0.94;
     margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
   }
   .hero-foot { order: 3; margin-top: 0; }
   .hero-byline { order: 4; }
+  .hero-byline > * { max-width: none; }
 }
-@media (max-width: 760px) { .seg span { display: none; } }
+@media (max-width: 560px) {
+  .hero .chip { padding: 7px 9px; font-size: var(--fs-control-sm); }
+  .hero-sub { display: block; margin-top: 2px; }
+  .hero-sub .sep-dot { display: none; }
+}
 /* the paper's sheet slides up over the stage */
 .standfirst {
   position: relative; z-index: 2; background: var(--bg); border-radius: var(--sheet-r) var(--sheet-r) 0 0;
-  box-shadow: 0 -1px 0 var(--rule), 0 -40px 70px -36px rgba(0, 0, 0, 0.6); padding-block: clamp(48px, 7vw, 96px) 0;
+  box-shadow: 0 -1px 0 var(--rule), 0 -40px 70px -36px rgba(0, 0, 0, 0.6); padding-block: clamp(36px, 5vw, 80px) clamp(8px, 2vw, 24px);
 }
-.standfirst .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 html.at-top { background-color: #060A09; }
 html.stage-top body::before { background: #060A09; }   /* the strip under a phone's status bar follows the stage */
+
+/* ------------------------------------------------------------------ two readings
+   The sheet opens on the paper's idea, drawn with the title: every letter is a token with a place on the
+   page and a place in memory, and a thread ties the two. Change the order and the threads cross; the
+   words stay put. It fills the first screen of the sheet, a pause before the chapters begin. */
+.readings {
+  min-height: calc(100svh - 52px - clamp(44px, 7vw, 104px)); display: grid; align-items: center;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(28px, 4.5vw, 72px);
+}
+.rd-fig { position: relative; container-type: inline-size; min-width: 0; padding-bottom: 36px; }
+.rd-fig > :not(canvas) { position: relative; z-index: 1; }
+.rd-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.rd-big {
+  margin-top: 14px; font-family: var(--font-display); font-weight: 300; line-height: 0.95; letter-spacing: 0.02em;
+  font-size: clamp(44px, 8.6vw, 168px); color: var(--ink); user-select: none; -webkit-user-select: none;
+}
+@supports (font-size: 1cqi) { .rd-big { font-size: 17cqi; } }
+.rd-row { display: block; white-space: nowrap; }
+.rd-L { display: inline-block; cursor: pointer; transition: color var(--t-1); -webkit-tap-highlight-color: transparent; }
+.rd-L.on { color: var(--mint-ink); }
+.rd-mem { margin-top: clamp(84px, 15cqi, 200px); }
+.rd-mem-lab { position: absolute; left: 0; top: calc(100% + 6px); display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: var(--fs-meta); font-weight: 500; color: var(--ink-3); }
+.rd-side { display: grid; gap: 20px; align-content: center; min-width: 0; }
+.rd-read { display: grid; gap: 12px; padding: 16px 18px; border-radius: var(--r-md); background: var(--wash-1); }
+.rd-read p { display: grid; gap: 4px; }
+.rd-who { display: flex; align-items: center; gap: 8px; font-size: var(--fs-meta); font-weight: 500; color: var(--ink-2); }
+.rd-s { font-family: var(--font-mono); font-size: 1.02rem; letter-spacing: 0.08em; color: var(--ink); overflow-wrap: anywhere; }
+.rd-s.bad { color: var(--coral-ink); }
+.rd-note { min-height: 1.4em; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-3); }
+.rd-side .cta { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 980px) {
+  .readings { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: 36px; }
+  .rd-mem { margin-top: clamp(64px, 16cqi, 150px); }
+}
 
 /* ------------------------------------------------------------------ chapters */
 .chapter { padding-block: clamp(56px, 9vw, 120px) 0; scroll-margin-top: 60px; }
@@ -517,6 +544,52 @@ html.stage-top body::before { background: #060A09; }   /* the strip under a phon
 }
 .readout .lab { font-size: 0.74rem; color: var(--ink-3); font-family: var(--font-mono); letter-spacing: 0.01em; }
 .readout .val { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 1.02rem; }
+
+/* ------------------------------------------------------------------ the stage window
+   One figure in the paper is drawn in light, so the sheet opens onto the stage for it: a window the full
+   width of the screen and most of its height, dark in both themes, with the stage's tokens. */
+.stage-window {
+  position: relative; display: flex; overflow: hidden; color: var(--ink);
+  margin: 36px calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0; border-radius: var(--sheet-r);
+  min-height: min(100svh, 1040px);
+  background: radial-gradient(54% 52% at 50% 46%, rgba(128, 98, 220, 0.16), transparent 72%), var(--bg);
+}
+.sw-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: grab; }
+.sw-canvas.grabbing { cursor: grabbing; }
+.sw-in {
+  position: relative; z-index: 1; flex: 1; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: clamp(14px, 2.4vh, 26px);
+  width: 100%; max-width: 1240px; margin-inline: auto; padding: clamp(28px, 5vh, 64px) clamp(16px, 4vw, 48px); pointer-events: none;
+}
+.sw-in .sw-head > *, .sw-in .sw-under > *, .sw-in .sw-foot > * { pointer-events: auto; }
+.sw-head { display: grid; gap: 10px; }
+.sw-head .eyebrow { color: var(--mint-ink); }
+.sw-title { font-family: var(--font-display); font-weight: 340; font-size: clamp(1.6rem, 3.2vw, 2.8rem); line-height: 1.08; letter-spacing: -0.028em; }
+.sw-cells { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(8px, 3vw, 40px); min-height: min(52vh, 560px); }
+.sw-under { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 3vw, 40px); }
+.sw-col { min-width: 0; }
+.sw-who { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 9px; font-weight: 600; font-size: 1.02rem; }
+.sw-who small { font-weight: 500; font-size: var(--fs-meta); color: var(--ink-3); }
+.sw-strip { position: relative; height: 10px; margin-top: 12px; border-radius: 3px; overflow: hidden; background: var(--wash-1); }
+.sw-strip canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sw-n { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.sw-big { font-family: var(--font-display); font-weight: 360; font-size: clamp(1.7rem, 3.4vw, 2.6rem); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.sw-teal { color: var(--mint-ink); }
+.sw-coral { color: var(--coral-ink); }
+.sw-lab { font-family: var(--font-mono); font-size: 0.74rem; color: var(--ink-3); }
+.sw-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.sw-state { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; color: var(--ink-2); }
+.sw-state i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); transition: background-color var(--t-2), box-shadow var(--t-2); }
+.sw-state.hot i { background: var(--coral); box-shadow: 0 0 12px var(--coral); }
+.sw-fallback { display: none; position: relative; z-index: 1; align-self: center; margin: 0 auto; max-width: 40ch; padding: 24px; color: var(--ink-2); text-align: center; }
+.stage-window.no-gl .sw-in, .stage-window.no-gl .sw-canvas { display: none; }
+.stage-window.no-gl .sw-fallback { display: block; }
+.sw-foot-note { max-width: var(--col); margin-inline: auto; }
+@media (max-width: 640px) {
+  .stage-window { min-height: 0; }
+  .sw-cells { min-height: 0; aspect-ratio: 2 / 1.15; gap: 6px; }
+  .sw-who { font-size: 0.92rem; }
+  .sw-who small { flex-basis: 100%; }
+}
 
 /* ------------------------------------------------------------------ the lab */
 .lab-slices canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -583,11 +656,6 @@ table.data th, table.data td { text-align: right; padding: 5px 10px; border-bott
 table.data th:first-child, table.data td:first-child { text-align: left; }
 table.data th { color: var(--ink-3); font-weight: 500; }
 
-.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.field { display: grid; gap: 8px; min-width: 0; }
-.field canvas { width: 100%; aspect-ratio: 1 / 1; border-radius: var(--r-sm); background: var(--wash-1); box-shadow: inset 0 0 0 1px var(--wash-2); image-rendering: pixelated; }
-.field .cap { font-size: 0.84rem; color: var(--ink-2); }
-.field .cap b { color: var(--ink); }
 
 /* ------------------------------------------------------------------ widgets */
 .widget-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 18px; align-items: center; }
@@ -794,7 +862,6 @@ html.at-end { background-color: #060A09; }
 @media (max-width: 600px) {
   body { font-size: 1.05rem; }
   .bignums { grid-template-columns: minmax(0, 1fr); }
-  .fields { grid-template-columns: minmax(0, 1fr); }
   .dial-row { gap: 4px; }
 }
 
@@ -804,13 +871,13 @@ html.at-end { background-color: #060A09; }
    tips in app.js, and the outlined mark is the one the open tip describes. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 a, button, label, summary, .chip, .btn, .map-r, #labSlices, #labRibbon, svg.chart { touch-action: manipulation; }
-canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r, .seg button, .toc-btn, .toc-list a, .wordmark, .tag { -webkit-tap-highlight-color: transparent; }
+canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r, .toc-btn, .toc-list a, .wordmark, .tag { -webkit-tap-highlight-color: transparent; }
 .chart .is-tapped { stroke: var(--ink) !important; stroke-width: 2.5px !important; }
 @media (hover: hover) { .touch-only { display: none; } }
 @media (hover: none) {
   .mouse-only { display: none; }
-  .btn, .chip, .seg button, .toc-btn { transition: transform .1s ease, background-color var(--t-1), color var(--t-1), box-shadow var(--t-1); }
-  .btn:active, .chip:active, .seg button:active, .toc-btn:active { transform: scale(0.97); }
+  .btn, .chip, .toc-btn { transition: transform .1s ease, background-color var(--t-1), color var(--t-1), box-shadow var(--t-1); }
+  .btn:active, .chip:active:active, .toc-btn:active { transform: scale(0.97); }
   .map-r:active { background: rgba(0, 183, 150, 0.14); }
   .tip { font-size: 0.86rem; }
 }
@@ -872,18 +939,18 @@ canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r, .seg button, .toc
 <main id="top">
 <noscript><p class="noscript-note gutter">The interactive figures on this page need JavaScript. Every sentence and number is readable without it, and the paper is linked from the top bar.</p></noscript>
 <!-- ================================================================== hero -->
-<!-- The opening: a field of 32,768 tokens on the dark stage, and the reader is the query. Light shows
-     what each position encoding treats as near the query: tokens near in memory for packed RoPE
-     (coral), tokens near in the sample for PACK3D (teal), which also sees every block through its
-     summary. Drawn by initHero in app.js. -->
+<!-- The opening: to store a 3D field you draw one path through it. One glowing path joins memory
+     position i to i + 1 through an 8 x 8 x 8 field of tokens, and morphs from one storage order to the
+     next while the volume turns. Drawn by initPaths in app.js. -->
 <section class="hero" id="hero">
-  <canvas class="hero-canvas" id="heroCanvas" role="img" aria-label="A cube of 32,768 tokens on a dark stage, with a bright query point moving through it. In teal, PACK3D lights the tokens near the query in space, and faintly the summary of every block. In coral, packed RoPE lights the tokens near the query in memory, which follow the storage order through the cube."></canvas>
+  <canvas class="hero-canvas" id="heroCanvas" role="img" aria-label="A cube of 512 tokens on a dark stage, with one glowing path through them that joins each memory position to the next. The path changes with the storage order: raster, Morton, Hilbert, blocks, and a repack that moves whole layers. The tokens stay where they are."></canvas>
   <div class="hero-in gutter">
     <div class="wide hero-head">
       <p class="eyebrow keep-case">NeurIPS 2026 · Sydney, Australia</p>
       <h1 id="title">Geometry Matters <span class="tail">in Packed 3D Attention</span></h1>
     </div>
     <div class="wide hero-byline">
+      <p class="hero-lede">To store a 3D field, you draw one path through it. Every storage order is a different path through the same tokens. <strong>PACK3D</strong> reads where a token is, never where the path puts it.</p>
       <div class="meta">
         <span><b>Amil Khan</b></span><span><b>Anantajit Subrahmanya</b></span><span><b>B.S. Manjunath</b></span>
         <span class="affil">Department of Electrical &amp; Computer Engineering<br>University of California, Santa Barbara</span>
@@ -895,34 +962,45 @@ canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r, .seg button, .toc
     </div>
     <div class="hero-field" id="heroField" aria-hidden="true"></div>
     <div class="wide hero-foot">
-      <div class="hero-bar">
-        <p class="hero-hint"><i class="qdot"></i><span class="mouse-only">You are the query. Move through the field.</span><span class="touch-only">You are the query. Tap the field to move it.</span></p>
-        <p class="hero-read" id="heroRead"></p>
-      </div>
-      <div class="hero-controls">
-        <div class="seg" id="heroModes" role="group" aria-label="Which position encoding the light shows">
-          <button type="button" data-mode="0" aria-pressed="false"><i class="dot coral"></i><b>Packed RoPE</b><span>near in memory</span></button>
-          <button type="button" data-mode="1" aria-pressed="true"><i class="dot teal"></i><b>PACK3D</b><span>near in the sample</span></button>
-        </div>
-        <div class="chips" id="heroOrders" role="group" aria-label="Storage order">
-          <button class="chip" data-order="raster" aria-pressed="true">Raster</button>
-          <button class="chip" data-order="morton" aria-pressed="false">Morton</button>
-          <button class="chip" data-order="blocks" aria-pressed="false">Blocks</button>
-          <button class="chip" data-order="repack" aria-pressed="false">Repacked</button>
-        </div>
+      <p class="hero-cap"><b id="heroOrder">Raster order</b><span class="hero-sub"><span class="sep-dot"> · </span>one line from each memory position to the next · <span class="mouse-only">drag to turn the volume</span><span class="touch-only">swipe sideways to turn it</span></span></p>
+      <div class="chips" id="heroOrders" role="group" aria-label="Storage order">
+        <button class="chip" type="button" data-order="raster" aria-pressed="true">Raster</button>
+        <button class="chip" type="button" data-order="morton" aria-pressed="false">Morton</button>
+        <button class="chip" type="button" data-order="hilbert" aria-pressed="false">Hilbert</button>
+        <button class="chip" type="button" data-order="blocks" aria-pressed="false">Blocks</button>
+        <button class="chip" type="button" data-order="repack" aria-pressed="false">Repacked</button>
       </div>
     </div>
   </div>
-  <span class="hero-q" id="heroQ" aria-hidden="true">q</span>
 </section>
 
-<!-- the paper's sheet begins: the words the opening leaves out -->
-<section class="standfirst gutter">
-  <div class="col">
-    <p class="lede">Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. <strong>PACK3D</strong> attends by the coordinate. A model that attends by memory position can learn the storage order instead of the object, and accuracy on the training layout cannot tell you which one it learned.</p>
-    <div class="cta">
-      <a class="btn ghost" href="#test">Jump to the result</a>
-      <a class="btn ghost" href="#cite">Cite</a>
+<!-- the paper's sheet begins on its idea, drawn with the title: every letter is a token with a place on
+     the page and a place in memory. Drawn by initReadings in app.js. -->
+<section class="standfirst gutter" id="readings">
+  <div class="wide readings">
+    <div class="rd-fig" id="rdFig">
+      <p class="eyebrow">Even this title is a packed sequence</p>
+      <p class="rd-big" id="rdBig" aria-hidden="true"><span class="rd-row">GEOMETRY</span><span class="rd-row">MATTERS</span></p>
+      <div class="rd-mem" id="rdMem" aria-hidden="true"><span class="rd-mem-lab"><span class="dot lav"></span><span>Memory, in <span id="rdOrderName">raster order</span></span></span></div>
+      <canvas class="rd-canvas" id="rdCanvas" aria-hidden="true"></canvas>
+    </div>
+    <div class="rd-side">
+      <p class="lede">Packing a 3D field into a token sequence gives every token two indices: a coordinate in the sample and a position in memory. <strong>PACK3D</strong> attends by the coordinate. A model that attends by memory position can learn the storage order instead of the object, and accuracy on the training layout cannot tell you which one it learned.</p>
+      <div class="rd-read" aria-live="polite">
+        <p><span class="rd-who"><span class="dot teal"></span>PACK3D reads by coordinate</span><span class="rd-s">GEOMETRY MATTERS</span></p>
+        <p><span class="rd-who"><span class="dot coral"></span>Packed RoPE reads by memory position</span><span class="rd-s" id="rdSeq">GEOMETRYMATTERS</span></p>
+      </div>
+      <div class="chips" id="rdOrders" role="group" aria-label="Storage order for the title">
+        <button class="chip" type="button" data-order="raster" aria-pressed="true">Raster</button>
+        <button class="chip" type="button" data-order="morton" aria-pressed="false">Morton</button>
+        <button class="chip" type="button" data-order="blocks" aria-pressed="false">Blocks</button>
+        <button class="chip" type="button" data-order="repack" aria-pressed="false">Repacked</button>
+      </div>
+      <p class="rd-note" id="rdNote"><span class="mouse-only">Point at</span><span class="touch-only">Tap</span> a letter to read its two indices.</p>
+      <div class="cta">
+        <a class="btn ghost" href="#test">Jump to the result</a>
+        <a class="btn ghost" href="#cite">Cite</a>
+      </div>
     </div>
   </div>
 </section>
@@ -1155,15 +1233,37 @@ canvas, svg.chart, .tour-view, .tour-map, .btn, .chip, .map-r, .seg button, .toc
 
   <div class="col prose" style="margin-top:40px">
     <h3>How many predictions moved</h3>
-    <p>Aligned hard predictions change at 0.0069% of positions for PACK3D, consistent with floating-point reduction order, and at 1.23% for packed RoPE. Each square below holds the 262,144 token positions of one crop.</p>
+    <p>Aligned hard predictions change at 0.0069% of positions for PACK3D, consistent with floating-point reduction order, and at 1.23% for packed RoPE. Below is one crop’s worth of positions, 64 × 64 × 64, under each model. Every spark is a prediction the repack changed.</p>
   </div>
-  <div class="wide bench">
-    <div class="fields">
-      <div class="field"><canvas id="fieldAx" width="512" height="512" role="img" aria-label="262,144 positions with about 18 lit, each circled"></canvas><p class="cap"><span class="dot teal"></span> <b>PACK3D: 0.0069%</b> of positions, about 18 per crop, each circled so it can be seen</p></div>
-      <div class="field"><canvas id="fieldPk" width="512" height="512" role="img" aria-label="262,144 positions with about 3,215 lit"></canvas><p class="cap"><span class="dot coral"></span> <b>Packed RoPE: 1.23%</b> of positions, about 3,215 per crop</p></div>
+  <!-- the sheet opens onto the stage for one figure drawn in light. Drawn by initRepackStage in app.js. -->
+  <div class="stage-window" id="repackStage">
+    <canvas class="sw-canvas" id="swCanvas" role="img" aria-label="Two copies of one cell under the same repack, with the predictions it changed lit up."></canvas>
+    <div class="sw-in">
+      <div class="sw-head">
+        <p class="eyebrow">One crop, two models, one repack</p>
+        <p class="sw-title">Same cell. Same weights. <span class="nw">A new memory order.</span></p>
+      </div>
+      <div class="sw-cells" aria-hidden="true"><div id="swA"></div><div id="swB"></div></div>
+      <div class="sw-under">
+        <div class="sw-col">
+          <p class="sw-who"><span class="dot teal"></span>PACK3D <small>attends by coordinate</small></p>
+          <div class="sw-strip"><canvas id="swStripA" aria-hidden="true"></canvas></div>
+          <p class="sw-n"><span class="sw-big sw-teal" id="swNA">0</span><span class="sw-lab">predictions changed, <span id="swRA">0.0069%</span> of positions</span></p>
+        </div>
+        <div class="sw-col">
+          <p class="sw-who"><span class="dot coral"></span>Packed RoPE <small>attends by memory position</small></p>
+          <div class="sw-strip"><canvas id="swStripB" aria-hidden="true"></canvas></div>
+          <p class="sw-n"><span class="sw-big sw-coral" id="swNB">0</span><span class="sw-lab">predictions changed, <span id="swRB">1.23%</span> of positions</span></p>
+        </div>
+      </div>
+      <div class="sw-foot">
+        <button class="btn" id="swGo" type="button">Repack the memory</button>
+        <p class="sw-state" id="swState"><i></i><span id="swStateT">Training layout: raster order</span></p>
+      </div>
     </div>
-    <p class="bench-foot">Counts are to scale: the mean rate over six seeds times 262,144 positions, one pixel each. Where the changed positions fall inside a crop is not shown here; the lit pixels are placed at random.</p>
+    <p class="sw-fallback">This figure needs WebGL. Under the repack, about 18 of 262,144 predictions change for PACK3D and about 3,215 for packed RoPE.</p>
   </div>
+  <p class="col bench-foot sw-foot-note">Counts are to scale: the mean rate over six seeds times 262,144 positions. The cell is an illustration. The paper does not map where in a crop the changes fall, so here they sit on the cell’s boundaries, where a segmentation is least sure. The strip under each cell is its memory, sixteen groups moved whole.</p>
 
   <div class="col" style="margin-top:56px">
     <p class="pull">Two models with comparable accuracy on their training layout respond differently when <span class="hl">only the storage order</span> changes.</p>
