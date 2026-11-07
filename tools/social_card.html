@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PACK3D link-preview card</title>
+<!--
+  The link-preview card, website/social.png (1200 x 630). The word is the website's closing word,
+  drawn as initEnd in website/app.js draws it: one cube per token, colored by its memory position under
+  raster order, fully built, on the dark stage with the floor reflection and the lavender lamp.
+
+  Remake it from the repository root:
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars \
+      --allow-file-access-from-files --force-device-scale-factor=2 --window-size=1200,630 \
+      --virtual-time-budget=3000 --user-data-dir=/tmp/pack3d-card --screenshot=/tmp/pack3d-card.png \
+      "file://$PWD/tools/social_card.html"
+    python3 -c "from PIL import Image; Image.open('/tmp/pack3d-card.png').convert('RGB').resize((1200, 630), Image.LANCZOS).save('website/social.png', optimize=True)"
+
+  Then bump the ?v= on the og:image and twitter:image URLs in website/index.html, so that sites which
+  cached the old card fetch the new one.
+-->
+<style>
+@font-face { font-family: "Inter"; src: url(../website/fonts/inter-latin-standard-normal.woff2) format("woff2"); font-weight: 100 900; }
+html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #060A09; }
+.card {
+  position: relative; width: 1200px; height: 630px; overflow: hidden; color: #EEF3F1;
+  font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; font-optical-sizing: auto;
+}
+canvas { position: absolute; inset: 0; width: 1200px; height: 630px; }
+.head { position: absolute; left: 72px; right: 72px; top: 50px; z-index: 1; }
+.eyebrow { margin: 0; font-weight: 600; font-size: 21px; letter-spacing: 0.02em; color: #5FE0C3; }
+h1 { margin: 12px 0 0; font-weight: 360; font-size: 56px; line-height: 1.04; letter-spacing: -0.032em; }
+h1 .hl { color: #5FE0C3; }
+.by { margin: 14px 0 0; font-size: 20px; font-weight: 450; color: #B4BEBA; letter-spacing: -0.004em; }
+.by b { color: #EEF3F1; font-weight: 550; }
+</style>
+</head>
+<body>
+<div class="card">
+  <canvas id="word"></canvas>
+  <div class="head">
+    <p class="eyebrow">NeurIPS 2026 · Sydney, Australia</p>
+    <h1><span class="hl">Geometry</span> Matters in Packed 3D Attention</h1>
+    <p class="by"><b>Amil Khan</b> · <b>Anantajit Subrahmanya</b> · <b>B.S. Manjunath</b> · UC Santa Barbara</p>
+  </div>
+</div>
+<script>
+// color in OKLab, as in website/app.js
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const hex2rgb = (h) => [0, 2, 4].map((i) => parseInt(h.replace('#', '').slice(i, i + 2), 16) / 255);
+const toLin = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const toGam = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+function rgb2lab(rgb) {
+  const [r, g, b] = rgb.map(toLin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+          1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+          0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s];
+}
+function lab2rgb([L, a, b]) {
+  const l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+  const m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+  const s = Math.pow(L - 0.0894841775 * a - 1.291485548 * b, 3);
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+          -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s].map((c) => clamp(toGam(clamp(c, 0, 1)), 0, 1));
+}
+const lab = (hex) => rgb2lab(hex2rgb(hex));
+const mixLab = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const css = (v) => { const c = lab2rgb(v); return `rgb(${c.map((x) => Math.round(x * 255)).join(',')})`; };
+function ramp(hexes) {
+  const L = hexes.map(lab);
+  return (t) => { t = clamp(t, 0, 1); const x = t * (L.length - 1), i = Math.min(L.length - 2, Math.floor(x)); return mixLab(L[i], L[i + 1], x - i); };
+}
+
+// the word, its tokens and the camera, as in initEnd
+const GLYPH = {
+  P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
+  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+  3: ['####.', '....#', '....#', '.###.', '....#', '....#', '####.'],
+  D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+};
+const GW = 5, GH = 7, Y = 3;
+const AZ = 18 * Math.PI / 180, CA = Math.cos(AZ), SA = Math.sin(AZ), EL = 0.3, ZS = 1, DV = [SA, CA, EL / ZS];
+const rampF = ramp(['#3B2D8F', '#6047BC', '#8D6DD8', '#C0ACF0', '#F5F1FD']);
+const BLACK = lab('#000000'), WHITE = lab('#FFFFFF'), EDGE = '#060A09';
+const X = 6 * (GW + 1) - 1, Z = GH, T = [];
+[...'PACK3D'].forEach((ch, ci) => GLYPH[ch].forEach((line, gy) => {
+  for (let gx = 0; gx < GW; gx++) if (line[gx] === '#') for (let y = 0; y < Y; y++) T.push({ x: ci * (GW + 1) + gx, y, z: Z - 1 - gy });
+}));
+const n = T.length;
+const order = T.map((t, j) => [(t.z * Y + t.y) * X + t.x, j]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);  // raster
+const mem = new Int32Array(n); order.forEach((j, i) => { mem[j] = i; });
+const shades = T.map((t, j) => { const b = rampF(mem[j] / (n - 1)); return [mixLab(b, WHITE, 0.28), b, mixLab(b, BLACK, 0.38)].map(css); });
+const depth = (t, z) => t.x * DV[0] + t.y * DV[1] + z * DV[2];
+const idx = T.map((t, j) => j);
+const farFirst = idx.slice().sort((a, b) => depth(T[a], T[a].z) - depth(T[b], T[b].z));
+const mirFirst = idx.slice().sort((a, b) => depth(T[a], -T[a].z - 1) - depth(T[b], -T[b].z - 1));
+
+// fit the word into its box on the card
+const W = 1200, H = 630, BOX = { x: 60, y: 234, w: 1080, h: 336 };
+let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+for (const t of T) for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++) {
+  const u = (t.x + a) * CA - (t.y + b) * SA, v = EL * ((t.x + a) * SA + (t.y + b) * CA);
+  x0 = Math.min(x0, u); x1 = Math.max(x1, u); y0 = Math.min(y0, v - ZS * (t.z + 1)); y1 = Math.max(y1, v - ZS * t.z);
+}
+const k = Math.min(BOX.w / (x1 - x0), BOX.h / (y1 - y0));
+const ox = BOX.x + (BOX.w - (x1 - x0) * k) / 2 - x0 * k, oy = BOX.y + (BOX.h - (y1 - y0) * k) / 2 - y0 * k;
+const pt = (x, y, z) => [ox + k * (x * CA - y * SA), oy + k * (EL * (x * SA + y * CA) - ZS * z)];
+
+const canvas = document.getElementById('word'), dpr = window.devicePixelRatio || 1;
+canvas.width = W * dpr; canvas.height = H * dpr;
+const ctx = canvas.getContext('2d');
+ctx.scale(dpr, dpr);
+ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(0.6, k * 0.06); ctx.strokeStyle = EDGE;
+function cube(j, z, alpha) {
+  const { x, y } = T[j], s = shades[j];
+  const q = [
+    [pt(x, y, z + 1), pt(x + 1, y, z + 1), pt(x + 1, y + 1, z + 1), pt(x, y + 1, z + 1)],
+    [pt(x, y + 1, z + 1), pt(x + 1, y + 1, z + 1), pt(x + 1, y + 1, z), pt(x, y + 1, z)],
+    [pt(x + 1, y, z + 1), pt(x + 1, y + 1, z + 1), pt(x + 1, y + 1, z), pt(x + 1, y, z)],
+  ];
+  ctx.globalAlpha = alpha;
+  q.forEach((p, f) => {
+    ctx.beginPath(); ctx.moveTo(...p[0]); ctx.lineTo(...p[1]); ctx.lineTo(...p[2]); ctx.lineTo(...p[3]); ctx.closePath();
+    ctx.fillStyle = s[f]; ctx.fill(); ctx.stroke();
+  });
+}
+// the reflection in the stage floor, faded at right angles to the floor's front edge
+for (const j of mirFirst) cube(j, -T[j].z - 1, 0.24);
+ctx.globalAlpha = 1;
+const f = pt(X / 2, Y, 0), ul = Math.hypot(EL * SA, CA), L = ZS * GH * 0.45 * k;
+const fade = ctx.createLinearGradient(f[0], f[1], f[0] - (EL * SA / ul) * L, f[1] + (CA / ul) * L);
+fade.addColorStop(0, 'rgba(0,0,0,0.3)'); fade.addColorStop(0.5, 'rgba(0,0,0,0.82)'); fade.addColorStop(1, 'rgba(0,0,0,1)');
+ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = fade; ctx.fillRect(0, 0, W, H);
+// the lamp, behind everything: a low lavender light under the word
+ctx.globalCompositeOperation = 'destination-over';
+const c = pt(X / 2, Y / 2, Z * 0.42);
+ctx.save(); ctx.translate(c[0], c[1]); ctx.scale(1, 0.46);
+const lamp = ctx.createRadialGradient(0, 0, 0, 0, 0, 640);
+lamp.addColorStop(0, 'rgba(128,98,220,0.30)'); lamp.addColorStop(0.55, 'rgba(128,98,220,0.09)'); lamp.addColorStop(1, 'rgba(128,98,220,0)');
+ctx.fillStyle = lamp; ctx.fillRect(-W, -W, 2 * W, 2 * W);
+ctx.restore();
+ctx.globalCompositeOperation = 'source-over';
+// the word
+for (const j of farFirst) cube(j, T[j].z, 1);
+ctx.globalAlpha = 1;
+document.body.dataset.ready = '1';
+</script>
+</body>
+</html>

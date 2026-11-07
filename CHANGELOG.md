@@ -15,6 +15,8 @@ All notable changes to this project are documented here. The format follows
   contents on hover, a click, a tap or the keyboard. Buttons, option trays, figure sheets, stats,
   cards and callouts follow one design system, written up in
   [docs/design-system.md](docs/design-system.md).
+- The website's link-preview card shows the closing word, PACK3D built from cubes on the dark stage,
+  under the paper's title. [tools/social_card.html](tools/social_card.html) draws it.
 
 ### Fixed
 

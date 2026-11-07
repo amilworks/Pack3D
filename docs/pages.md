@@ -37,7 +37,7 @@ and the checkout does not keep credentials. The workflow deploys only from the d
 | `figure1.svg` | Figure 1 of the paper. |
 | `d3.min.js` | d3 7.8.5, for the charts. Its license is in `d3-LICENSE.txt`. |
 | `fonts/` | Inter and DM Mono, with their licenses. |
-| `social.png`, `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` | The link-preview card and the icons. |
+| `social.png`, `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` | The link-preview card and the icons. [tools/social_card.html](../tools/social_card.html) draws the card and says how to remake it. |
 | `robots.txt`, `sitemap.xml` | For search engines. |
 
 Every number on the page was traced to the camera-ready paper when the site was built. If you edit a
