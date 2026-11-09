@@ -511,9 +511,9 @@ and ceiling, app.js reads them from it (`heightRange`). On a phone held sideways
 result and latency charts share the screen with the control above them, and the Predictions changed
 chart and the pooling figure keep under the bar, down to their tightest legible drawing (the first
 closes up its rows, from 26px to as little as 19, and its heads, from 30 to 24; the second's dials
-shrink to a radius of 40 at least). A chart draws again when its width changes, never when only the
-height does, so a phone's toolbar showing or hiding redraws nothing; Safari's Page Zoom, which tells
-only the visual viewport, redraws them too.
+shrink to a radius of 40 at least). A chart draws again when the layout's width changes, never when
+only the height does or a pinch zooms the view, so a phone's toolbar showing or hiding redraws
+nothing; Safari's Page Zoom, which tells only the visual viewport, redraws them too.
 
 A chart's marks take the series' mark colors. A baseline reads apart by shape too: the U-Net is a ring,
 window attention a dashed line, and PACK3D the heaviest line. A mark explains itself through

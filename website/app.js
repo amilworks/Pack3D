@@ -1465,11 +1465,13 @@ function onResize(fn) {
   }
   redrawers.push(fn);
 }
-// redraw on a width change only; Safari's Page Zoom changes the layout width and tells only the visual viewport
-let rzT = 0, rzW = window.innerWidth;
+// redraw when the layout's width changes, and only then: Safari's Page Zoom changes it and tells only the visual
+// viewport, while a pinch changes Safari's innerWidth but not the layout, so the width is read from the document
+let rzT = 0, rzW = document.documentElement.clientWidth;
 const onWidth = () => {
-  if (window.innerWidth === rzW) return;
-  rzW = window.innerWidth;
+  const w = document.documentElement.clientWidth;
+  if (w === rzW) return;
+  rzW = w;
   clearTimeout(rzT); rzT = setTimeout(() => redrawers.forEach((f) => f()), 120);
 };
 window.addEventListener('resize', onWidth);
@@ -2981,7 +2983,7 @@ function initNav() {
   let raf = 0, scope = '', edge = 0, resized = true, barW = 0;
   const update = () => {
     raf = 0;
-    const h = document.documentElement, y = window.scrollY, vw = window.innerWidth, vh = window.innerHeight, max = h.scrollHeight - h.clientHeight;
+    const h = document.documentElement, y = window.scrollY, vw = h.clientWidth, vh = window.innerHeight, max = h.scrollHeight - h.clientHeight;
     if (resized) edge = (parseFloat(getComputedStyle(topbar).top) || 0) + topbar.offsetHeight;
     const mb = main.getBoundingClientRect().bottom;
     const onStage = !!sheet && sheet.getBoundingClientRect().top > edge;   // the opening is under the bar
@@ -3013,7 +3015,7 @@ function initNav() {
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => { resized = true; onScroll(); }, { passive: true });
   // Safari's Page Zoom resizes only the visual viewport; a pinch or a toolbar leaves the layout's width as it was
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => { if (window.innerWidth !== barW) { resized = true; onScroll(); } }, { passive: true });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => { if (document.documentElement.clientWidth !== barW) { resized = true; onScroll(); } }, { passive: true });
   if (document.fonts) document.fonts.ready.then(() => { fits = null; resized = true; onScroll(); });   // names measured in Inter
   // larger text at the same width: the slash, which only the text's size resizes, hears it
   const sep = $('.crumb-sep');

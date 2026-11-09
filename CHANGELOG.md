@@ -146,8 +146,8 @@ Every change below is to the project website.
   contents' rows and the footer's links are finger-sized.
 - Nothing moves under the reader as the page loads: the opening, the lab and every chart hold their
   final size before the scripts run, the opening's caption no longer shifts when the web font arrives,
-  and the charts no longer redraw when a phone's toolbar shows or hides, but do redraw at the right
-  width after Safari's Page Zoom.
+  and the charts no longer redraw when a phone's toolbar shows or hides or the page is pinched, but do
+  redraw at the right width after Safari's Page Zoom.
 - Scrolling, tapping or pinching over the opening or the repack cells no longer stops the orders from
   cycling or turns the cells, and pinch-zoom works over them and the closing word. A right-click on the
   opening no longer starts a drag that can get stuck, and a chart's tip no longer sticks when the mouse
