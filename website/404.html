@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Page not found · PACK3D</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#060A09">
+<!-- GitHub Pages serves this page for any missing address, at any depth, so every URL here is absolute -->
+<link rel="icon" href="https://amilworks.github.io/Pack3D/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="https://amilworks.github.io/Pack3D/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="https://amilworks.github.io/Pack3D/apple-touch-icon.png">
+<style>@font-face{font-family:"Inter";src:url(https://amilworks.github.io/Pack3D/fonts/inter-latin-standard-normal.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
+<style>
+/* A missing page shows only the stage the paper's page lies on: dark in both themes, with the stage's tokens
+   (docs/design-system.md, "The dark stage"), the bar's wordmark, one line and the way back. */
+:root {
+  --bg: #060A09; --surface: #151C1A; --ink: #EEF3F1; --ink-2: #B4BEBA; --ink-3: #8C9A95;
+  --teal: #19AC8B; --mint-ink: #5FE0C3; --tint-teal: #1F5F51; --lamp: #8062DC;
+  --wash-2: color-mix(in oklab, var(--ink) 7%, transparent);
+  --wash-3: color-mix(in oklab, var(--ink) 10%, transparent);
+  --wash-4: color-mix(in oklab, var(--ink) 14%, transparent);
+  --teal-1: color-mix(in oklab, var(--teal) 15%, transparent);
+  --teal-2: color-mix(in oklab, var(--teal) 22%, transparent);
+  --teal-3: color-mix(in oklab, var(--teal) 28%, transparent);
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-label: 0.75rem;
+  --fs-control: 0.9rem;
+  --fs-title: 1.02rem;
+  --ls-control: -0.006em;
+  --wide: 76rem;
+  --gutter: clamp(16px, 3.2vw - 8px, 32px);
+  --bar-h: 52px;
+  --s-3: 14px;
+  --r-sm: 10px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-1: 0.15s;
+  color-scheme: dark;
+}
+@media (orientation: landscape) and (max-height: 500px) { :root { --bar-h: 44px; } }
+* { box-sizing: border-box; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100svh; display: flex; flex-direction: column;
+  color: var(--ink); font-family: var(--font); font-size: 1.05rem; line-height: 1.62; letter-spacing: -0.004em;
+  -webkit-font-smoothing: antialiased;
+  /* the stage's one lamp, as behind the opening */
+  background: radial-gradient(52% 62% at 69% 47%, color-mix(in srgb, var(--lamp) 17%, transparent), transparent 72%), var(--bg);
+}
+:focus-visible { outline: 2px solid var(--mint-ink); outline-offset: 3px; }
+::selection { background: var(--tint-teal); color: var(--ink); }
+/* the content sits on the page's grid: the wide column, with the gutters outside it */
+.bar, .lost {
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px), (100% - var(--wide)) / 2);
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px), (100% - var(--wide)) / 2);
+}
+.bar { display: flex; align-items: center; height: var(--bar-h); margin-top: env(safe-area-inset-top, 0px); }
+.wordmark {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px; margin-left: -8px; border-radius: var(--r-sm);
+  color: var(--ink); text-decoration: none; white-space: nowrap;
+  font-weight: 600; font-size: var(--fs-title); line-height: 1; letter-spacing: -0.012em;
+  transition: background-color var(--t-1) var(--ease);
+}
+.wordmark svg { width: 18px; height: 18px; }
+.lost { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 20px; padding-block: clamp(40px, 9vh, 120px); }
+.eyebrow {
+  display: flex; align-items: center; gap: 10px; margin: 0; color: var(--mint-ink);
+  font-weight: 600; font-size: var(--fs-label); letter-spacing: 0.12em; text-transform: uppercase;
+}
+.eyebrow::before { content: ""; width: 22px; height: 1.5px; background: currentColor; flex: none; }
+h1 {
+  margin: 0; max-width: 15ch; font-weight: 320; font-size: clamp(2.5rem, 6.2vw, 5.4rem); line-height: 1.02;
+  letter-spacing: -0.034em; text-wrap: balance;
+}
+p { margin: 0; }
+.say { max-width: 40ch; color: var(--ink-2); font-size: clamp(1.02rem, 1.2vw, 1.14rem); line-height: 1.52; }
+.cta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+/* a label wraps, balanced and centered, only when its pill is wider than the column (large text on a narrow phone) */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; max-width: 100%; text-align: center; text-wrap: balance; text-decoration: none;
+  font: 500 var(--fs-control)/1.2 var(--font); letter-spacing: var(--ls-control); padding: 10px 16px; border-radius: 999px;
+  color: var(--mint-ink); background: var(--teal-1); -webkit-user-select: none; user-select: none;
+  transition: background-color var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.btn.ghost { color: var(--ink); background: var(--wash-2); }
+.btn.plain { color: var(--ink-2); background: transparent; }
+@media (hover: hover) {
+  .wordmark:hover, .btn.plain:hover { color: var(--ink); background: var(--wash-2); }
+  .btn:hover { background: var(--teal-2); }
+  .btn.ghost:hover { background: var(--wash-3); }
+}
+.btn:active { background: var(--teal-3); }
+.btn.ghost:active, .btn.plain:active, .wordmark:active { background: var(--wash-4); }
+/* a finger: no grey flash on a tap, a press to 97% instead of a hover, and 44px to hit without anything drawn larger */
+a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+@media (hover: none) {
+  .btn, .wordmark { transition: transform var(--t-1) var(--ease), background-color var(--t-1) var(--ease), color var(--t-1) var(--ease); }
+  .btn:active, .wordmark:active { transform: scale(0.97); }
+}
+@media (any-pointer: coarse) {
+  .btn, .wordmark { position: relative; }
+  .btn::after { content: ""; position: absolute; inset: -4px 0; }      /* 37px tall */
+  .wordmark::after { content: ""; position: absolute; inset: -5px 0; } /* 34px tall */
+}
+/* a phone on its side with its browser's bars showing (874 x 292): the title a step smaller and the spaces tighter,
+   so the way back is on the first screen */
+@media (orientation: landscape) and (max-height: 340px) {
+  .lost { padding-block: var(--s-3); gap: var(--s-3); }
+  h1 { font-size: min(clamp(2.5rem, 6.2vw, 5.4rem), 12svh); }
+}
+@media (forced-colors: active) {
+  .btn { border: 1px solid ButtonText; }
+  .eyebrow::before { forced-color-adjust: none; background: CanvasText; }   /* the dash is a line, like the words */
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="wordmark" href="https://amilworks.github.io/Pack3D/" aria-label="PACK3D, the paper's page">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 18 6v8.6L10 19 2 14.6V6z" fill="var(--teal)"/><path d="M10 1.5 18 6l-8 4.4L2 6z" fill="var(--mint-ink)" opacity=".55"/><path d="M10 10.4V19" stroke="var(--surface)" stroke-width="1.2"/></svg>
+    <span>PACK3D</span>
+  </a>
+</header>
+<main class="lost">
+  <p class="eyebrow">Page not found</p>
+  <h1>Nothing is stored at this address.</h1>
+  <p class="say">The paper's site is a single page. Go back to it, or read the paper itself.</p>
+  <div class="cta">
+    <a class="btn" href="https://amilworks.github.io/Pack3D/">Go to the paper's page</a>
+    <a class="btn ghost" href="https://arxiv.org/abs/2610.38694">Read the paper</a>
+    <a class="btn plain" href="https://github.com/amilworks/Pack3D">Get the code</a>
+  </div>
+</main>
+</body>
+</html>
