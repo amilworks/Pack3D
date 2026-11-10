@@ -10,9 +10,9 @@ Every change below is to the project website.
 
 ### Added
 
-- A logo: the word PACK3D built from black and white blocks, the shape of the closing word. It stands in
-  the top bar (one block where the bar is narrow), on the page for a missing address, in the favicon and
-  on the link-preview card. [tools/logo.py](tools/logo.py) makes it.
+- A logo: the closing word itself, PACK3D built from cubes colored by their memory positions. It stands
+  alone in the top bar (one cube where the bar is narrow), on the page for a missing address, in the
+  favicon and on the link-preview card. [tools/logo.py](tools/logo.py) makes it.
 - A Pause motion button on the opening, the title figure and the repack window. One press pauses every
   figure that moves on its own, the end included, and the site remembers the choice on the device.
   Turning the opening's sculpture or the repack cells by hand also pauses motion, so the view you chose
@@ -48,11 +48,19 @@ Every change below is to the project website.
   whose arrow keys, Home and End move the choice, announced as a radio group. The chosen option is
   ringed as well as raised, a mouse's press darkens a control as a finger's does, and a button whose
   label changes keeps its width.
-- The top bar is a breadcrumb, the wordmark and the chapter being read, named in full where there is
-  room, which opens the contents on hover, a click, a tap or the keyboard; the contents list "Take it
-  home" with the other chapters. The bar keeps one look over the whole page, and on phones the
-  browser's own bar takes the page's color. On a phone held sideways the bar is shorter, as iOS's own
-  is.
+- The top bar is a breadcrumb, the logo and the chapter being read, named in full where there is
+  room, which opens the contents on hover, a click, a tap or the keyboard. The bar keeps one look over
+  the whole page, and on phones the browser's own bar takes the page's color. On a phone held sideways
+  the bar is shorter, as iOS's own is.
+- The chapters are named for what they hold, in the contents, the top bar and the footer: How a
+  volume is stored, A silent failure, How PACK3D works, What a repack must keep, The repack test,
+  Medical scans, The global branch, Against a 3D U-Net, Speed and memory, and Limitations. They replace
+  names that made sense only after reading, such as Two indices and The blind spot.
+- The contents open under an "On this page" heading, in slightly smaller and lighter type, with each
+  chapter's number in a column of its own on the left, an icon in Figure 1's place, and the chapter
+  being read shaded and checked. Run the test, the abstract and BibTeX follow the chapters in a group
+  of their own, with icons, and on a phone the links to arXiv and GitHub close the list. The footer's
+  Read list takes the same short names.
 - The link-preview card shows the logo under the paper's title.
   [tools/social_card.html](tools/social_card.html) draws it.
 - The type follows one scale of sizes and weights: small labels share one size, captions, notes and
@@ -126,8 +134,10 @@ Every change below is to the project website.
   "Build it again" still take about three. It colors memory order with the opening's lavender ramp, it
   shares one screen with its memory and its order buttons, and a click or a tap picks a cube, from which
   the keyboard walks on as on any slider (Page Up and Page Down step ten).
-- The footer drops its colophon, and its lists, Read and Chapters, look and behave alike: plain links,
-  underlined on hover, with taller rows for a finger. The footer keeps two columns up to 1199px.
+- The footer drops its colophon, and its lists, Read and Chapters, look and behave like the contents:
+  rows spaced as the contents' rows are, which take a light wash under the pointer rather than an
+  underline, taller for a finger. Chapters lists the contents' names in one column. The footer keeps
+  two columns up to 1199px.
 - The site loads less and does less while you scroll. d3 is a partial build of half the size, made by a
   new script in [tools/d3](tools/d3/), and the italic font loads after the first screen. Figure 1's
   large drawing loads only once you stop on it, the repack window's cells are made in the background as
@@ -181,7 +191,7 @@ Every change below is to the project website.
   place in the page, such as #test, leaves a reader who has started scrolling where they are, and "Back
   to the top" goes all the way to the top.
 - Chapter names are no longer cut off in the breadcrumb: on small phones and with large text the
-  wordmark shows only its cube, and two long names have short forms for where they would not fit. The
+  logo shows only one cube, and three long names have short forms for where they would not fit. The
   names are measured to a fraction of a pixel, so Safari no longer cuts one by half a pixel, and they
   refit after Safari's Page Zoom and with large text; at very large sizes the Paper link moves into the
   contents. On wide screens the bar's content lines up with the page's column.

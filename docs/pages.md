@@ -41,7 +41,7 @@ and the checkout does not keep credentials. The workflow deploys only from the d
 | `figure1.min.svg` | Figure 1 as a vector, which the tour loads when the reader stops on the figure or zooms into it. |
 | `figure1.svg` | Figure 1 at full detail, which the page used before the copies above. The page no longer loads it; it stays so that existing links to it keep working. |
 | `fonts/` | Inter, upright and italic, and DM Mono in its regular weight, with their licenses. The page preloads the upright Inter; the italic loads once the page is up. |
-| `logo.svg` | The logo: the word PACK3D in black and white blocks. [tools/logo.py](../tools/logo.py) makes it, and the smaller logo and mark the page's bar carries inline. |
+| `logo.svg`, `logo-dark.svg` | The logo, the word PACK3D built from cubes in the closing word's colors, for light and for dark backgrounds. [tools/logo.py](../tools/logo.py) makes them, and the smaller logo and mark the page's bar carries inline. |
 | `social.png`, `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` | The link-preview card and the icons. [tools/logo.py](../tools/logo.py) makes `favicon.svg`, the logo's mark, and the two PNGs are drawn from it; [tools/social_card.html](../tools/social_card.html) draws the card and says how to remake it. |
 | `robots.txt`, `sitemap.xml` | For search engines. |
 

@@ -26,10 +26,10 @@ so its comments are section headers and short notes only (see [Performance](#per
    for information; the list is under [Lines](#lines).
 3. **Color is data.** Teal is PACK3D and the coordinate. Coral is packed RoPE and what a
    sequence-indexed model reads. Lavender is memory: the threads that tie the title's letters to
-   memory, and a lavender ramp for memory order in the opening, the repack window's strips and the end.
-   It is also the third model, separable PE. Orange and green are the query and the key. Warm grey is a
-   baseline. Everything else is ink, grey and white: the controls, the labels, the links, the focus
-   ring and where you are.
+   memory, and a lavender ramp for memory order in the opening, the repack window's strips and the end,
+   whose word is the logo. It is also the third model, separable PE. Orange and green are the query and
+   the key. Warm grey is a baseline. Everything else is ink, grey and white: the controls, the labels,
+   the links, the focus ring and where you are.
 4. **A choice is lifted and ringed; the current place is checked.** The chosen option in a tray is
    raised out of it and ringed in ink, and the current chapter in the contents carries a check.
    Nothing is shown as chosen by turning it black or white.
@@ -73,7 +73,7 @@ so its comments are section headers and short notes only (see [Performance](#per
 | `--surface` | `#FFFFFF` | `#171717` | Sheets and cards |
 | `--surface-2` | `#F9F9F9` | `#1B1B1B` | A fill inside a sheet: the faces of the rotary dials, the cells of the pooling figure |
 | `--ink`, `--ink-2`, `--ink-3` | `#111111`, `#464646`, `#666666` | `#EDEDED`, `#BDBDBD`, `#9A9A9A` | Text, secondary text, labels and captions. The ink is also the primary button, the focus ring, the current-chapter check, reading progress, a link's underline (at 35%) and the checkbox |
-| `--rule` | `#D9D9D9` | `#2E2E2E` | The hairline under the bar, a badge's outline, the colophon's dividers, the rule above a mean row; reference lines and dial faces in the figures |
+| `--rule` | `#D9D9D9` | `#2E2E2E` | The hairline under the bar, a badge's outline, the footer's dividers, the rule above a mean row; reference lines and dial faces in the figures |
 | `--grid` | `#E6E6E6` | `#242424` | Chart grids and table rules |
 | `--select` | `#D6D6D6` | `#3B3B3B` | Text selection |
 | `--teal` | `#00B796` | `#19AC8B` | PACK3D's fills: the arc on PACK3D's rotary dials |
@@ -102,11 +102,10 @@ for each theme (see [Figures on paper](#figures-on-paper)):
 
 | Token | Light | Dark | Use |
 | :--- | :--- | :--- | :--- |
-| `--mem-0` to `--mem-4` | `#C9BAF3`, `#9C84E6`, `#7356D6`, `#4B3AB0`, `#271D69` | `#4B3AB0`, `#7356D6`, `#9A7DE6`, `#C9B6F4`, `#F7F3FE` | Memory order, first position to last, mixed in OKLab between the stops: pale to deep on the light page, deep to bright on the dark one. The opening's path, the repack window's memory strips, the closing word's cubes and ribbon |
+| `--mem-0` to `--mem-4` | `#C9BAF3`, `#9C84E6`, `#7356D6`, `#4B3AB0`, `#271D69` | `#4B3AB0`, `#7356D6`, `#9A7DE6`, `#C9B6F4`, `#F7F3FE` | Memory order, first position to last, mixed in OKLab between the stops: pale to deep on the light page, deep to bright on the dark one. The opening's path, the repack window's memory strips, the closing word's cubes and ribbon, and the logo |
 | `--spark-a`, `--spark-b` | `#00957A`, `#E04F55` | `#5FE0C3`, `#FF7276` | The predictions a repack changes, PACK3D's and packed RoPE's |
 | `--halo` | the page at 92% | the page at 90% | Behind words laid over a figure: the opening's title, lede, names and caption |
 | `--ink-dark` | `#111111` | `#111111` | Words on a light mark in either theme: the rotary grid's *q* and *k* |
-| `--logo-front`, `--logo-top`, `--logo-side` | the ink, `#BDBDBD`, `#555555` | the ink, `#A6A6A6`, `#5E5E5E` | The logo's three greys, its fronts, tops and sides (see [Logo](#logo)) |
 
 app.js reads a token with `tok(name)`, from the root element, so a figure takes its colors from the
 stylesheet, and every figure repaints when the theme changes. The colors a figure keeps of its own are
@@ -123,7 +122,7 @@ works on any surface and in either theme.
 | :--- | :--- | :--- |
 | `--wash-1` | ink 4.5% | A group at rest: stats, readouts, code, choice cards, the title figure's reading box; hover on an option in a tray |
 | `--wash-2` | ink 7% | Trays, quiet buttons at rest, hover on a row or a plain button, an option pressed, the ring of a frame |
-| `--wash-3` | ink 10% | Hover on a quiet button, the chapter while the contents are open, the focused row in the contents |
+| `--wash-3` | ink 10% | Hover on a quiet button, the chapter while the contents are open, the focused row in the contents and in the footer's lists |
 | `--wash-4` | ink 14% | Pressed |
 
 ### Elevation
@@ -162,11 +161,11 @@ code (`--font-mono`). The sizes are tokens:
 | `--fs-label` | 0.75rem | Eyebrows, DM Mono data labels, index numbers, badges |
 | `--fs-meta` | 0.8rem | The quieter words in a control, figure labels and meta lines, dial captions, hint and readout lines, tips |
 | `--fs-code` | 0.82rem | Code |
-| `--fs-caption` | 0.84rem | The caption under a sheet, tables, a stat's change, the copy note, the venue line, the colophon's last line, a tip under a finger |
+| `--fs-caption` | 0.84rem | The caption under a sheet, tables, a stat's change, the copy note, the venue line, the footer's last line, a tip under a finger |
 | `--fs-control-sm` | 0.84rem | Options in a tray, small buttons, disclosures |
-| `--fs-small` | 0.9rem | A note beside a figure, card text, choice cards, a meter's label, the opening's byline and caption, the Figure 1 tour's step text, the repack window's state, and its model names at 640px and below, the closing word's caption, the colophon |
+| `--fs-small` | 0.9rem | A note beside a figure, card text, choice cards, a meter's label, the opening's byline and caption, the Figure 1 tour's step text, the repack window's state, and its model names at 640px and below, the closing word's caption, the footer |
 | `--fs-control` | 0.9rem | Buttons, the breadcrumb, menu rows, options in a large tray |
-| `--fs-title` | 1.02rem | Sheet, card, stat, callout and step titles, a readout's or a meter's value, the colophon's paper title |
+| `--fs-title` | 1.02rem | Sheet, card, stat, callout and step titles, a readout's or a meter's value, the footer's paper title |
 | `--fs-body` | 1.05rem | The reading column, the abstract; the repack window's title on a phone held sideways under Safari's bars, so it keeps to one line inside their insets |
 
 Display, lede and heading sizes stay as `clamp()` and `min()` values in their own rules. A few sizes
@@ -181,21 +180,22 @@ sideways (1.6rem), DM Mono inside a line of Inter (`.mono`, 0.9em), and a subscr
 | Display | Inter 320 to 380, a size of its own, line height 0.95 to 1.2, tight tracking (-0.022 to -0.034em) | The title (320, line height 1; its size follows a short screen's height, full from about 950px tall, and on a phone it keeps to three lines down to 320px wide), the two-readings title (320, line height 0.95, tracked open at 0.02em), the stage window's title and the closing line (340), the stage window's counts (360), stat values and pull quotes (380) |
 | Heading | Inter 480, 1.9 to 3.1rem, line height 1.08, tracking -0.024em | Chapter headings, `h2` |
 | Section heading | Inter 600, 1.32rem, line height 1.25, tracking -0.012em | Sections inside a chapter, `h3` |
-| Title | Inter 600, `--fs-title`, line height 1.3, tracking -0.012em, set by one rule in the shared parts | Sheet titles, card titles, stat names, callout titles, the tour's step titles, the stage window's model names (at `--fs-small` on a phone; their meta line keeps the 1.3), the colophon's paper title. At 1.3 a title that wraps still reads as one; at the body's 1.62 its lines come apart |
+| Title | Inter 600, `--fs-title`, line height 1.3, tracking -0.012em, set by one rule in the shared parts | Sheet titles, card titles, stat names, callout titles, the tour's step titles, the stage window's model names (at `--fs-small` on a phone; their meta line keeps the 1.3), the footer's paper title. At 1.3 a title that wraps still reads as one; at the body's 1.62 its lines come apart |
 | Body | Inter 400, `--fs-body`, line height 1.62, tracking -0.004em | The reading column |
 | Lede | Inter 400, 1.18 to 1.42rem, line height 1.5 | The first paragraph of a chapter; the opening's is 1.02 to 1.14rem at line height 1.52, in ink-2 |
 | Small | Inter 400, `--fs-small`, line height 1.5 | A note beside a figure (`.note`, in ink-2), card text, the Figure 1 tour's step text, `.small`; choice cards at line height 1.35, and the lists in the Limits cards at the body's 1.62 |
-| Control | Inter 500, `--fs-control`, line height 1.2 (menu rows 1.3), `--ls-control` (-0.006em) | Buttons, the breadcrumb, menu rows, options in a large tray |
+| Control | Inter 500, `--fs-control`, line height 1.2, `--ls-control` (-0.006em) | Buttons, the breadcrumb, options in a large tray |
+| Menu row | Inter 440, `--toc-font-size` (0.8375rem, normally 13.4px), line height 1.3, `--ls-control` | The contents' labels, using component-scoped size and weight tokens. Chapter numbers retain DM Mono 400 in the shared leading column |
 | Small control | Inter 500, `--fs-control-sm`, line height 1.2, `--ls-control` | Options in a tray, small buttons, disclosures |
-| Phone menu row | Inter 500, 1rem, line height 1.3 | The contents' rows at 560px and below: the one control set larger, for a finger |
+| Phone menu row | Inter 440, `--toc-font-size` (0.875rem, normally 14px), line height 1.3 | The contents' rows at 560px and below, at least 44px tall for a finger. Text scales with the reader's default size |
 | Meta | Inter 500, `--fs-meta`, ink-3 | Figure labels and meta lines, the quieter words in a control |
 | Caption | Inter 400, `--fs-caption`, line height 1.5, ink-3 | The caption under a sheet |
-| Data label | DM Mono 400, `--fs-label`, tracking 0.01em (one rule in the shared parts), ink-3 | Readout labels, chapter numbers in the contents and the colophon, the stage window's count labels, the end's memory label and its count, and the rotary grid's memory positions (`--fs-label` through `--u`); on a canvas, 12px |
-| Data line | DM Mono 400, `--fs-meta` | The hint under the title figure, the closing word's readout, the colophon's address and arXiv id |
+| Data label | DM Mono 400, `--fs-label`, tracking 0.01em (one rule in the shared parts), ink-3 | Readout labels, chapter numbers in the footer (the contents use `--fs-meta`), the stage window's count labels, the end's memory label and its count, and the rotary grid's memory positions (`--fs-label` through `--u`); on a canvas, 12px |
+| Data line | DM Mono 400, `--fs-meta` | The hint under the title figure, the closing word's readout, the footer's address and arXiv id |
 | Code | DM Mono 400, `--fs-code`, line height 1.7, ink-2 | Code blocks; a keyword takes the full ink |
 | Chart text | Inter 13px; 500 for labels, 600 for emphasis; values in tabular figures | Axis values and labels inside the charts |
 | Chart note | Inter 12px | Axis titles and notes inside a chart: tokens (log scale), chance, ← U-Net ahead, the structures' names, the pooling figure's legend |
-| Eyebrow | Inter 600, `--fs-label`, capitals, tracking 0.12em | Chapter and section labels, in ink-2; the colophon's headings, in ink-3 |
+| Eyebrow | Inter 600, `--fs-label`, capitals, tracking 0.12em | Chapter and section labels, in ink-2; the footer's headings, in ink-3 |
 | Venue line | Inter 600, `--fs-caption`, tracking 0.03em, in its own case (`.eyebrow.keep-case`) | "NeurIPS 2026 · Sydney, Australia" above the title, in ink-2 |
 
 Weights follow the role: display 320 to 380, headings 480, body 400, controls, meta and chart labels
@@ -237,7 +237,7 @@ title, a count to its label, the eyebrow's dash); fluid `clamp()` and `min()` sp
 keep two 44px bands apart under a finger (12px, and 14px in the lab; see [Components](#components)),
 which are the bands' arithmetic, not spacing; the 10px inset of the dividers in the contents, which
 lines up with the rows' padding; and two spaces far from any step, the 36px above the stage window and
-the colophon's 36px between columns. The scale reaches the page through the shared classes, never
+the footer's 36px between columns. The scale reaches the page through the shared classes, never
 through inline styles; the only inline styles in the page are the vertical alignments MathJax wrote
 into its equations.
 
@@ -355,7 +355,7 @@ again and Replay the repack are hidden.
 | Component | Class | Made of |
 | :--- | :--- | :--- |
 | Sheet | `.bench` | `--surface`, `--r-xl`, `--sheet-shadow`, 16 to 28px of padding. A head with a title and a meta line (`.bench-sub`); `.bench-name` stacks them when the head also holds a control. A caption below (`.bench-foot`). Two sheets side by side (`.split.pair`) end level, each caption under its chart and the numbers at the foot; `.split.mid` centers a chart and its numbers on each other. Two sheets stack at 900px and below, and on paper |
-| Sheet title | `h3.bench-title`, `h4.bench-title` | A heading set as a title: Inter 600 at `--fs-title`, at the title role's one line height and tracking, so it lends the sheet only its place in the outline. An `h4` where the sheet's section already uses `h3` subsections; the stage window's title is an `h4`, the colophon's headings are `h2`. The outline never skips a level |
+| Sheet title | `h3.bench-title`, `h4.bench-title` | A heading set as a title: Inter 600 at `--fs-title`, at the title role's one line height and tracking, so it lends the sheet only its place in the outline. An `h4` where the sheet's section already uses `h3` subsections; the stage window's title is an `h4`, the footer's headings are `h2`. The outline never skips a level |
 | Card on the page | `.claim` | `--surface`, `--r-lg`, `--sheet-shadow`, 18px 20px of padding; an `h3` title at `--fs-title`. A word longer than a card's line breaks rather than widen the card |
 | Stat | `.bignum` | `--wash-1`, `--r-md`. The name with its series dot, the value in display weight with tabular figures, the change in ink-3 |
 | Readout | `.readout` | `--wash-1`, `--r-sm`. A data label over a tabular value. On a phone the readouts form an even two-column grid, and a label that wraps keeps tight, balanced lines (line height 1.35) and may break anywhere; in the lab the first readout, and the fourth when no fifth shows, take a whole row |
@@ -369,7 +369,7 @@ again and Replay the repack are hidden.
 | Disclosure | `details.numbers` | A plain button at the small control size, line height 1.2, so it is as tall as a small button, with a chevron that turns a quarter as it opens. A chart sheet whose numbers are not already on it ends with one, Show the numbers, holding the chart's table; a hidden qualifier tells a screen reader which chart it opens |
 | Instruction | `.hint`, `.mouse-only`, `.touch-only` | An instruction for a control, set in the sentence or meta line it belongs to. `.mouse-only` shows only where a pointer can hover and `.touch-only` only where none can. Paper and the page without JavaScript hide all three, so each is a whole clause, and the text around it reads whole without it |
 | Breadcrumb | `.crumbs`, `.toc-btn` | The logo, then the chapter you are reading, which opens the contents. A mouse that rests on it for 0.11s opens them, and they close 0.26s after it leaves, so the way down to the menu keeps them open. A click, a tap or the keyboard opens them to stay, until a choice, a click elsewhere or Escape. The chapter's name arrives from the direction you scrolled, in full wherever it fits; its short form (`data-short`) takes its place only where the full name would be cut. Which names fit is measured once per bar width, from the text's fractional width (WebKit rounds `scrollWidth`), and again when the width, the text size or the fonts change, Safari's Page Zoom included, so a chapter change only writes the name. The logo gives way to its mark, one cube, below 375px, or where large text leaves the bar narrower than 19em of its own text; narrower than 15em, the bar's Code and Paper links give the name their room too, and the contents carry the paper and the code, as they do on a phone |
-| Contents | `.toc-menu`, `.toc-list` | A `--pop` sheet of `--r-lg` with 6px of padding, its rows starting under the chapter's name, no taller than the screen under the bar; rows of `--r-sm`; numbers in DM Mono; a check on the current chapter; hairline dividers. The focused row gets a `--wash-3` fill and a 2px ink ring inside its edge. While it is open the digits 1 to 9, and 0 for chapter 10, choose a chapter. After a choice, focus moves to the chapter's heading. It opens at its top, with the current chapter's row in view, and moving through it never moves the page. On a phone the sheet spans the bar |
+| Contents | `.toc-menu`, `.toc-list` | A `--pop` sheet of `--r-xl` with 10px of padding. Its width follows `clamp(18.5rem, 28vw, 20rem)` (normally 296–320px), and at 560px and below it spans the bar between the safe-area insets. Its height follows the dynamic viewport below the bar, clearing both safe areas, with a small-viewport fallback and internal scrolling. A quiet “On this page” label leads rows at least 40px tall, or 44px on a phone or with a coarse pointer, with `--r-sm` corners. Chapter numbers in DM Mono and outline resource icons share a 22px leading column; labels share one edge, and a reserved trailing column holds the current section's check or an external-link icon. The current row keeps its number and gets `--wash-1`; the focused row gets `--wash-3` and a 2px ink ring inside its edge. Hairline dividers separate chapters, resources and the external links shown on a phone. Labels wrap when necessary. While it is open the digits 1 to 9, and 0 for chapter 10, choose a chapter. After a choice, focus moves to the chapter's heading. It opens at its top, with the current chapter's row in view, and moving through it never moves the page |
 | Skip link | `.skip` | A primary `.btn`, opaque by its own fill. It is the first Tab stop, shows only while it has focus, centered in the bar at the left edge of the wide column, and goes to the paper (`#readings`) |
 | Badge | `.badge` | A pill with a `--rule` outline and ink-3 text, Inter 500 at `--fs-label`. A badge labels; it never holds content |
 | Frame | `.tour-view`, `.tour-map` | `--r-sm` with a ring at `--wash-2`: a picture's edge is part of the data. Figure 1 is drawn on white, so its frames keep the light theme's `--surface`, `--ink` and `--ink-3` in both themes |
@@ -381,7 +381,7 @@ again and Replay the repack are hidden.
 | Table | `table.data` | Rules in `--grid` between rows, cells in ink-2, headers in Inter 500 ink-3, the first cell of each row its header, numbers right-aligned in tabular figures, and a caption for screen readers. A mean row (`.has-total`) is 600, with a `--rule` above it. At 640px and below the headers wrap |
 | Scroller | `.math-display`, `.table-wrap` | A formula or a table wider than its column scrolls sideways and fades out over 32px at the edge where more of it lies (24px on the left), from `more-l` and `more-r`, which app.js sets. While it overflows it is a Tab stop, named for what it holds, or a display equation by its place (Equation 3) |
 | Equation | `.math` | A MathJax drawing with a spoken label in words and its TeX in `data-tex`, after a hidden plain-text copy of it, so it can be copied and found |
-| Link list | `.end-col a` | The colophon's Read and Chapters: plain ink links, underlined on hover. Each link fills its row, 29px tall for a mouse and 44px for a finger, with no gap between rows, and its focus ring takes `--r-sm` corners. Links in running text keep their underline. Every link eases its color over `--t-1` |
+| Link list | `.end-col a` | The footer's Read and Chapters, set as the contents' rows are: ink text on no fill, `--wash-2` under the pointer and `--wash-4` while pressed, 35px tall for a mouse and 45px for a finger, 1px apart. A link's fill reaches 10px past its text on either side, so the text keeps the column's edge. Chapters lists the contents' names in their order, one under another, each after its number, and the Data list keeps the same rows, so the lists' first lines align. Links in running text keep their underline. Every link eases its color over `--t-1`, and a row its fill |
 
 The interactive states are the same everywhere. Hover adds one wash step; an option in a tray takes
 `--wash-1`, since its tray is `--wash-2`. Pressing adds another: `--wash-4`, the ink at 68% on a primary
@@ -394,9 +394,9 @@ to 97% instead.
 The focus ring is a 2px outline in the ink, black on the light page and near-white on the dark one, at
 a 3px offset that follows the control's own corners (2px, since Chrome draws a 2.5px outline at 2px
 anyway). In a tray it sits at offset 0, filling the gap between options and nesting inside
-the tray's corners. A large block that takes the keyboard (the title, the repack cells) and a row of the
-colophon's link lists give their ring `--r-sm` corners. Inside the contents, where an outline would
-crowd the rows, the focused row gets a fill and an inner ring instead. The opening's sculpture reaches
+the tray's corners. A large block that takes the keyboard (the title, the repack cells) gives its ring
+`--r-sm` corners. In the contents and the footer's lists, where an outline would crowd the rows, the
+focused row gets a fill and an inner ring instead. The opening's sculpture reaches
 under the words, so the same ring goes around its field, 12px inside it, with corners of `--r-xl` plus
 12px. A focusable mark in an SVG (a rotary token) draws its ring as a 2.5px ink stroke that does
 not scale, the one other width. A heading that takes focus after a choice in the contents shows no ring.
@@ -404,8 +404,8 @@ not scale, the one other width. A heading that takes focus after a choice in the
 On a coarse pointer every button, option and disclosure is 44px to hit without being drawn larger,
 through a band its `::after` adds above and below it: 4px for a full button, and 7px for a small one, a
 disclosure and an option. The logo's band is 5px, so its 38px (34px as the mark) are 44px or more, and
-the chapter's name in the bar is 45px to hit. The contents' rows, 45px under a finger, and
-the colophon's link rows, 44px, get there through their own padding. A mark thinner than a finger, the
+the chapter's name in the bar is 45px to hit. The contents' rows and the footer's link rows, 45px
+under a finger, get there through their own padding. A mark thinner than a finger, the
 closing word's 14px memory ribbon, answers 10px above and below it. A rotary token's grab margin grows
 as the grid shrinks, so the token is 46px to hit at any size, and with a token picked, a tap in a
 token's margin, outside its own cell, moves the picked token to the cell under the finger.
@@ -427,7 +427,7 @@ Lines carry information. These are the only places they appear:
 
 - chart axes and grids, the rules between table rows, and the rule above a mean row;
 - the hairline under the top bar, which also shows reading progress in ink;
-- the dividers inside the contents menu and in the colophon at the end;
+- the dividers inside the contents menu and in the footer at the end;
 - the edge of a menu, the ring of a frame, a badge's outline, and the ring of the chosen option in a
   tray;
 - the short rule that leads a dashed eyebrow, and a meter's tick at chance;
@@ -590,24 +590,27 @@ are absolute. Keep its copies in step with the page's tokens.
 
 ## Logo
 
-The logo is the closing word itself: PACK3D in letters of 5 by 7 cubes, seen by the closing word's
-camera and shaded in three greys instead of the memory ramp, so the word that ends the page is the name
-it carries. Fronts are the ink, tops `--logo-top` and sides `--logo-side`; on the dark page the fronts
-turn near-white. [tools/logo.py](../tools/logo.py) makes every form of it:
+The logo is the closing word itself, fully built: PACK3D in letters of 5 by 7 cubes, three cubes deep,
+seen by the closing word's camera and colored as the closing word is in raster order, each cube by its
+memory position on the memory ramp (`--mem-0` to `--mem-4`), its top mixed 28% toward white and its side
+38% toward black. On the light page it runs from pale lavender at the foot to deep indigo at the top; on
+the dark page, from deep violet to near-white. The word that ends the page is the name it carries.
+[tools/logo.py](../tools/logo.py) makes every form of it:
 
-- `website/logo.svg`, the full logo: three cubes deep, as the closing word is, with a seam of the paper
-  between every cube's faces, light or dark with the reader's scheme. The link-preview card
-  ([tools/social_card.html](../tools/social_card.html)) shows it under the paper's title.
-- The bar's logo, inline in `index.html` and `404.html`: two cubes deep and 22px tall, each run of faces
-  one shape and no seams, so its letters stay open and crisp at that size. It takes its greys from the
-  `--logo-*` tokens, so it follows the theme. It draws its sides, then its tops, then its fronts: no
-  front is ever hidden by a side or a top, so that order draws what the painter's order draws.
-- The mark, one cube in the classic three-face view: the favicon (`favicon.svg`, light and dark, with
-  `favicon-32.png` and `apple-touch-icon.png` drawn from it), and the bar's logo below 375px or where
-  large text leaves the bar narrower than 19em.
+- `website/logo.svg`, for light backgrounds, and `website/logo-dark.svg`, for dark ones: every cube in
+  its own color, with a seam of the paper between its faces. The link-preview card
+  ([tools/social_card.html](../tools/social_card.html)) shows `logo.svg` under the paper's title.
+- The bar's logo, inline in `index.html` and `404.html`, 22px tall: each run of faces is one shape with
+  no seams, and each row of cubes takes one color, mixed from the `--mem-*` tokens at the middle of that
+  row's memory positions (`.logo .r0` to `.r6`), so it follows the theme and stays crisp at that size.
+  It draws its sides, then its tops, then its fronts, each from the bottom row up: no front is ever
+  hidden by a side or a top, and a top is overlapped only by the next row up and to its right, which is
+  nearer, so that order draws what the painter's order draws.
+- The mark, one cube in the classic three-face view, in the ramp's middle color (`--mem-2`): the favicon
+  (`favicon.svg`, with `favicon-32.png` and `apple-touch-icon.png` drawn from it), and the bar's logo
+  below 375px or where large text leaves the bar narrower than 19em.
 
-The logo is a name, not a figure: it carries no data, so it has no color. The closing figure keeps its
-memory ramp, since there a cube's color says where it sits in memory.
+The bar holds the logo alone: the venue is named in the opening, not in the bar.
 
 ## Contrast themes and print
 
@@ -648,9 +651,9 @@ The stage window prints its one-sentence summary on the text column, with no pad
 width and no reserved rows. Figure 1 prints whole at any step of the tour, since paper has no camera:
 the picture sits still and untransformed, without the spotlight, and the step's words are its caption.
 The closing line prints whole; the scrollers drop their fades, which would print the words twice; each
-external link in the colophon's Read list prints its address under it, in DM Mono at `--fs-label`; and
+external link in the footer's Read list prints its address under it, in DM Mono at `--fs-label`; and
 series dots, callout dots, meters and the eyebrows' dashes keep their colors. Sheets, cards, stats,
-code, callouts, the stage window, a chapter's head, the two readings and the colophon's lists are not
+code, callouts, the stage window, a chapter's head, the two readings and the footer's lists are not
 split across pages, and a heading or an eyebrow stays with what follows it. The rotary sheet, taller
 than a page, breaks only between its grid and its dials.
 
