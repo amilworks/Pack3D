@@ -10,6 +10,9 @@ Every change below is to the project website.
 
 ### Added
 
+- A logo: the word PACK3D built from black and white blocks, the shape of the closing word. It stands in
+  the top bar (one block where the bar is narrow), on the page for a missing address, in the favicon and
+  on the link-preview card. [tools/logo.py](tools/logo.py) makes it.
 - A Pause motion button on the opening, the title figure and the repack window. One press pauses every
   figure that moves on its own, the end included, and the site remembers the choice on the device.
   Turning the opening's sculpture or the repack cells by hand also pauses motion, so the view you chose
@@ -28,11 +31,18 @@ Every change below is to the project website.
 
 ### Changed
 
-- The site tells its story in three full-screen figures. It opens on one glowing path through 512
-  tokens that morphs from one storage order to the next. The paper's first screen threads the letters
+- The site tells its story in three full-screen figures. It opens on one path through 512 tokens that
+  morphs from one storage order to the next. The paper's first screen threads the letters
   of the title to their places in memory. In the result chapter, the same repack runs on a cell under
   both models, with one spark for each changed prediction at the paper's rates; it replaces the two flat
   squares that showed those counts.
+- The site is black and white, on one sheet of paper. The opening, the repack window and the end, which
+  stood on a dark stage, now lie on the page: the opening's path and the closing word are drawn like ink
+  on the light page and like light on the dark one, and the repack window is a white sheet whose cell is
+  drawn in one tone. Color is kept for the data: teal for PACK3D, coral for packed RoPE, lavender for
+  memory, orange and green for the query and the key. Buttons, chapter labels, links, the reading
+  progress and the focus ring are black, white and grey, and the page's greys carry no tint. The page
+  for a missing address and the link-preview card follow.
 - Buttons, option trays, figure sheets, stats, cards and callouts follow one design system, written up
   in [docs/design-system.md](docs/design-system.md). A tray of options is one control: one Tab stop
   whose arrow keys, Home and End move the choice, announced as a radio group. The chosen option is
@@ -40,11 +50,11 @@ Every change below is to the project website.
   label changes keeps its width.
 - The top bar is a breadcrumb, the wordmark and the chapter being read, named in full where there is
   room, which opens the contents on hover, a click, a tap or the keyboard; the contents list "Take it
-  home" with the other chapters. The bar takes the stage's dark colors over the opening, the repack
-  window and the end, and on phones the browser's own bar matches it. On a phone held sideways the bar
-  is shorter, as iOS's own is.
-- The link-preview card shows the closing word, PACK3D built from cubes on the dark stage, under the
-  paper's title. [tools/social_card.html](tools/social_card.html) draws it.
+  home" with the other chapters. The bar keeps one look over the whole page, and on phones the
+  browser's own bar takes the page's color. On a phone held sideways the bar is shorter, as iOS's own
+  is.
+- The link-preview card shows the logo under the paper's title.
+  [tools/social_card.html](tools/social_card.html) draws it.
 - The type follows one scale of sizes and weights: small labels share one size, captions, notes and
   card text one set of sizes, and bold words the weight of the rest of the emphasis. Titles of sheets,
   cards, stats, callouts and the Figure 1 steps share one line height and letter spacing, so a title
@@ -70,8 +80,8 @@ Every change below is to the project website.
   window's button are a quarter to two fifths of the way there a tenth of a second after the click, and
   the repack window's counts start as soon as its cells settle. Every hover, press and state change,
   links included, shares one quick ease-out, and jumps from the contents and the footer are instant.
-- The keyboard's focus ring is a deeper teal on the light page and the stage's own mint on the stage,
-  and the opening's sculpture shows the same ring as every other control. In a tray it hugs the focused
+- The keyboard's focus ring is the ink, black on the light page and near-white on the dark one, and the
+  opening's sculpture shows the same ring as every other control. In a tray it hugs the focused
   option, and in the contents the focused row shows a clear ring.
 - The controls use the same words for the same thing: the lab's orders read Raster, Morton, Blocks and
   Repacked, like every other tray, and buttons name what they do ("Repack the rows", "Replay the
@@ -116,8 +126,8 @@ Every change below is to the project website.
   "Build it again" still take about three. It colors memory order with the opening's lavender ramp, it
   shares one screen with its memory and its order buttons, and a click or a tap picks a cube, from which
   the keyboard walks on as on any slider (Page Up and Page Down step ten).
-- The footer's lists, Read and Chapters, look and behave alike: plain links that turn mint on hover,
-  with taller rows for a finger. The footer keeps two columns up to 1199px.
+- The footer drops its colophon, and its lists, Read and Chapters, look and behave alike: plain links,
+  underlined on hover, with taller rows for a finger. The footer keeps two columns up to 1199px.
 - The site loads less and does less while you scroll. d3 is a partial build of half the size, made by a
   new script in [tools/d3](tools/d3/), and the italic font loads after the first screen. Figure 1's
   large drawing loads only once you stop on it, the repack window's cells are made in the background as
@@ -133,8 +143,6 @@ Every change below is to the project website.
   few seconds. The figure now draws on a canvas it makes when it is built, asks again when it is
   refused, draws its cells with Canvas 2D where WebGL cannot run, and recovers by itself when the
   browser takes its WebGL context away.
-- On iPhone, the top bar no longer stays dark over the light page, or light over the dark stage, after
-  a jump or a scroll made by a script, and its words no longer fade as it switches between the two.
 - Figure labels no longer set variables in capitals, where the variable *z* read as *Z*.
 - The site works with touch on phones and tablets. The rotary grid's tokens can be dragged with a
   finger and are easy to grab however small the grid is drawn, and with a token picked, a tap right
@@ -199,7 +207,7 @@ Every change below is to the project website.
   parts the script draws (the lab, the pooling figure's readouts) and the contract's checkboxes, and no
   sentence points at a figure or a control that is not there. The opening takes only the room its words
   need, Figure 1's frame fits the picture, the repack window states its result in a sentence, and the
-  note above the opening is accurate and sits on the stage.
+  note above the opening is accurate.
 - If the browser refuses a canvas, the lab still works, the end shows its closing line and credits
   instead of an empty figure, and the words around the repack window no longer describe cells that are
   not drawn.
@@ -211,8 +219,9 @@ Every change below is to the project website.
   wrapped title, and its choice cards darken when pressed.
 - The opening and the repack window no longer blink while the browser window is resized, and a
   double-click on Figure 1 no longer zooms in and straight back out.
-- Text selected on the dark stage is light on deep teal, and Copy BibTeX answers every press with a
-  note that clears after a few seconds.
+- Copy BibTeX answers every press with a note that clears after a few seconds.
+- A browser that kept the previous script no longer runs it with a new page after a deploy: the page
+  loads its scripts by version.
 - With reduced motion, "Replay the repack" is hidden, as "Build it again" is.
 
 ## [0.1.0] - 2026-11-06

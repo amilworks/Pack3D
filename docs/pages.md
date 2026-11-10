@@ -35,13 +35,14 @@ and the checkout does not keep credentials. The workflow deploys only from the d
 | :--- | :--- |
 | `index.html` | The page, with its styles inline, and the search, Google Scholar and link-preview tags. |
 | `404.html` | The page GitHub Pages shows for a missing address. It stands alone, with its own styles and absolute links, since Pages serves it at any depth. |
-| `app.js` | The page's script, with the plotted data built in. |
-| `d3.min.js` | A partial build of d3 7.8.5: the modules the charts draw with, made by [tools/d3](../tools/d3/). Their licenses are in `d3-LICENSE.txt`. |
+| `app.js` | The page's script, with the plotted data built in. The page loads it by version (see [Script versions](#script-versions)). |
+| `d3.min.js` | A partial build of d3 7.8.5: the modules the charts draw with, made by [tools/d3](../tools/d3/), and loaded by version like `app.js`. Their licenses are in `d3-LICENSE.txt`. |
 | `figure1-1000.webp`, `figure1-1500.webp`, `figure1-2300.webp` | Figure 1 of the paper as pictures at three widths. The browser picks the one that suits the screen, for the tour's overview and its minimap. |
 | `figure1.min.svg` | Figure 1 as a vector, which the tour loads when the reader stops on the figure or zooms into it. |
 | `figure1.svg` | Figure 1 at full detail, which the page used before the copies above. The page no longer loads it; it stays so that existing links to it keep working. |
 | `fonts/` | Inter, upright and italic, and DM Mono in its regular weight, with their licenses. The page preloads the upright Inter; the italic loads once the page is up. |
-| `social.png`, `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` | The link-preview card and the icons. [tools/social_card.html](../tools/social_card.html) draws the card and says how to remake it. |
+| `logo.svg` | The logo: the word PACK3D in black and white blocks. [tools/logo.py](../tools/logo.py) makes it, and the smaller logo and mark the page's bar carries inline. |
+| `social.png`, `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` | The link-preview card and the icons. [tools/logo.py](../tools/logo.py) makes `favicon.svg`, the logo's mark, and the two PNGs are drawn from it; [tools/social_card.html](../tools/social_card.html) draws the card and says how to remake it. |
 | `robots.txt`, `sitemap.xml` | For search engines. |
 
 Every number on the page was traced to the camera-ready paper when the site was built. If you edit a
@@ -60,7 +61,23 @@ To rebuild it, run `tools/d3/build.sh` with Node.js and npm installed. The scrip
 `entry.mjs` with esbuild 0.24.2, writes `website/d3.min.js` and `website/d3-LICENSE.txt`, and fails if
 `app.js` uses a d3 function the bundle lacks. To use a function from another d3 module, export that
 module from `entry.mjs`, add it to `package.json`, and run the script again. Commit both files it
-writes.
+writes, and update the version `index.html` loads `d3.min.js` by (see
+[Script versions](#script-versions)).
+
+## Script versions
+
+`index.html` loads each script with `?v=` and the first 8 hex digits of the file's SHA-256, for example
+`app.js?v=dec952d9`. A browser that cached an older copy then fetches the copy that matches the page
+it was sent with; without the version, a returning reader could run an old script with a new page for
+as long as GitHub Pages lets the browser keep it (10 minutes). Whenever `app.js` or `d3.min.js` changes,
+update its version in `index.html`:
+
+```bash
+shasum -a 256 website/app.js website/d3.min.js | cut -c1-8,65-
+```
+
+[tools/check_release.py](../tools/check_release.py), which the Tests workflow runs, fails if a version
+no longer matches its file.
 
 ## Search engines
 

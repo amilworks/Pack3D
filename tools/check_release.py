@@ -1,8 +1,9 @@
 """Release-hygiene checks for the repository. Run from anywhere: ``python tools/check_release.py``.
 
 Checks local Markdown links and their #anchors, YAML syntax, Python syntax, pinned GitHub Actions,
-the website workflow's permissions and the folder it deploys, the checksums of the frozen results
-and paper recipes, and that the version agrees across the package, CITATION.cff and CHANGELOG.md.
+the website workflow's permissions and the folder it deploys, the versions the page asks its scripts by,
+the checksums of the frozen results and paper recipes, and that the version agrees across the package,
+CITATION.cff and CHANGELOG.md.
 It also looks for a few common secret patterns. It is not a substitute for a full secret scanner.
 """
 import ast
@@ -155,13 +156,24 @@ def check_version():
     return version
 
 
+def check_script_versions():
+    # each script the page loads carries ?v= and the first 8 hex digits of its SHA-256, so a browser
+    # that cached an older copy fetches the one that matches the page it was sent with (docs/pages.md)
+    page = (ROOT / "website/index.html").read_text()
+    for name in ("d3.min.js", "app.js"):
+        digest = hashlib.sha256((ROOT / "website" / name).read_bytes()).hexdigest()[:8]
+        if f'src="{name}?v={digest}"' not in page:
+            raise ValueError(f"website/index.html must load {name}?v={digest}")
+
+
 def main():
     files, links = check_files()
     check_provenance()
     check_workflows()
+    check_script_versions()
     version = check_version()
     print(f"PASS: {len(files)} files; {links} local links and anchors; provenance hashes; YAML; "
-          f"pinned Actions; website workflow; version {version}")
+          f"pinned Actions; website workflow; script versions; version {version}")
 
 
 if __name__ == "__main__":

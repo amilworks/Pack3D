@@ -10,24 +10,26 @@ parts.
 
 When something needs a value the system does not have, add a token, to the stylesheet and to this
 page, instead of writing a one-off value into a rule. The literal values the system keeps on purpose are
-named where they occur: the stage's color on the root element ([The dark stage](#the-dark-stage)), the
-spaces [Spacing](#spacing) lists, and the copies of the tokens that `404.html` carries. The reasons live
-on this page rather than in the code: the stylesheet is inline and blocks the first paint, so its
-comments are section headers and short notes only (see [Performance](#performance)).
+named where they occur: the spaces [Spacing](#spacing) lists, the few colors a figure keeps of its own
+([Figures on paper](#figures-on-paper)), and the copies of the tokens that `404.html` carries. The
+reasons live on this page rather than in the code: the stylesheet is inline and blocks the first paint,
+so its comments are section headers and short notes only (see [Performance](#performance)).
 
 ## Principles
 
-1. **The page is a sheet of paper lifted off a dark stage.** The reading column and its figures sit on
-   the sheet. The stage shows at the opening, through one window in the result chapter, and at the
-   end, and it is dark in both themes.
+1. **The page is one sheet of paper, in black and white.** Everything sits on it: the reading column,
+   the figures' sheets and the three moments, the opening, the repack window and the end. Type and
+   controls are ink, grey and white; the figures draw in ink on the light page and in light on the
+   dark one.
 2. **Fills, not outlines.** A group is a wash of ink, a figure sits on a sheet with a soft shadow, a
    chosen option is lifted out of its tray. Nothing gets a border to look like a box. Lines are kept
    for information; the list is under [Lines](#lines).
-3. **Color carries meaning.** Teal is PACK3D, the coordinate, the primary action and where you are.
-   Coral is packed RoPE and what a sequence-indexed model reads. Lavender is memory: the threads that
-   tie the title's letters to memory, and a lavender ramp for memory order in the opening and at the
-   end. It is also the third model, separable PE, and the stage's lamp. Orange and green are the query
-   and the key. Warm grey is a baseline. Everything else is ink.
+3. **Color is data.** Teal is PACK3D and the coordinate. Coral is packed RoPE and what a
+   sequence-indexed model reads. Lavender is memory: the threads that tie the title's letters to
+   memory, and a lavender ramp for memory order in the opening, the repack window's strips and the end.
+   It is also the third model, separable PE. Orange and green are the query and the key. Warm grey is a
+   baseline. Everything else is ink, grey and white: the controls, the labels, the links, the focus
+   ring and where you are.
 4. **A choice is lifted and ringed; the current place is checked.** The chosen option in a tray is
    raised out of it and ringed in ink, and the current chapter in the contents carries a check.
    Nothing is shown as chosen by turning it black or white.
@@ -67,58 +69,55 @@ comments are section headers and short notes only (see [Performance](#performanc
 
 | Token | Light | Dark | Use |
 | :--- | :--- | :--- | :--- |
-| `--bg` | `#F3F5F4` | `#0B0F0E` | The page |
-| `--surface` | `#FFFFFF` | `#121816` | Sheets and cards |
-| `--surface-2` | `#F8FAF9` | `#161D1B` | A fill inside a sheet: the faces of the rotary dials, the cells of the pooling figure |
-| `--ink`, `--ink-2`, `--ink-3` | `#0F1513`, `#444D49`, `#5F6964` | `#E8EEEB`, `#B9C2BE`, `#93A09A` | Text, secondary text, labels and captions |
-| `--rule` | `#D5D8D2` | `#2D3633` | The hairline under the bar, a badge's outline, the page's rim, the colophon's dividers, the rule above a mean row; reference lines and dial faces in the figures |
-| `--grid` | `#E4EBE8` | `#202927` | Chart grids and table rules |
-| `--teal` | `#00B796` | `#19AC8B` | PACK3D's fills: the primary action's wash, a PACK3D callout and its dot, reading progress, link underlines, the checkbox |
-| `--mint-ink` | `#00735D` | `#5FE0C3` | Teal text: eyebrows, primary buttons, the current-chapter check, a link on hover; the focus ring |
-| `--coral` | `#FF7276` | `#C9474F` | Packed RoPE's fills: its callout and dot, the lab's sequence-neighbor dots, the repack window's state dot |
+| `--bg` | `#F4F4F4` | `#0E0E0E` | The page |
+| `--surface` | `#FFFFFF` | `#171717` | Sheets and cards |
+| `--surface-2` | `#F9F9F9` | `#1B1B1B` | A fill inside a sheet: the faces of the rotary dials, the cells of the pooling figure |
+| `--ink`, `--ink-2`, `--ink-3` | `#111111`, `#464646`, `#666666` | `#EDEDED`, `#BDBDBD`, `#9A9A9A` | Text, secondary text, labels and captions. The ink is also the primary button, the focus ring, the current-chapter check, reading progress, a link's underline (at 35%) and the checkbox |
+| `--rule` | `#D9D9D9` | `#2E2E2E` | The hairline under the bar, a badge's outline, the colophon's dividers, the rule above a mean row; reference lines and dial faces in the figures |
+| `--grid` | `#E6E6E6` | `#242424` | Chart grids and table rules |
+| `--select` | `#D6D6D6` | `#3B3B3B` | Text selection |
+| `--teal` | `#00B796` | `#19AC8B` | PACK3D's fills: the arc on PACK3D's rotary dials |
+| `--coral` | `#FF7276` | `#C9474F` | Packed RoPE's fills: the lab's sequence-neighbor dots |
 | `--coral-ink` | `#B5363F` | `#FF8F94` | Coral text: what a sequence-indexed model reads, its count of changed predictions |
 | `--orange`, `--green` | `#FFAA4D`, `#8FE07A` | `#FFB15E`, `#7BD866` | The query and the key: their tokens in the lab and in the rotary grid |
 | `--lav` | `#997ADB` | `#9479D8` | Separable PE; the dot that labels the title figure's memory row, and the threads that run to it; the edges of the pooling figure's cells |
 | `--warm` | `#9E978E` | `#A39C93` | A baseline's faint marks: the members of the summary pooled at the center |
-| `--tint-teal`, `--tint-coral` | `#8EDDCB`, `#FFB4B6` | `#1F5F51`, `#6B2F33` | The faint per-seed lines behind a series, the members of a summary; teal is also text selection |
-| `--track` | `#EEF1EF` | `#1C2422` | The empty part of a meter or a bar, the cells of the rotary grid |
+| `--tint-teal`, `--tint-coral` | `#8EDDCB`, `#FFB4B6` | `#1F5F51`, `#6B2F33` | The faint per-seed lines behind a series, the members of a summary |
+| `--track` | `#EDEDED` | `#202020` | The empty part of a meter or a bar, the cells of the rotary grid |
 
 A mark that carries a value (a chart's dot, line or bar, a dial's hand, a meter's fill) and the legend
 dot that keys it take the series' mark color, deep enough for 3:1 against the sheet; in light they
 measure 3.7:1 or more on white. In the dark theme `--teal-mark`, `--coral-mark`, `--warm-mark` and
-`--orange-mark` are the series colors themselves, and on the stage the teal and coral marks are the
-stage's own. The plain series colors stay for fills, tints and callouts, and for the lab's cells,
-which are outlined in ink.
+`--orange-mark` are the series colors themselves. The plain series colors stay for fills and tints, and
+for the lab's cells, which are outlined in ink.
 
 | Token | Light | Dark | Use |
 | :--- | :--- | :--- | :--- |
-| `--teal-mark`, `--coral-mark` | `#00957A`, `#E04F55` | `#19AC8B`, `#C9474F` | PACK3D and packed RoPE as marks, and their dots (`.dot.teal`, `.dot.coral`) |
+| `--teal-mark`, `--coral-mark` | `#00957A`, `#E04F55` | `#19AC8B`, `#C9474F` | PACK3D and packed RoPE as marks, and their dots (`.dot.teal`, `.dot.coral`, a callout's dot); PACK3D's count in the repack window |
 | `--warm-mark` | `#857E75` | `#A39C93` | A baseline as a mark: the U-Net, dense SDPA, window attention, the ablations |
 | `--orange-mark`, `--green-ink` | `#B35F00`, `#2C8F1F` | `#FFB15E`, `#8FE07A` | The query's hand and the key's hand on a dial |
 
-The stage keeps its colors in both themes, and so does memory order in the moments:
+The moments that draw on the page itself (the opening, the repack window and the end) take these, set
+for each theme (see [Figures on paper](#figures-on-paper)):
 
-| Token | Value | Use |
-| :--- | :--- | :--- |
-| `--stage-bg` | `#060A09` | The stage |
-| `--stage-ink`, `--stage-ink-2`, `--stage-ink-3` | `#EEF3F1`, `#B4BEBA`, `#8C9A95` | Text on the stage |
-| `--stage-teal`, `--stage-mint` | `#19AC8B`, `#5FE0C3` | Teal on the stage, and its text, ring and light: the opening's running head, PACK3D's sparks, the closing word's trail |
-| `--lamp` | `#8062DC` | The lavender lamp behind a figure on the stage |
-| `--stage-halo` | `rgba(6, 10, 9, 0.9)` | The stage's color behind text laid over a figure |
-| `--mem-0` to `--mem-4` | `#4B3AB0`, `#7356D6`, `#9A7DE6`, `#C9B6F4`, `#F7F3FE` | Memory order, first position to last, mixed in OKLab between the stops: the opening's path, the closing word's cubes and ribbon |
+| Token | Light | Dark | Use |
+| :--- | :--- | :--- | :--- |
+| `--mem-0` to `--mem-4` | `#C9BAF3`, `#9C84E6`, `#7356D6`, `#4B3AB0`, `#271D69` | `#4B3AB0`, `#7356D6`, `#9A7DE6`, `#C9B6F4`, `#F7F3FE` | Memory order, first position to last, mixed in OKLab between the stops: pale to deep on the light page, deep to bright on the dark one. The opening's path, the repack window's memory strips, the closing word's cubes and ribbon |
+| `--spark-a`, `--spark-b` | `#00957A`, `#E04F55` | `#5FE0C3`, `#FF7276` | The predictions a repack changes, PACK3D's and packed RoPE's |
+| `--halo` | the page at 92% | the page at 90% | Behind words laid over a figure: the opening's title, lede, names and caption |
+| `--ink-dark` | `#111111` | `#111111` | Words on a light mark in either theme: the rotary grid's *q* and *k* |
+| `--logo-front`, `--logo-top`, `--logo-side` | the ink, `#BDBDBD`, `#555555` | the ink, `#A6A6A6`, `#5E5E5E` | The logo's three greys, its fronts, tops and sides (see [Logo](#logo)) |
 
 app.js reads a token with `tok(name)`, from the root element, so a figure takes its colors from the
-stylesheet. A figure on the stage reads the `--stage-*` tokens by name, because the stage's own values
-of the page's tokens are set on its sections, not on the root; the repack window reads its coral from
-its own section. The colors a figure keeps of its own are the ones no token names: the lab's teal ramp
-for a token's place in the sample (one for each theme), the opening's near-white head (`#C9FFF1`), the
-white that marks a picked cube at the end, the shades the repack cell is built from in its worker, and
-the four class colors of the memory strips.
+stylesheet, and every figure repaints when the theme changes. The colors a figure keeps of its own are
+the ones no token names: the lab's teal ramp for a token's place in the sample (one for each theme), the
+white core of the opening's head on the dark page, and the shades the repack cell is built from in its
+worker, which the cell draws by their luminance alone, in one tone.
 
 ### Fills
 
-Fills are the ink, or teal or coral, mixed at low strength with nothing. Because they are partly
-transparent, one fill works on any surface and in either theme.
+Fills are the ink mixed at low strength with nothing. Because they are partly transparent, one fill
+works on any surface and in either theme.
 
 | Token | Strength | Use |
 | :--- | :--- | :--- |
@@ -126,8 +125,6 @@ transparent, one fill works on any surface and in either theme.
 | `--wash-2` | ink 7% | Trays, quiet buttons at rest, hover on a row or a plain button, an option pressed, the ring of a frame |
 | `--wash-3` | ink 10% | Hover on a quiet button, the chapter while the contents are open, the focused row in the contents |
 | `--wash-4` | ink 14% | Pressed |
-| `--teal-1`, `--teal-2`, `--teal-3` | teal 15%, 22%, 28% | A primary button at rest, on hover and pressed; a PACK3D callout; a part of the Figure 1 map on hover, pressed (`--teal-2`) and chosen |
-| `--coral-1` | coral 14% | A packed RoPE callout |
 
 ### Elevation
 
@@ -137,18 +134,17 @@ transparent, one fill works on any surface and in either theme.
 | `--lift`, `--lift-shadow` | The chosen option in a tray | White with a hairline shadow | Ink at 13%, no shadow |
 | `--pop`, `--pop-rule`, `--pop-shadow` | Menus | White, a 9% edge, a wide shadow | A raised surface, a 9% edge, a deep shadow |
 | `--tip-shadow` | Tips | A short dark shadow | The same |
-| `--page-rim-top`, `--page-rim-bottom` | The page where it meets the stage: its top edge over the opening, its bottom edge over the end | A 1px `--rule` rim and a long dark shadow | The same; here the rim is the page's edge, since page and stage differ by only 1.03:1 |
 
 ### Radius
 
 | Token | Size | Use |
 | :--- | :--- | :--- |
 | `--r-xs` | 6px | Marks: meters, the memory strips and the memory ribbon, the parts of the Figure 1 map, and the cells and memory slots drawn in the figures (a slot narrower than 30px takes 0.2 of its width) |
-| `--r-sm` | 10px | Controls and rows: options in a tray, menu rows, readouts, frames, tips, disclosures, the wordmark; the focus ring of a large block that takes the keyboard |
+| `--r-sm` | 10px | Controls and rows: options in a tray, menu rows, readouts, frames, tips, disclosures, the logo's link; the focus ring of a large block that takes the keyboard |
 | `--r-md` | 13px | Groups: trays (10 + 3), stats, code, callouts, choice cards, the title figure's reading box, the closing word's canvas |
 | `--r-lg` | 16px | Small sheets: the contents menu (10 + 6), cards that sit on the page |
 | `--r-xl` | 20px | Sheets: the benches that hold the figures |
-| `--sheet-r` | 22 to 48px | The page itself, where it meets the stage, and the stage window |
+| `--sheet-r` | 22 to 48px | The repack window's sheet |
 | (pill) | 999px | Buttons and badges |
 | (chart bar) | 3px | The bars in the charts: the named switch and the interventions |
 
@@ -170,7 +166,7 @@ code (`--font-mono`). The sizes are tokens:
 | `--fs-control-sm` | 0.84rem | Options in a tray, small buttons, disclosures |
 | `--fs-small` | 0.9rem | A note beside a figure, card text, choice cards, a meter's label, the opening's byline and caption, the Figure 1 tour's step text, the repack window's state, and its model names at 640px and below, the closing word's caption, the colophon |
 | `--fs-control` | 0.9rem | Buttons, the breadcrumb, menu rows, options in a large tray |
-| `--fs-title` | 1.02rem | Sheet, card, stat, callout and step titles, a readout's or a meter's value, the wordmark, the colophon's paper title |
+| `--fs-title` | 1.02rem | Sheet, card, stat, callout and step titles, a readout's or a meter's value, the colophon's paper title |
 | `--fs-body` | 1.05rem | The reading column, the abstract; the repack window's title on a phone held sideways under Safari's bars, so it keeps to one line inside their insets |
 
 Display, lede and heading sizes stay as `clamp()` and `min()` values in their own rules. A few sizes
@@ -196,22 +192,22 @@ sideways (1.6rem), DM Mono inside a line of Inter (`.mono`, 0.9em), and a subscr
 | Caption | Inter 400, `--fs-caption`, line height 1.5, ink-3 | The caption under a sheet |
 | Data label | DM Mono 400, `--fs-label`, tracking 0.01em (one rule in the shared parts), ink-3 | Readout labels, chapter numbers in the contents and the colophon, the stage window's count labels, the end's memory label and its count, and the rotary grid's memory positions (`--fs-label` through `--u`); on a canvas, 12px |
 | Data line | DM Mono 400, `--fs-meta` | The hint under the title figure, the closing word's readout, the colophon's address and arXiv id |
-| Code | DM Mono 400, `--fs-code`, line height 1.7 | Code blocks; a keyword takes mint-ink |
+| Code | DM Mono 400, `--fs-code`, line height 1.7, ink-2 | Code blocks; a keyword takes the full ink |
 | Chart text | Inter 13px; 500 for labels, 600 for emphasis; values in tabular figures | Axis values and labels inside the charts |
 | Chart note | Inter 12px | Axis titles and notes inside a chart: tokens (log scale), chance, ← U-Net ahead, the structures' names, the pooling figure's legend |
-| Eyebrow | Inter 600, `--fs-label`, capitals, tracking 0.12em | Chapter and section labels, in mint-ink; the colophon's headings, in ink-3 |
-| Venue line | Inter 600, `--fs-caption`, tracking 0.03em, in its own case (`.eyebrow.keep-case`) | "NeurIPS 2026 · Sydney, Australia" above the title, in mint-ink |
+| Eyebrow | Inter 600, `--fs-label`, capitals, tracking 0.12em | Chapter and section labels, in ink-2; the colophon's headings, in ink-3 |
+| Venue line | Inter 600, `--fs-caption`, tracking 0.03em, in its own case (`.eyebrow.keep-case`) | "NeurIPS 2026 · Sydney, Australia" above the title, in ink-2 |
 
 Weights follow the role: display 320 to 380, headings 480, body 400, controls, meta and chart labels
 500, and titles, section headings, eyebrows, bold words and chart emphasis 600. Bold (`b`, `strong`) is
 600, so Inter is never set at 700. The breadcrumb's slash, at 300, is the one other weight. DM Mono is
-set at 400 only, and the page loads only that face of it; a code keyword takes its emphasis from
-mint-ink, not from weight. The title figure's two readings (GEOMETRY MATTERS and its packed form) are
-DM Mono at `--fs-title`, tracked 0.08em so the letters read as slots, and its memory row draws each
-letter in DM Mono at half a slot, never under 12px. In a figure, the rotary grid's *q* and *k* are
-marks, not labels: Inter 600 italic, 15 units of the grid's 320-unit square, so about 21.6px at the
-grid's full 460px and scaling with the cells. Headlines and short labels balance their lines
-(`text-wrap: balance`), and paragraphs, captions and notes avoid one-word last lines
+set at 400 only, and the page loads only that face of it; a code keyword takes its emphasis from the
+full ink against the rest's ink-2, not from weight. The title figure's two readings (GEOMETRY MATTERS
+and its packed form) are DM Mono at `--fs-title`, tracked 0.08em so the letters read as slots, and its
+memory row draws each letter in DM Mono at half a slot, never under 12px. In a figure, the rotary grid's
+*q* and *k* are marks, not labels: Inter 600 italic, 15 units of the grid's 320-unit square, so about
+21.6px at the grid's full 460px and scaling with the cells. Headlines and short labels balance their
+lines (`text-wrap: balance`), and paragraphs, captions and notes avoid one-word last lines
 (`text-wrap: pretty`).
 
 ### Spacing
@@ -282,8 +278,8 @@ latency chart, each with the control that changes it. The Predictions changed ch
 fit under the bar on their own, though the lab's trays and its slices together take more than a screen.
 With Safari's toolbars showing (874 by 292) the opening, the repack window, the tour and those four
 pairs still fit, but the title figure runs 79px past the screen, and the Predictions changed chart, the
-lab's slices, the probes and the per-seed U-Net chart are taller than it. Below 375px the wordmark keeps
-its cube and drops its word, and below 360px the dashed eyebrow drops its dash. A component that stacks
+lab's slices, the probes and the per-seed U-Net chart are taller than it. Below 375px the logo gives
+way to its mark, one cube, and below 360px the dashed eyebrow drops its dash. A component that stacks
 at its own width says so in its rule.
 
 The opening fits the first screen of a phone at 375 by 667, or at 390 by 664 (an iPhone with Safari's
@@ -363,51 +359,52 @@ again and Replay the repack are hidden.
 | Card on the page | `.claim` | `--surface`, `--r-lg`, `--sheet-shadow`, 18px 20px of padding; an `h3` title at `--fs-title`. A word longer than a card's line breaks rather than widen the card |
 | Stat | `.bignum` | `--wash-1`, `--r-md`. The name with its series dot, the value in display weight with tabular figures, the change in ink-3 |
 | Readout | `.readout` | `--wash-1`, `--r-sm`. A data label over a tabular value. On a phone the readouts form an even two-column grid, and a label that wraps keeps tight, balanced lines (line height 1.35) and may break anywhere; in the lab the first readout, and the fourth when no fifth shows, take a whole row |
-| Callout | `.verdict`, `.verdict.off` | `--teal-1` or `--coral-1`, `--r-md`. The title carries a 10px dot of `--teal` or `--coral`, which sits on its first line when it wraps |
+| Callout | `.verdict`, `.verdict.off` | `--wash-1`, `--r-md`. The title carries a 10px dot of `--teal-mark` while the contract holds or `--coral-mark` once it breaks, which sits on its first line when it wraps |
 | Note | `.note` | Inter 400 at `--fs-small`, line height 1.5, ink-2: words beside a figure, inside its sheet, kept to `--col` or 66 characters |
 | Dashed eyebrow | `.eyebrow.eyebrow-dash` | An eyebrow led by a rule of 22 by 1.5px in its own color, 10px before the words: the chapters, the stage window and the end. Below 360px the rule steps aside, so the longest eyebrow keeps to one line |
-| Code | `pre.code` | `--wash-1`, `--r-md`, DM Mono 400 at `--fs-code`. Comments in ink-3, keywords in mint-ink. A block wider than its column fades out over 3em on the side where more of it lies and becomes a named Tab stop; the fade steps aside while it has focus |
-| Choice card | `.tag` | `--wash-1`, `--wash-2` on hover, `--wash-4` pressed, `--r-md`, a teal checkbox. Its words cannot be selected; the focus ring goes around the card |
-| Button | `.btn` | A pill. Primary: `--teal-1` with mint-ink text. `.ghost`: `--wash-2`. `.plain`: no fill until hover. `.sm`: the small control size. A label cannot be selected, and wraps, balanced and centered, when the pill is wider than its column. A button whose label changes holds the width of its longer label: the motion switch (8.25em), Repack the rows (11.7em, never wider than its place) and the repack window's button (14.6em, never wider than its foot) |
+| Code | `pre.code` | `--wash-1`, `--r-md`, DM Mono 400 at `--fs-code`. Text in ink-2, comments in ink-3, keywords in the full ink. A block wider than its column fades out over 3em on the side where more of it lies and becomes a named Tab stop; the fade steps aside while it has focus |
+| Choice card | `.tag` | `--wash-1`, `--wash-2` on hover, `--wash-4` pressed, `--r-md`, a checkbox in ink. Its words cannot be selected; the focus ring goes around the card |
+| Button | `.btn` | A pill. Primary: the ink with words in `--surface`, so black with white words on the light page and the reverse on the dark one, mixed toward `--surface` to 80% on hover and 68% pressed. `.ghost`: `--wash-2`. `.plain`: no fill until hover. `.sm`: the small control size. A label cannot be selected, and wraps, balanced and centered, when the pill is wider than its column. A button whose label changes holds the width of its longer label: the motion switch (8.25em), Repack the rows (11.7em, never wider than its place) and the repack window's button (14.6em, never wider than its foot) |
 | Tray of options | `.chips` with `.chip`; `.chips.chips-lg` in the opening and at the end | A `--wash-2` tray of `--r-md` with 3px of padding; options of `--r-sm` at the small control size, 7px 12px. The chosen one gets `--lift`, `--lift-shadow` and a 1.5px inset ring of ink at 55%. `.chips-lg` sets its options at the control size, 8px 13px, from 561px. At 560px and below every option, in every tray, takes 9px at the sides (one rule), so the large tray is a plain tray there, and a tray that wraps fills each row it wraps to; on a phone held sideways, which can be wider, the opening's and the title figure's trays take the same 7px 9px. A tray is a radio group (app.js), named for its figure (Storage order for the sculpture): one Tab stop, the chosen option, and the arrow keys, Home and End move the choice. A tray hugs its options |
 | Disclosure | `details.numbers` | A plain button at the small control size, line height 1.2, so it is as tall as a small button, with a chevron that turns a quarter as it opens. A chart sheet whose numbers are not already on it ends with one, Show the numbers, holding the chart's table; a hidden qualifier tells a screen reader which chart it opens |
 | Instruction | `.hint`, `.mouse-only`, `.touch-only` | An instruction for a control, set in the sentence or meta line it belongs to. `.mouse-only` shows only where a pointer can hover and `.touch-only` only where none can. Paper and the page without JavaScript hide all three, so each is a whole clause, and the text around it reads whole without it |
-| Breadcrumb | `.crumbs`, `.toc-btn` | The wordmark, then the chapter you are reading, which opens the contents. A mouse that rests on it for 0.11s opens them, and they close 0.26s after it leaves, so the way down to the menu keeps them open. A click, a tap or the keyboard opens them to stay, until a choice, a click elsewhere or Escape. The chapter's name arrives from the direction you scrolled, in full wherever it fits; its short form (`data-short`) takes its place only where the full name would be cut. Which names fit is measured once per bar width, from the text's fractional width (WebKit rounds `scrollWidth`), and again when the width, the text size or the fonts change, Safari's Page Zoom included, so a chapter change only writes the name. The wordmark keeps its cube and drops its word below 375px, or where large text leaves the bar narrower than 19em of its own text; narrower than 15em, the bar's Code and Paper links give the name their room too, and the contents carry the paper and the code, as they do on a phone |
-| Contents | `.toc-menu`, `.toc-list` | A `--pop` sheet of `--r-lg` with 6px of padding, its rows starting under the chapter's name, no taller than the screen under the bar; rows of `--r-sm`; numbers in DM Mono; a check on the current chapter; hairline dividers. The focused row gets a `--wash-3` fill and a 2px mint-ink ring inside its edge. While it is open the digits 1 to 9, and 0 for chapter 10, choose a chapter. After a choice, focus moves to the chapter's heading. It opens at its top, with the current chapter's row in view, and moving through it never moves the page. On a phone the sheet spans the bar |
-| Skip link | `.skip` | A primary `.btn` on the bar's own `--bg`, so it is opaque. It is the first Tab stop, shows only while it has focus, centered in the bar at the left edge of the wide column, and goes to the paper (`#readings`) |
+| Breadcrumb | `.crumbs`, `.toc-btn` | The logo, then the chapter you are reading, which opens the contents. A mouse that rests on it for 0.11s opens them, and they close 0.26s after it leaves, so the way down to the menu keeps them open. A click, a tap or the keyboard opens them to stay, until a choice, a click elsewhere or Escape. The chapter's name arrives from the direction you scrolled, in full wherever it fits; its short form (`data-short`) takes its place only where the full name would be cut. Which names fit is measured once per bar width, from the text's fractional width (WebKit rounds `scrollWidth`), and again when the width, the text size or the fonts change, Safari's Page Zoom included, so a chapter change only writes the name. The logo gives way to its mark, one cube, below 375px, or where large text leaves the bar narrower than 19em of its own text; narrower than 15em, the bar's Code and Paper links give the name their room too, and the contents carry the paper and the code, as they do on a phone |
+| Contents | `.toc-menu`, `.toc-list` | A `--pop` sheet of `--r-lg` with 6px of padding, its rows starting under the chapter's name, no taller than the screen under the bar; rows of `--r-sm`; numbers in DM Mono; a check on the current chapter; hairline dividers. The focused row gets a `--wash-3` fill and a 2px ink ring inside its edge. While it is open the digits 1 to 9, and 0 for chapter 10, choose a chapter. After a choice, focus moves to the chapter's heading. It opens at its top, with the current chapter's row in view, and moving through it never moves the page. On a phone the sheet spans the bar |
+| Skip link | `.skip` | A primary `.btn`, opaque by its own fill. It is the first Tab stop, shows only while it has focus, centered in the bar at the left edge of the wide column, and goes to the paper (`#readings`) |
 | Badge | `.badge` | A pill with a `--rule` outline and ink-3 text, Inter 500 at `--fs-label`. A badge labels; it never holds content |
-| Frame | `.tour-view`, `.tour-map` | `--r-sm` with a ring at `--wash-2`: a picture's edge is part of the data. Figure 1 is drawn on white, so its frames keep the light theme's `--surface`, `--ink-3`, `--teal-mark` and `--mint-ink` in both themes |
-| Map part | `.map-r` | A part of the Figure 1 map, as a button: `--r-xs` with a dashed edge of ink-3 at 85%. `--teal-1` on hover, `--teal-2` pressed, and when chosen a 2px `--teal-mark` ring over `--teal-1`. Its focus ring sits 1px outside it. A part shorter than 24px grows to 24px about its middle, for a finger, and a part it would overlap gives way |
-| Stage window | `.stage-window` | The stage inside the page, for a figure drawn in light: the full width of the screen and, on a screen wider than it is tall, the height of the screen under the bar, at most 1040px, so the whole moment fits in one view; `--sheet-r` corners; the stage's tokens in both themes. Its words sit on the page's grid, clear of the safe areas. Its foot holds the primary button (Repack the memory, then Restore the training layout), the Pause motion button and the state, whose dot turns coral and glows once the memory is repacked. The state line holds its two longest states unseen in the same place (`.sw-hold`), so the window keeps one height, and its foot one layout, through the whole repack. The cells take what the window leaves, at least `min(40svh, 560px)`; from 641px wide on a screen taller than wide, the window drops its screen height and the cells keep a 2 : 1.15 shape rather than stretch. A short phone tightens its spaces and flattens the cells, so the button and the state still reach the screen, and under Safari's bars on a phone held sideways the title takes `--fs-body`. The cells take focus and turn with a drag or the arrow keys. Without WebGL they are drawn with Canvas 2D (see [Moments](#moments)). The note under the window (`.sw-foot-note`) keeps a caption's measure on the column's left edge. Its sentences about the drawn cell, and the clause about the sparks in the paragraph before the window, are `.sw-cell-note`, which leaves with the cells |
-| Tip | `.tip` | The one inverted surface: a fill of ink with words in the page's color, `--r-sm`, `--tip-shadow`, at most 260px wide. It speaks over a figure, so it stands apart from it. A mouse tip takes the pointer once the pointer has rested 0.4s on its mark, so the reader can move onto it, and waits 0.3s after the pointer leaves the mark. A tap's tip sits above the finger, or beside it on the roomier side when the bar leaves no room above. Escape and any scroll close a tip. On the stage it is the stage's ink with words in the stage's color |
+| Frame | `.tour-view`, `.tour-map` | `--r-sm` with a ring at `--wash-2`: a picture's edge is part of the data. Figure 1 is drawn on white, so its frames keep the light theme's `--surface`, `--ink` and `--ink-3` in both themes |
+| Map part | `.map-r` | A part of the Figure 1 map, as a button: `--r-xs` with a dashed edge of ink-3 at 85%. Its ink at 7% on hover and 13% pressed, and when chosen a 2px ink ring over the ink at 7%. Its focus ring sits 1px outside it. A part shorter than 24px grows to 24px about its middle, for a finger, and a part it would overlap gives way |
+| Stage window | `.stage-window` | The repack's moment inside the page: a white sheet (`--surface`, `--sheet-shadow`) the full width of the screen and, on a screen wider than it is tall, the height of the screen under the bar, at most 1040px, so the whole moment fits in one view; `--sheet-r` corners. Its words sit on the page's grid, clear of the safe areas. Its foot holds the primary button (Repack the memory, then Restore the training layout), the Pause motion button and the state, whose dot turns from ink-3 to the ink once the memory is repacked. The state line holds its two longest states unseen in the same place (`.sw-hold`), so the window keeps one height, and its foot one layout, through the whole repack. The cells take what the window leaves, at least `min(40svh, 560px)`; from 641px wide on a screen taller than wide, the window drops its screen height and the cells keep a 2 : 1.15 shape rather than stretch. A short phone tightens its spaces and flattens the cells, so the button and the state still reach the screen, and under Safari's bars on a phone held sideways the title takes `--fs-body`. The cells take focus and turn with a drag or the arrow keys. Without WebGL they are drawn with Canvas 2D (see [Moments](#moments)). The note under the window (`.sw-foot-note`) keeps a caption's measure on the column's left edge. Its sentences about the drawn cell, and the clause about the sparks in the paragraph before the window, are `.sw-cell-note`, which leaves with the cells |
+| Tip | `.tip` | The one inverted surface: a fill of ink with words in the page's color, `--r-sm`, `--tip-shadow`, at most 260px wide. It speaks over a figure, so it stands apart from it. A mouse tip takes the pointer once the pointer has rested 0.4s on its mark, so the reader can move onto it, and waits 0.3s after the pointer leaves the mark. A tap's tip sits above the finger, or beside it on the roomier side when the bar leaves no room above. Escape and any scroll close a tip |
 | Meter | `.meter`, `.meter-row`, `.logit-row` | A 12px `--track` with a fill in its series' mark color, `--r-xs`; where there is a chance level, a 1.5px ink tick marks it. In a row, a label (`.small.muted`), the track and the value, set as a readout's value, in a column of fixed width (6ch, or 5ch for the two logits), so meters on one scale share a length. Inside a chart (the probes) a bar is drawn as a meter |
 | Dot | `.dot` | A 10px key: `.teal`, `.coral` and `.warm` take the series' mark color, `.lav` the lavender. `.dot.ring.warm`, a ring of `--warm-mark`, is a baseline (the U-Net), drawn the same way in its chart, so it reads apart by shape as well as color |
 | Table | `table.data` | Rules in `--grid` between rows, cells in ink-2, headers in Inter 500 ink-3, the first cell of each row its header, numbers right-aligned in tabular figures, and a caption for screen readers. A mean row (`.has-total`) is 600, with a `--rule` above it. At 640px and below the headers wrap |
 | Scroller | `.math-display`, `.table-wrap` | A formula or a table wider than its column scrolls sideways and fades out over 32px at the edge where more of it lies (24px on the left), from `more-l` and `more-r`, which app.js sets. While it overflows it is a Tab stop, named for what it holds, or a display equation by its place (Equation 3) |
 | Equation | `.math` | A MathJax drawing with a spoken label in words and its TeX in `data-tex`, after a hidden plain-text copy of it, so it can be copied and found |
-| Link list | `.end-col a` | The colophon's Read and Chapters: plain ink links that turn mint-ink on hover. Each link fills its row, 29px tall for a mouse and 44px for a finger, with no gap between rows, and its focus ring takes `--r-sm` corners. Links in running text keep their underline. Every link eases its color over `--t-1` |
+| Link list | `.end-col a` | The colophon's Read and Chapters: plain ink links, underlined on hover. Each link fills its row, 29px tall for a mouse and 44px for a finger, with no gap between rows, and its focus ring takes `--r-sm` corners. Links in running text keep their underline. Every link eases its color over `--t-1` |
 
 The interactive states are the same everywhere. Hover adds one wash step; an option in a tray takes
-`--wash-1`, since its tray is `--wash-2`. Pressing adds another: `--wash-4`, `--teal-3` on a primary
+`--wash-1`, since its tray is `--wash-2`. Pressing adds another: `--wash-4`, the ink at 68% on a primary
 button and `--wash-2` on an option, for a mouse and a finger alike, and the pressed rules come after
-the hover rules. A part of a figure (the Figure 1 map) takes teal fills instead of washes. Hover
+the hover rules. A part of a figure (the Figure 1 map) takes the same steps, mixed from the figure's
+own dark ink. Hover
 styles apply only where a pointer can hover, so they never stick after a tap; a finger gets a press
 to 97% instead.
 
-The focus ring is a 2px mint-ink outline at a 3px offset that follows the control's own corners (2px,
-since Chrome draws a 2.5px outline at 2px anyway). It is resolved where the focus is, so on the stage it
-is the stage's mint. In a tray it sits at offset 0, filling the gap between options and nesting inside
+The focus ring is a 2px outline in the ink, black on the light page and near-white on the dark one, at
+a 3px offset that follows the control's own corners (2px, since Chrome draws a 2.5px outline at 2px
+anyway). In a tray it sits at offset 0, filling the gap between options and nesting inside
 the tray's corners. A large block that takes the keyboard (the title, the repack cells) and a row of the
 colophon's link lists give their ring `--r-sm` corners. Inside the contents, where an outline would
 crowd the rows, the focused row gets a fill and an inner ring instead. The opening's sculpture reaches
 under the words, so the same ring goes around its field, 12px inside it, with corners of `--r-xl` plus
-12px. A focusable mark in an SVG (a rotary token) draws its ring as a 2.5px mint-ink stroke that does
+12px. A focusable mark in an SVG (a rotary token) draws its ring as a 2.5px ink stroke that does
 not scale, the one other width. A heading that takes focus after a choice in the contents shows no ring.
 
 On a coarse pointer every button, option and disclosure is 44px to hit without being drawn larger,
 through a band its `::after` adds above and below it: 4px for a full button, and 7px for a small one, a
-disclosure and an option. The wordmark's band is 5px, so its 34px are 44px, the height of the compact
-bar, and the chapter's name in the bar is 45px to hit. The contents' rows, 45px under a finger, and
+disclosure and an option. The logo's band is 5px, so its 38px (34px as the mark) are 44px or more, and
+the chapter's name in the bar is 45px to hit. The contents' rows, 45px under a finger, and
 the colophon's link rows, 44px, get there through their own padding. A mark thinner than a finger, the
 closing word's 14px memory ribbon, answers 10px above and below it. A rotary token's grab margin grows
 as the grid shrinks, so the token is 46px to hit at any size, and with a token picked, a tap in a
@@ -429,14 +426,13 @@ figure neither selects the words beside it nor offers to save the picture.
 Lines carry information. These are the only places they appear:
 
 - chart axes and grids, the rules between table rows, and the rule above a mean row;
-- the hairline under the top bar, which also shows reading progress in teal;
-- the page's 1px rim where it meets the stage (`--page-rim-top`, `--page-rim-bottom`);
+- the hairline under the top bar, which also shows reading progress in ink;
 - the dividers inside the contents menu and in the colophon at the end;
 - the edge of a menu, the ring of a frame, a badge's outline, and the ring of the chosen option in a
   tray;
 - the short rule that leads a dashed eyebrow, and a meter's tick at chance;
 - the dashed parts of the Figure 1 map, which trace the figure's own dashed boxes, and the solid
-  rings of the chosen part (2px) and of the tour's spotlight (1.5px), in `--teal-mark`. The dashed
+  rings of the chosen part (2px) and of the tour's spotlight (1.5px), in ink. The dashed
   parts are the only dashed lines outside the figures and charts.
 
 A sheet, card, stat, readout, code block, button or tray never gets an outline. The fade at the edge
@@ -448,7 +444,7 @@ Three figures each take most of a screen, as pauses in the story, and together t
 
 | Moment | Where | What it shows |
 | :--- | :--- | :--- |
-| Paths | The opening, `.hero` (`initPaths`) | The premise: to store a 3D field you draw one path through it. One glowing path joins memory position *i* to *i* + 1 through 512 tokens and morphs through raster, Morton, Hilbert, blocks and a repack while the volume turns |
+| Paths | The opening, `.hero` (`initPaths`) | The premise: to store a 3D field you draw one path through it. One path, in ink on the light page and in light on the dark one, joins memory position *i* to *i* + 1 through 512 tokens and morphs through raster, Morton, Hilbert, blocks and a repack while the volume turns |
 | Two readings | The first screen of the paper, `#readings` (`initReadings`) | The idea: every letter of the title is a token with a place on the page and a place in memory, threaded together. The storage order rearranges the memory line; the words stay put |
 | Repack | Chapter 5, a stage window, `#repackStage` (`initRepackStage`) | The evidence: one crop's 262,144 positions under each model. After the repack, one spark for each changed prediction, at the paper's rates: about 18 for PACK3D, about 3,215 for packed RoPE |
 
@@ -485,21 +481,21 @@ the screen reorders a moment's parts, initPaths and initReadings move them in th
 a screen reader meet them in the order they are seen, and the stylesheet sets the same order for the
 first paint. A drag turns a figure only when it is sideways, so the page still scrolls and pinches.
 
-The opening and the title draw with Canvas 2D; if the browser refuses the opening a canvas, the
-opening keeps its words and drops its caption and orders. The repack draws the cell as soft points,
-added together like light, with WebGL, on a canvas it makes when the figure is built, because Mobile
-Safari can refuse WebGL to a canvas that has sat in the page for a while. If WebGL is refused, it asks
-again a frame later on another new canvas, then draws the same points with Canvas 2D, as a still frame
-that is drawn again whenever the reader turns the cells or presses the button. A lost context is
+The opening and the title draw with Canvas 2D; if the browser refuses the opening a canvas, the opening
+keeps its words and drops its caption and orders. The repack draws the cell as soft points with WebGL
+(see [Figures on paper](#figures-on-paper)), on a canvas it makes when the figure is built, because
+Mobile Safari can refuse WebGL to a canvas that has sat in the page for a while. If WebGL is refused, it
+asks again a frame later on another new canvas, then draws the same points with Canvas 2D, as a still
+frame that is drawn again whenever the reader turns the cells or presses the button. A lost context is
 rebuilt: in place if the browser gives it back, otherwise on a new canvas after 1.5 seconds, or 0.3
-seconds after the reader returns to the page. After three refusals or early losses (within 5 seconds
-of a start) in a row, the figure stays on Canvas 2D. With no canvas at all, a sentence takes the cells'
+seconds after the reader returns to the page. After three refusals or early losses (within 5 seconds of
+a start) in a row, the figure stays on Canvas 2D. With no canvas at all, a sentence takes the cells'
 place, and the counts, the strips and the button still work. These four paths, a new canvas for each
-attempt, the retry, Canvas 2D and the recovery from a lost context, are what keeps the figure drawing
-on an iPhone; a change to the window must keep all four. The volume is made in a worker as the reader
-comes within 1,500px of the window, with the counts of each class along every row of 64 positions, from
-which the memory strips are mixed; the window's first layout waits two frames after the volume
-arrives, so making it never holds up the page.
+attempt, the retry, Canvas 2D and the recovery from a lost context, are what keeps the figure drawing on
+an iPhone; a change to the window must keep all four. The volume is made in a worker as the reader comes
+within 1,500px of the window, with the counts of each class along every row of 64 positions, from which
+the memory strips are mixed; the window's first layout waits two frames after the volume arrives, so
+making it never holds up the page.
 
 ## Figures
 
@@ -527,14 +523,14 @@ a screen reader (`role="img"`), named for what it shows, with its numbers in the
 table, which `tableFrom()` builds with a hidden caption, column headers and row headers.
 
 The lab, the title figure, the opening, the repack window and the closing word draw on canvases. Each
-lays itself out when its size, the pixel ratio or the fonts change, rather than in its frames. The lab,
-the title figure and the result chart repaint at once when the theme changes (`onTheme`); the other
-charts color their marks with the tokens through CSS, which follow the theme by themselves, and the
-figures on the stage keep their colors in both themes. The lab's two views hold their final heights in
-the stylesheet too, mirroring the script's layout: eight slices to a row from 880px for a mouse and from
-1000px for a finger, four from 560px, two below. On a touch screen held sideways the slices keep two
-rows of four inside the screen under the bar, never narrower than 560px, so a token stays big enough
-for a finger. Below 361px the lab's four orders sit two by two, so no order is squeezed.
+lays itself out when its size, the pixel ratio or the fonts change, rather than in its frames. Each of
+them, and the result chart, repaints at once when the theme changes (`onTheme`); the other charts color
+their marks with the tokens through CSS, which follow the theme by themselves. The lab's two views hold
+their final heights in the stylesheet too, mirroring the script's layout: eight slices to a row from
+880px for a mouse and from 1000px for a finger, four from 560px, two below. On a touch screen held
+sideways the slices keep two rows of four inside the screen under the bar, never narrower than 560px, so
+a token stays big enough for a finger. Below 361px the lab's four orders sit two by two, so no order is
+squeezed.
 
 The rotary grid is a 320-unit square that scales with its sheet; app.js sets `--u`, the units in one CSS
 pixel, so its memory positions keep the data-label size on every screen. The grid, its axes and its
@@ -553,50 +549,65 @@ while a part is open, a part chosen again from the map zooms back out and hands 
 At the end, the closing word's tray sits on the left and Build it again on the right; when they wrap,
 each row starts at the left.
 
-## The dark stage
+## Figures on paper
 
-The opening (`.hero`), the stage window (`.stage-window`), the end (`.end`), the top bar while the
-stage is under its lower edge (`.topbar.on-stage`, `.topbar.on-end`, which app.js sets) and, without
-JavaScript, the note above the opening (`.noscript-note`) use the stage's tokens, in both themes. They
-point the page's tokens at the stage's: `--bg` is `--stage-bg` `#060A09`, `--ink` `#EEF3F1`, `--ink-2`
-`#B4BEBA`, `--ink-3` `#8C9A95`, `--teal` and `--teal-mark` `#19AC8B`, and `--mint-ink` `#5FE0C3`.
+The page is one paper from the opening to the end. The opening and the end lie on the page itself, and
+the repack window is a white sheet, like every figure's, the full width of the screen. The moments that
+drew on a dark stage draw in ink on the light page and in light on the dark one, from the same tokens
+(the memory ramp, `--spark-a` and `--spark-b`, the ink and the paper), and repaint when the theme
+changes:
 
-The stage also sets values of its own: `--surface` `#151C1A`, `--surface-2` `#101614`, `--rule` its
-ink at 14%, `--coral` and `--coral-mark` `#FF7276`, `--coral-ink` `#FF9A9E`, `--tint-teal` `#1F5F51`,
-`--lift` its ink at 14% with no shadow, `--pop` `#121917` with an edge at 9% and a deeper shadow, and
-a dark color scheme. Its coral is brighter than the dark page's `#C9474F`: on the stage, packed RoPE
-keeps the light page's coral in both themes. It mixes its washes and teal fills again from its own ink
-and teal, so any button, tray or menu placed on it works without styles of its own. Text selected on
-the stage keeps the stage's full ink over the deep teal.
+- The opening's path is laid on in the memory ramp, its head an ink dot ringed in the paper. On the
+  dark page the same path is added as light, and its head is a white light.
+- The repack window's cell is drawn in one tone, from its shades' luminance. On the light page each soft
+  point multiplies the sheet by its ink, the negative of the dark page, where the points add up as
+  light, so the membrane and the nucleus read as they do in light. WebGL clears to the sheet's paper and
+  blends with `ZERO, ONE_MINUS_SRC_COLOR`, keeping the canvas opaque; Canvas 2D fills its layer with the
+  paper and draws with `multiply`. The changed predictions take `--spark-a` and `--spark-b`; PACK3D's
+  few each sit on a disc of paper inside their ring, so they read through the cell.
+- The memory strips under the cells take the memory ramp: the outside nearly the sheet, then the
+  cytoplasm, the organelles and, deepest, the nucleus.
+- The closing word's cubes take the memory ramp, with the paper between their faces; its trail and
+  head, a picked cube's outline and the ribbon's marks are in the ink. A light glows on the dark page;
+  ink does not.
 
-Behind each figure is a lavender lamp, `--lamp` mixed at 17% in the opening, 16% in the stage window,
-and from 26% down to 8% at the end. Text laid over a figure has a halo of `--stage-halo`; the title's
-is `--stage-bg` at 85%. Memory order in the opening and the end runs from `--mem-0` to `--mem-4`.
-Where the page lifts off the stage, its rim draws the edge. The browser's own chrome follows the bar:
-the page's background past either end is the stage's, and so is the strip under a phone's status bar
-(past the end the body takes the stage's color too, since Safari tints its toolbar's strip from the
-body), and app.js sets the theme color to the stage's or the page's, whichever is under the bar.
+Words laid over a figure keep a halo of the paper (`--halo`). The bar has one look over the whole page,
+and the browser's own chrome takes the page's color (the `theme-color` tags, `#F4F4F4` and `#0E0E0E`).
 
-The root element is the one place the stage's color is written out. `html.at-top` and `html.at-end` set
-the background to the literal `#060A09`, the value of `--stage-bg`, not `var(--stage-bg)`: a `var()` on
-the root, switched by a class, restyles the whole document at each switch of the bar's scope, a long
-style pass right where the opening hands over to the page and where the page hands over to the end. Keep
-the two literals in step with `--stage-bg`, as the `theme-color` tags in the head keep theirs (the
-stage's `#060A09`, and the page's `#F3F5F4` and `#0B0F0E`).
-
-A missing address shows `404.html`: the stage alone, dark in both themes, with the bar's wordmark, an
-eyebrow led by its dash (which this short eyebrow keeps at every width), a display line at 320, a
-sentence in ink-2 and three buttons, to the paper's page (primary), the paper on arXiv (ghost) and the
-code (plain), which wrap, balanced and centered, like the page's. It stands by itself, with copies of
-the tokens it uses (the stage's colors, the washes and teal fills mixed from them, `--fs-label`,
-`--fs-control`, `--fs-title`, `--ls-control`, `--wide`, `--gutter`, `--bar-h` with its 44px on a phone
-held sideways, `--s-3`, `--r-sm`, `--ease` and `--t-1`), the opening's lamp at 17%, the page's focus
-ring and its touch rules: no grey flash on a tap, a press to 97% where nothing can hover, 44px hit bands
-on a coarse pointer, and in a contrast theme a `ButtonText` edge and a dash in `CanvasText`. Its other
-spaces are its own (20px between its parts, 8px between and above its buttons); on a phone held sideways
-and 340px tall or less (Safari's toolbars showing), its title steps down to 12svh at most and its spaces
-to `--s-3`, so the way back stays on the first screen. GitHub Pages serves it at any depth, so its links
+A missing address shows `404.html`: the paper alone, light or dark with the system, with the bar's
+logo, an eyebrow led by its dash (which this short eyebrow keeps at every width), a display line at
+320, a sentence in ink-2 and three buttons, to the paper's page (primary), the paper on arXiv (ghost)
+and the code (plain), which wrap, balanced and centered, like the page's. It stands by itself, with
+copies of the tokens it uses (the page's colors in both themes, the washes mixed from them,
+`--fs-label`, `--fs-control`, `--fs-title`, `--ls-control`, `--wide`, `--gutter`, `--bar-h` with its
+44px on a phone held sideways, `--s-3`, `--r-sm`, `--ease` and `--t-1`), the page's focus ring and its
+touch rules: no grey flash on a tap, a press to 97% where nothing can hover, 44px hit bands on a coarse
+pointer, and in a contrast theme a `ButtonText` edge and a dash in `CanvasText`. Its other spaces are
+its own (20px between its parts, 8px between and above its buttons); on a phone held sideways and
+340px tall or less (Safari's toolbars showing), its title steps down to 12svh at most and its spaces to
+`--s-3`, so the way back stays on the first screen. GitHub Pages serves it at any depth, so its links
 are absolute. Keep its copies in step with the page's tokens.
+
+## Logo
+
+The logo is the closing word itself: PACK3D in letters of 5 by 7 cubes, seen by the closing word's
+camera and shaded in three greys instead of the memory ramp, so the word that ends the page is the name
+it carries. Fronts are the ink, tops `--logo-top` and sides `--logo-side`; on the dark page the fronts
+turn near-white. [tools/logo.py](../tools/logo.py) makes every form of it:
+
+- `website/logo.svg`, the full logo: three cubes deep, as the closing word is, with a seam of the paper
+  between every cube's faces, light or dark with the reader's scheme. The link-preview card
+  ([tools/social_card.html](../tools/social_card.html)) shows it under the paper's title.
+- The bar's logo, inline in `index.html` and `404.html`: two cubes deep and 22px tall, each run of faces
+  one shape and no seams, so its letters stay open and crisp at that size. It takes its greys from the
+  `--logo-*` tokens, so it follows the theme. It draws its sides, then its tops, then its fronts: no
+  front is ever hidden by a side or a top, so that order draws what the painter's order draws.
+- The mark, one cube in the classic three-face view: the favicon (`favicon.svg`, light and dark, with
+  `favicon-32.png` and `apple-touch-icon.png` drawn from it), and the bar's logo below 375px or where
+  large text leaves the bar narrower than 19em.
+
+The logo is a name, not a figure: it carries no data, so it has no color. The closing figure keeps its
+memory ramp, since there a cube's color says where it sits in memory.
 
 ## Contrast themes and print
 
@@ -623,9 +634,8 @@ A4 column inside its margins), the lab's views are drawn for the same width and 
 proportions, the result chart shows its repack done, and two sheets side by side print one under the
 other; after printing, the screen's widths come back.
 
-The stage, the stage window and the end take the page's palette and drop their dark fills, and the
-root and the body drop the stage's color behind the page, so nothing prints as a black block, even
-from the end with background graphics on. What moves or answers a pointer is left out: the bar and
+The page drops its grey and the repack window its sheet's fill and shadow, so the paper stays white,
+even with background graphics on. What moves or answers a pointer is left out: the bar and
 tips, the opening's sculpture and its controls, the link buttons under the opening and the title
 figure, the title figure's note, trays, rows of controls and the motion buttons, Replay, the tour's
 buttons, map and step count, the repack window's cells, counts and foot, the closing word, the
@@ -646,8 +656,8 @@ than a page, breaks only between its grid and its dials.
 
 ### Without JavaScript
 
-Without JavaScript the page reads in full, and nothing on it offers what cannot work. A note on the
-stage above the opening says the figures need JavaScript. The `noscript` style hides the controls that
+Without JavaScript the page reads in full, and nothing on it offers what cannot work. A note above the
+opening says the figures need JavaScript. The `noscript` style hides the controls that
 would do nothing (trays, rows of controls, the motion buttons, the tour's buttons, map and step count,
 Replay, the disclosures, Copy BibTeX and the contract's checkboxes), the figures and frames the script
 draws (the opening's field, the title's memory row and its note, the whole lab and the whole
@@ -660,7 +670,7 @@ from the keyboard, and the italic is declared there, since app.js would otherwis
 
 ## Accessibility
 
-- **One ring.** Every control shows the 2px mint-ink focus ring on the keyboard (see
+- **One ring.** Every control shows the 2px ink focus ring on the keyboard (see
   [Components](#components)), and a focused control never lands under the bar.
 - **Every control works from the keyboard.** A tray is one Tab stop whose arrow keys, Home and End move
   the choice. The 3D views turn with the arrow keys; the title and the closing word are sliders; the
@@ -681,18 +691,18 @@ from the keyboard, and the italic is declared there, since app.js would otherwis
 - **Hover content can be read and dismissed.** A mouse can move onto a tip, a tip waits 0.3s after the
   pointer leaves its mark, and Escape or a scroll closes it.
 - **Targets fit a finger.** Under a coarse pointer every button, option, disclosure and link row, the
-  wordmark, the contents' rows and the rotary tokens are 44px or more to hit, through `::after` bands,
+  logo, the contents' rows and the rotary tokens are 44px or more to hit, through `::after` bands,
   padding or a grab margin, and nothing is drawn larger for it; rows that wrap keep their bands apart
   (see [Components](#components)). The exceptions are the skip link while it is hidden, links inside
   running text, the Figure 1 map's parts (24px at least) and an equation that scrolls.
 - **Text can grow.** With large text or a reader's own text spacing, labels wrap rather than spill, a
   card breaks a long word, the dial rows hold fewer dials, the title figure's title shrinks just enough
-  to stay in its sheet, and the bar gives the chapter's name the wordmark's room, then the room of its
+  to stay in its sheet, and the bar gives the chapter's name the logo's room, then the room of its
   Code and Paper links. The page never scrolls sideways.
 - **Motion can stop.** Pause motion stops every figure that moves on its own, and reduced motion makes
   every change instant (see [Motion](#motion)).
 - **Contrast holds.** At rest, text keeps 4.5:1 against what it sits on (a large title 3:1), in both
-  themes and on the stage; mint-ink is 5:1 or more on the light page and its sheets; a mark is 3:1 or
+  themes; ink-3, the lightest text, is 5:1 or more on the light page and its sheets; a mark is 3:1 or
   more against its sheet; and a contrast theme draws again what fills drew.
 
 ## Performance
@@ -700,8 +710,6 @@ from the keyboard, and the italic is declared there, since app.js would otherwis
 The benchmark run during the redesign found the site far lighter to run than the original. These rules
 keep it that way.
 
-- **The root's background is a literal.** `html.at-top` and `html.at-end` write the stage's color as
-  `#060A09` (see [The dark stage](#the-dark-stage)).
 - **Nothing new runs in a scroll or a frame.** While the page scrolls, the bar does one update a frame,
   and it reads every measure before it writes anything, so a scroll forces a layout only when the
   chapter changes, to replay the name's arrival. Which names fit the bar is measured once per width,
@@ -761,6 +769,6 @@ keep it that way.
   height that must fit under the bar with `var(--bar-h)`, and repaint at once in a theme callback.
 - Give a finger 44px through `::after` bands, and where one control wraps under another, a row gap
   that holds both bands. Add no work to a scroll or a frame: lay a figure out when its size changes.
-- Check it in light, in dark and on the stage, at phone width and on a phone held sideways (667 by 375,
+- Check it in light and in dark, at phone width and on a phone held sideways (667 by 375,
   844 by 390, 932 by 430, and 874 by 292, Safari with its toolbars), with a mouse, a finger and the
   keyboard, with large text, in a contrast theme, on paper from either theme, and without JavaScript.

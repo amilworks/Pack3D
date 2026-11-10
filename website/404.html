@@ -5,24 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Page not found · PACK3D</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#060A09">
+<meta name="theme-color" content="#F4F4F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0E0E" media="(prefers-color-scheme: dark)">
 <!-- GitHub Pages serves this page for any missing address, at any depth, so every URL here is absolute -->
-<link rel="icon" href="https://amilworks.github.io/Pack3D/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="https://amilworks.github.io/Pack3D/favicon-32.png" type="image/png" sizes="32x32">
-<link rel="apple-touch-icon" href="https://amilworks.github.io/Pack3D/apple-touch-icon.png">
+<link rel="icon" href="https://amilworks.github.io/Pack3D/favicon.svg?v=2" type="image/svg+xml">
+<link rel="icon" href="https://amilworks.github.io/Pack3D/favicon-32.png?v=2" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="https://amilworks.github.io/Pack3D/apple-touch-icon.png?v=2">
 <style>@font-face{font-family:"Inter";src:url(https://amilworks.github.io/Pack3D/fonts/inter-latin-standard-normal.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
 <style>
-/* A missing page shows only the stage the paper's page lies on: dark in both themes, with the stage's tokens
-   (docs/design-system.md, "The dark stage"), the bar's wordmark, one line and the way back. */
+/* A missing page: the paper's page in brief, on the same paper, light or dark with the system (docs/design-system.md),
+   with the bar's wordmark, one line and the way back. */
 :root {
-  --bg: #060A09; --surface: #151C1A; --ink: #EEF3F1; --ink-2: #B4BEBA; --ink-3: #8C9A95;
-  --teal: #19AC8B; --mint-ink: #5FE0C3; --tint-teal: #1F5F51; --lamp: #8062DC;
+  --bg: #F4F4F4; --surface: #FFFFFF; --ink: #111111; --ink-2: #464646; --ink-3: #666666; --select: #D6D6D6;
+  --logo-front: var(--ink); --logo-top: #BDBDBD; --logo-side: #555555;
   --wash-2: color-mix(in oklab, var(--ink) 7%, transparent);
   --wash-3: color-mix(in oklab, var(--ink) 10%, transparent);
   --wash-4: color-mix(in oklab, var(--ink) 14%, transparent);
-  --teal-1: color-mix(in oklab, var(--teal) 15%, transparent);
-  --teal-2: color-mix(in oklab, var(--teal) 22%, transparent);
-  --teal-3: color-mix(in oklab, var(--teal) 28%, transparent);
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --fs-label: 0.75rem;
   --fs-control: 0.9rem;
@@ -35,7 +33,14 @@
   --r-sm: 10px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --t-1: 0.15s;
-  color-scheme: dark;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E0E0E; --surface: #171717; --ink: #EDEDED; --ink-2: #BDBDBD; --ink-3: #9A9A9A; --select: #3B3B3B;
+    --logo-top: #A6A6A6; --logo-side: #5E5E5E;
+    color-scheme: dark;
+  }
 }
 @media (orientation: landscape) and (max-height: 500px) { :root { --bar-h: 44px; } }
 * { box-sizing: border-box; }
@@ -44,11 +49,10 @@ body {
   margin: 0; min-height: 100svh; display: flex; flex-direction: column;
   color: var(--ink); font-family: var(--font); font-size: 1.05rem; line-height: 1.62; letter-spacing: -0.004em;
   -webkit-font-smoothing: antialiased;
-  /* the stage's one lamp, as behind the opening */
-  background: radial-gradient(52% 62% at 69% 47%, color-mix(in srgb, var(--lamp) 17%, transparent), transparent 72%), var(--bg);
+  background: var(--bg);
 }
-:focus-visible { outline: 2px solid var(--mint-ink); outline-offset: 3px; }
-::selection { background: var(--tint-teal); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+::selection { background: var(--select); color: var(--ink); }
 /* the content sits on the page's grid: the wide column, with the gutters outside it */
 .bar, .lost {
   padding-left: max(var(--gutter), env(safe-area-inset-left, 0px), (100% - var(--wide)) / 2);
@@ -61,10 +65,10 @@ body {
   font-weight: 600; font-size: var(--fs-title); line-height: 1; letter-spacing: -0.012em;
   transition: background-color var(--t-1) var(--ease);
 }
-.wordmark svg { width: 18px; height: 18px; }
+.wordmark .logo { display: block; width: auto; height: 22px; }   /* tools/logo.py */
 .lost { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 20px; padding-block: clamp(40px, 9vh, 120px); }
 .eyebrow {
-  display: flex; align-items: center; gap: 10px; margin: 0; color: var(--mint-ink);
+  display: flex; align-items: center; gap: 10px; margin: 0; color: var(--ink-2);
   font-weight: 600; font-size: var(--fs-label); letter-spacing: 0.12em; text-transform: uppercase;
 }
 .eyebrow::before { content: ""; width: 22px; height: 1.5px; background: currentColor; flex: none; }
@@ -79,17 +83,17 @@ p { margin: 0; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; max-width: 100%; text-align: center; text-wrap: balance; text-decoration: none;
   font: 500 var(--fs-control)/1.2 var(--font); letter-spacing: var(--ls-control); padding: 10px 16px; border-radius: 999px;
-  color: var(--mint-ink); background: var(--teal-1); -webkit-user-select: none; user-select: none;
+  color: var(--surface); background: var(--ink); -webkit-user-select: none; user-select: none;
   transition: background-color var(--t-1) var(--ease), color var(--t-1) var(--ease);
 }
 .btn.ghost { color: var(--ink); background: var(--wash-2); }
 .btn.plain { color: var(--ink-2); background: transparent; }
 @media (hover: hover) {
   .wordmark:hover, .btn.plain:hover { color: var(--ink); background: var(--wash-2); }
-  .btn:hover { background: var(--teal-2); }
+  .btn:hover { background: color-mix(in oklab, var(--ink) 80%, var(--surface)); }
   .btn.ghost:hover { background: var(--wash-3); }
 }
-.btn:active { background: var(--teal-3); }
+.btn:active { background: color-mix(in oklab, var(--ink) 68%, var(--surface)); }
 .btn.ghost:active, .btn.plain:active, .wordmark:active { background: var(--wash-4); }
 /* a finger: no grey flash on a tap, a press to 97% instead of a hover, and 44px to hit without anything drawn larger */
 a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -100,7 +104,7 @@ a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 @media (any-pointer: coarse) {
   .btn, .wordmark { position: relative; }
   .btn::after { content: ""; position: absolute; inset: -4px 0; }      /* 37px tall */
-  .wordmark::after { content: ""; position: absolute; inset: -5px 0; } /* 34px tall */
+  .wordmark::after { content: ""; position: absolute; inset: -3px 0; } /* 38px tall */
 }
 /* a phone on its side with its browser's bars showing (874 x 292): the title a step smaller and the spaces tighter,
    so the way back is on the first screen */
@@ -120,8 +124,7 @@ a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <body>
 <header class="bar">
   <a class="wordmark" href="https://amilworks.github.io/Pack3D/" aria-label="PACK3D, the paper's page">
-    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 18 6v8.6L10 19 2 14.6V6z" fill="var(--teal)"/><path d="M10 1.5 18 6l-8 4.4L2 6z" fill="var(--mint-ink)" opacity=".55"/><path d="M10 10.4V19" stroke="var(--surface)" stroke-width="1.2"/></svg>
-    <span>PACK3D</span>
+    <svg class="logo" viewBox="0 0 69.56 22" width="69.6" height="22" aria-hidden="true"><path fill="var(--logo-side)" d="M26.64 4.52L25.37 5.70L25.37 15.95L26.64 14.78ZM69.56 8.71L68.30 9.88L68.30 20.14L69.56 18.97ZM3.22 8.40L1.95 9.57L1.95 15.72L3.22 14.55ZM3.22 2.24L1.95 3.41L1.95 7.52L3.22 6.35ZM14.93 9.54L13.66 10.71L13.66 16.86L14.93 15.69ZM14.93 3.38L13.66 4.55L13.66 8.66L14.93 7.49ZM38.34 11.82L37.08 12.99L37.08 19.15L38.34 17.98ZM38.34 3.61L37.08 4.78L37.08 10.94L38.34 9.77ZM55.91 17.64L54.64 18.81L54.64 20.86L55.91 19.69ZM55.91 11.48L54.64 12.65L54.64 14.70L55.91 13.53ZM55.91 5.33L54.64 6.50L54.64 8.55L55.91 7.38ZM9.07 6.92L7.81 8.09L7.81 10.14L9.07 8.97ZM9.07 0.76L7.81 1.93L7.81 3.98L9.07 2.81ZM57.86 13.72L56.59 14.89L56.59 19L57.86 17.83ZM57.86 7.57L56.59 8.74L56.59 12.84L57.86 11.67ZM61.76 7.95L60.49 9.12L60.49 19.38L61.76 18.21ZM34.44 15.54L33.17 16.71L33.17 18.77L34.44 17.60ZM34.44 3.23L33.17 4.40L33.17 6.46L34.44 5.29ZM67.61 18.78L66.34 19.95L66.34 22L67.61 20.83ZM67.61 6.47L66.34 7.64L66.34 9.69L67.61 8.52ZM46.15 16.69L44.88 17.86L44.88 19.91L46.15 18.74ZM46.15 4.37L44.88 5.55L44.88 7.60L46.15 6.43ZM11.02 3L9.76 4.17L9.76 8.28L11.02 7.11ZM22.73 4.14L21.46 5.31L21.46 17.63L22.73 16.45ZM42.25 12.20L40.98 13.37L40.98 15.42L42.25 14.25ZM42.25 8.10L40.98 9.27L40.98 11.32L42.25 10.15ZM44.20 14.44L42.93 15.61L42.93 17.67L44.20 16.49ZM44.20 6.24L42.93 7.41L42.93 9.46L44.20 8.29ZM40.29 9.96L39.03 11.13L39.03 13.18L40.29 12.01ZM20.78 1.90L19.51 3.07L19.51 5.12L20.78 3.95Z"/><path fill="var(--logo-top)" d="M1.27 0L9.07 0.76L7.81 1.93L0 1.17ZM14.93 1.33L20.78 1.90L19.51 3.07L13.66 2.50ZM26.64 2.47L34.44 3.23L33.17 4.40L25.37 3.64ZM36.39 3.42L38.34 3.61L37.08 4.78L35.12 4.59ZM44.20 4.18L46.15 4.37L44.88 5.55L42.93 5.36ZM48.10 4.56L55.91 5.33L54.64 6.50L46.83 5.74ZM59.81 5.71L67.61 6.47L66.34 7.64L58.54 6.88ZM9.07 2.81L11.02 3L9.76 4.17L7.81 3.98ZM12.98 3.19L14.93 3.38L13.66 4.55L11.71 4.36ZM20.78 3.95L22.73 4.14L21.46 5.31L19.51 5.12ZM24.68 4.33L26.64 4.52L25.37 5.70L23.42 5.51ZM42.25 6.05L44.20 6.24L42.93 7.41L40.98 7.22ZM55.91 7.38L57.86 7.57L56.59 8.74L54.64 8.55ZM67.61 8.52L69.56 8.71L68.30 9.88L66.34 9.69ZM3.22 6.35L9.07 6.92L7.81 8.09L1.95 7.52ZM14.93 7.49L20.78 8.06L19.51 9.23L13.66 8.66ZM38.34 9.77L40.29 9.96L39.03 11.13L37.08 10.94ZM50.05 10.91L55.91 11.48L54.64 12.65L48.78 12.08ZM26.64 14.78L34.44 15.54L33.17 16.71L25.37 15.95ZM44.20 16.49L46.15 16.69L44.88 17.86L42.93 17.67ZM48.10 16.88L55.91 17.64L54.64 18.81L46.83 18.05ZM61.76 18.21L67.61 18.78L66.34 19.95L60.49 19.38ZM40.29 12.01L42.25 12.20L40.98 13.37L39.03 13.18ZM55.91 13.53L57.86 13.72L56.59 14.89L54.64 14.70ZM42.25 14.25L44.20 14.44L42.93 15.61L40.98 15.42ZM40.29 7.91L42.25 8.10L40.98 9.27L39.03 9.08Z"/><path fill="var(--logo-front)" d="M0 5.27L1.95 5.46L1.95 7.52L0 7.33ZM7.81 6.04L9.76 6.23L9.76 8.28L7.81 8.09ZM11.71 6.42L13.66 6.61L13.66 8.66L11.71 8.47ZM19.51 7.18L21.46 7.37L21.46 9.42L19.51 9.23ZM23.42 7.56L25.37 7.75L25.37 9.80L23.42 9.61ZM35.12 8.70L37.08 8.89L37.08 10.94L35.12 10.75ZM39.03 9.08L40.98 9.27L40.98 11.32L39.03 11.13ZM54.64 10.60L56.59 10.79L56.59 12.84L54.64 12.65ZM58.54 10.98L60.49 11.17L60.49 13.22L58.54 13.03ZM66.34 11.74L68.30 11.93L68.30 13.98L66.34 13.79ZM0 11.43L1.95 11.62L1.95 13.67L0 13.48ZM11.71 12.57L13.66 12.76L13.66 14.81L11.71 14.62ZM19.51 13.33L21.46 13.52L21.46 15.57L19.51 15.38ZM23.42 13.71L25.37 13.90L25.37 15.95L23.42 15.76ZM35.12 14.85L37.08 15.04L37.08 17.10L35.12 16.90ZM40.98 15.42L42.93 15.61L42.93 17.67L40.98 17.48ZM54.64 16.76L56.59 16.95L56.59 19L54.64 18.81ZM58.54 17.14L60.49 17.33L60.49 19.38L58.54 19.19ZM66.34 17.90L68.30 18.09L68.30 20.14L66.34 19.95ZM0 13.48L1.95 13.67L1.95 15.72L0 15.53ZM11.71 14.62L13.66 14.81L13.66 16.86L11.71 16.67ZM19.51 15.38L21.46 15.57L21.46 17.63L19.51 17.44ZM25.37 15.95L33.17 16.71L33.17 18.77L25.37 18.01ZM35.12 16.90L37.08 17.10L37.08 19.15L35.12 18.96ZM42.93 17.67L44.88 17.86L44.88 19.91L42.93 19.72ZM46.83 18.05L54.64 18.81L54.64 20.86L46.83 20.10ZM58.54 19.19L66.34 19.95L66.34 22L58.54 21.24ZM0 3.22L1.95 3.41L1.95 5.46L0 5.27ZM7.81 3.98L9.76 4.17L9.76 6.23L7.81 6.04ZM11.71 4.36L13.66 4.55L13.66 6.61L11.71 6.42ZM19.51 5.12L21.46 5.31L21.46 7.37L19.51 7.18ZM23.42 5.51L25.37 5.70L25.37 7.75L23.42 7.56ZM35.12 6.65L37.08 6.84L37.08 8.89L35.12 8.70ZM40.98 7.22L42.93 7.41L42.93 9.46L40.98 9.27ZM54.64 8.55L56.59 8.74L56.59 10.79L54.64 10.60ZM58.54 8.93L60.49 9.12L60.49 11.17L58.54 10.98ZM66.34 9.69L68.30 9.88L68.30 11.93L66.34 11.74ZM0 9.38L1.95 9.57L1.95 11.62L0 11.43ZM11.71 10.52L13.66 10.71L13.66 12.76L11.71 12.57ZM19.51 11.28L21.46 11.47L21.46 13.52L19.51 13.33ZM23.42 11.66L25.37 11.85L25.37 13.90L23.42 13.71ZM35.12 12.80L37.08 12.99L37.08 15.04L35.12 14.85ZM39.03 13.18L40.98 13.37L40.98 15.42L39.03 15.23ZM54.64 14.70L56.59 14.89L56.59 16.95L54.64 16.76ZM58.54 15.08L60.49 15.27L60.49 17.33L58.54 17.14ZM66.34 15.84L68.30 16.03L68.30 18.09L66.34 17.90ZM0 7.33L7.81 8.09L7.81 10.14L0 9.38ZM11.71 8.47L21.46 9.42L21.46 11.47L11.71 10.52ZM23.42 9.61L25.37 9.80L25.37 11.85L23.42 11.66ZM35.12 10.75L39.03 11.13L39.03 13.18L35.12 12.80ZM48.78 12.08L54.64 12.65L54.64 14.70L48.78 14.13ZM58.54 13.03L60.49 13.22L60.49 15.27L58.54 15.08ZM66.34 13.79L68.30 13.98L68.30 16.03L66.34 15.84ZM0 1.17L7.81 1.93L7.81 3.98L0 3.22ZM13.66 2.50L19.51 3.07L19.51 5.12L13.66 4.55ZM25.37 3.64L33.17 4.40L33.17 6.46L25.37 5.70ZM35.12 4.59L37.08 4.78L37.08 6.84L35.12 6.65ZM42.93 5.36L44.88 5.55L44.88 7.60L42.93 7.41ZM46.83 5.74L54.64 6.50L54.64 8.55L46.83 7.79ZM58.54 6.88L66.34 7.64L66.34 9.69L58.54 8.93Z"/></svg>
   </a>
 </header>
 <main class="lost">

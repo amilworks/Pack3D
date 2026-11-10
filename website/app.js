@@ -147,7 +147,7 @@ function hoverTip(html, ev) {
 function leaveTip() { clearTimeout(tipT); tipT = setTimeout(hideTip, 300); }
 tip.addEventListener('pointerenter', () => { if (tip.classList.contains('hover')) { clearTimeout(tipT); onTip = true; } });
 tip.addEventListener('pointerleave', () => { if (onTip) { onTip = false; leaveTip(); } });
-const closeTip = () => { hideTip(); tip.classList.remove('on-dark'); };
+const closeTip = () => hideTip();
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && tip.classList.contains('on')) closeTip(); });
 document.addEventListener('pointerdown', (ev) => { lastPointer = ev.pointerType; if (tapped) hideTip(); }, { capture: true, passive: true });
 // a scroll carries every mark away from its tip
@@ -229,12 +229,18 @@ function initPaths() {
     if (p.some((q) => !q)) throw new Error('order ' + o + ' is not a permutation');
     path[o] = p;
   }
-  const rampF = RAMPS.mem();
-  const COL = Array.from({ length: NT }, (_, i) => lab2rgb(rampF(i / (NT - 1))).map((c) => Math.round(c * 255)));
-  // the head glows in the stage's mint; its core is a near-white mint that no token names
-  const MINT = tok('--stage-mint'), MINT3 = hex2rgb(MINT).map((c) => Math.round(c * 255)), CORE = '#C9FFF1';
+  // the path in the memory ramp, its head in the ink; on the light page laid on as ink, on the dark one added as light.
+  // Read again when the theme changes.
+  let COL = [], HEAD = '#111111', HEAD3 = [17, 17, 17], PAPER = '#F4F4F4', INK = true;
   // kept: building some 1,500 color strings a frame cost more than the drawing (alpha in steps of 1/64)
-  const RGBA = new Array(NT * 65);
+  let RGBA = [];
+  const colors = () => {
+    const rampF = RAMPS.mem();
+    COL = Array.from({ length: NT }, (_, i) => lab2rgb(rampF(i / (NT - 1))).map((c) => Math.round(c * 255)));
+    HEAD = tok('--ink'); HEAD3 = hex2rgb(HEAD).map((c) => Math.round(c * 255)); PAPER = tok('--bg'); INK = !isDark();
+    RGBA = new Array(NT * 65);
+  };
+  colors();
   const rgba = (i, a) => {
     const q = a <= 0 ? 0 : a >= 1 ? 64 : Math.round(a * 64), k = i * 65 + q;
     return RGBA[k] || (RGBA[k] = `rgba(${COL[i][0]},${COL[i][1]},${COL[i][2]},${q / 64})`);
@@ -338,7 +344,7 @@ function initPaths() {
       S[i * 3] = cx + x1 * sc * f; S[i * 3 + 1] = cy - y2 * sc * f; S[i * 3 + 2] = z2;
     }
     g.clearRect(0, 0, W, H);
-    g.globalCompositeOperation = 'lighter'; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.globalCompositeOperation = INK ? 'source-over' : 'lighter'; g.lineCap = 'round'; g.lineJoin = 'round';
     const k = Math.max(0.7, Math.min(1.25, sc / 34));
     for (let pass = 0; pass < 2; pass++) {
       for (let i = 1; i < NT; i++) {
@@ -348,7 +354,7 @@ function initPaths() {
         else {
           g.lineWidth = k * (1.5 * (0.75 + 0.5 * near) + 1.4 * lit);
           g.strokeStyle = lit > 0
-            ? `rgba(${Math.round(c[0] + (MINT3[0] - c[0]) * lit)},${Math.round(c[1] + (MINT3[1] - c[1]) * lit)},${Math.round(c[2] + (MINT3[2] - c[2]) * lit)},${0.5 + 0.5 * lit})`
+            ? `rgba(${Math.round(c[0] + (HEAD3[0] - c[0]) * lit)},${Math.round(c[1] + (HEAD3[1] - c[1]) * lit)},${Math.round(c[2] + (HEAD3[2] - c[2]) * lit)},${0.5 + 0.5 * lit})`
             : rgba(i, 0.32 + 0.5 * near);
         }
         g.beginPath(); g.moveTo(S[a], S[a + 1]); g.lineTo(S[b], S[b + 1]); g.stroke();
@@ -361,14 +367,21 @@ function initPaths() {
     }
     const hi = Math.floor(head);
     if (hi < NT) {
-      g.shadowColor = MINT; g.shadowBlur = 18; g.fillStyle = CORE;
-      g.beginPath(); g.arc(S[hi * 3], S[hi * 3 + 1], 3.6 * k, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
+      const hx = S[hi * 3], hy = S[hi * 3 + 1];
+      if (INK) {                                       // an ink dot, ringed in paper so it reads over the path
+        g.fillStyle = PAPER; g.beginPath(); g.arc(hx, hy, 5.6 * k, 0, Math.PI * 2); g.fill();
+        g.fillStyle = HEAD; g.beginPath(); g.arc(hx, hy, 3.6 * k, 0, Math.PI * 2); g.fill();
+      } else {                                         // a light that glows
+        g.shadowColor = HEAD; g.shadowBlur = 18; g.fillStyle = '#FFFFFF';
+        g.beginPath(); g.arc(hx, hy, 3.6 * k, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
+      }
     }
     g.globalCompositeOperation = 'source-over';
   }
   const heroRO = new ResizeObserver(resize); heroRO.observe(hero); heroRO.observe(field);
   canvas.addEventListener('contextrestored', resize);   // a restored context comes back blank, its transform reset
   onDpr(resize);
+  onTheme(() => { colors(); if (W) draw(); });
   resize();
   motion.on((paused) => { if (!paused) { last = 0; switchedAt = performance.now(); kick(); } });
   // stacked and sideways the CSS reorders the opening: move the parts in the page too, so Tab and a screen reader
@@ -516,7 +529,7 @@ function initReadings() {
   big.addEventListener('blur', () => { if (hov >= 0) pick(-1); else note.innerHTML = NOTE; });
 
   let W = 0, H = 0, ctx = null, SW = 40, MX = 0, MY = 0, col = null;
-  function colors() { col = { ink: rgbOf(tok('--ink')), ink3: rgbOf(tok('--ink-3')), lav: rgbOf(tok('--lav')), mint: rgbOf(tok('--mint-ink')), mono: tok('--font-mono') }; }
+  function colors() { col = { ink: rgbOf(tok('--ink')), ink3: rgbOf(tok('--ink-3')), lav: rgbOf(tok('--lav')), pick: rgbOf(tok('--ink')), mono: tok('--font-mono') }; }
   // WCAG 1.4.12: under a reader's own letter spacing, a word that would pass the sheet's edge shrinks just enough
   const sheet = $('#readings'), ends = [...big.querySelectorAll('.rd-row')].map((r) => r.lastElementChild).filter(Boolean);
   function fitTitle() {
@@ -569,12 +582,12 @@ function initReadings() {
       const ex = MX + i * SW + SW / 2, ey = MY - 3;
       const on = hov === k, dim = hov >= 0 && !on;
       const gr = ctx.createLinearGradient(sx, sy, ex, ey);
-      gr.addColorStop(0, on ? `rgba(${col.mint},0.9)` : `rgba(${col.ink},${dim ? 0.04 : 0.14})`);
-      gr.addColorStop(1, on ? `rgba(${col.mint},1)` : `rgba(${col.lav},${dim ? 0.18 : 0.85})`);
+      gr.addColorStop(0, on ? `rgba(${col.pick},0.9)` : `rgba(${col.ink},${dim ? 0.04 : 0.14})`);
+      gr.addColorStop(1, on ? `rgba(${col.pick},1)` : `rgba(${col.lav},${dim ? 0.18 : 0.85})`);
       ctx.strokeStyle = gr; ctx.lineWidth = on ? 2.2 : 1.4;
       const dy = (ey - sy) * 0.55;
       ctx.beginPath(); ctx.moveTo(sx, sy); ctx.bezierCurveTo(sx, sy + dy, ex, ey - dy, ex, ey); ctx.stroke();
-      ctx.fillStyle = on ? `rgba(${col.mint},1)` : `rgba(${col.ink},1)`;
+      ctx.fillStyle = on ? `rgba(${col.pick},1)` : `rgba(${col.ink},1)`;
       // the memory row's letter: half a slot, and never under 12px (a 12px capital fits the narrowest slot)
       ctx.font = `400 ${Math.max(12, Math.round(SW * 0.5))}px ${col.mono}`; ctx.textBaseline = 'middle';
       ctx.fillText(t.ch, ex, MY + sh * 0.53); ctx.textBaseline = 'alphabetic';
@@ -948,8 +961,8 @@ function initRope() {
     // the ring shows the picked token, and the focused one
     t.append('rect').attr('class', 'ring').attr('x', 0.5).attr('y', 0.5).attr('width', cell - 1).attr('height', cell - 1).attr('rx', 8);
     t.append('rect').attr('width', cell - 6).attr('height', cell - 6).attr('x', 3).attr('y', 3).attr('rx', 6).style('fill', fill).style('stroke', 'var(--ink)').style('stroke-width', 1.5);
-    // the variable's letter, in italic, in the stage's dark ink: the token's fill is light in either theme
-    t.append('text').attr('x', cell / 2).attr('y', cell / 2 + 5).attr('text-anchor', 'middle').style('font-style', 'italic').style('font-weight', 600).style('fill', 'var(--stage-bg)').style('font-size', '15px').text(lab);
+    // the variable's letter, in italic, in dark ink: the token's fill is light in either theme
+    t.append('text').attr('x', cell / 2).attr('y', cell / 2 + 5).attr('text-anchor', 'middle').style('font-style', 'italic').style('font-weight', 600).style('fill', 'var(--ink-dark)').style('font-size', '15px').text(lab);
     // d3.drag swallows the click that ends a drag, so this is a tap in place. With a token picked, a tap on this one's
     // margin, outside its cell, chooses that cell
     t.on('click', (ev) => {
@@ -1572,8 +1585,10 @@ function initSlope() {
 }
 
 // ====================================================================== how many predictions moved: the repack on a cell
-// After the repack every changed prediction lights up, at the paper's rates, on the cell's boundaries (the paper
-// does not map where they fall). WebGL draws one soft point per voxel, added like light. Its canvas is made new
+// After the repack every changed prediction shows, at the paper's rates, on the cell's boundaries (the paper does not
+// map where they fall). WebGL draws one soft point per voxel: on the light page each multiplies the paper by its ink,
+// the negative of the dark page's light, added; the cell is in one tone, the changes in PACK3D's teal and packed RoPE's
+// coral, and PACK3D's few are ringed, each ring on a disc of paper. Its canvas is made new
 // when the figure is built, never taken from the markup: Mobile Safari can refuse WebGL to a canvas that has sat in
 // the page for a while, and gives one to a new canvas at once. A lost context is rebuilt; where WebGL cannot run,
 // Canvas 2D draws the same points, still. Keep all four paths (docs: Moments).
@@ -1591,9 +1606,17 @@ function initRepackStage() {
   const cells = [$('#swA'), $('#swB')];
   let strips = [$('#swStripA'), $('#swStripB')];
   cA.dataset.max = intf(nAx); cB.dataset.max = intf(nPk);   // each count is as wide as its final value (the CSS reads it)
-  // a token that is not a hex color keeps these
-  const spark = (c, alt) => { const v = hex2rgb(c); return v.every((x) => x >= 0) ? v : alt; };
-  const SPARK = { ax: spark(tok('--stage-mint'), [0.37, 0.88, 0.76]), pk: spark(getComputedStyle(stage).getPropertyValue('--coral').trim(), [1.0, 0.45, 0.47]) };
+  // the theme's ink and the changes' colors, read again when the theme changes; a token that is not a hex color keeps
+  // the light page's
+  const hexOr = (c, alt) => { const v = hex2rgb(c || ''); return v.every((x) => x >= 0) ? v : alt; };
+  let INK = true, INKC = [0.067, 0.067, 0.067], PAPER = [1, 1, 1], SPARK = null;
+  const colors = () => {
+    INK = !isDark();
+    INKC = hexOr(tok('--ink'), [0.067, 0.067, 0.067]);
+    PAPER = hexOr(tok('--surface'), [1, 1, 1]);
+    SPARK = { ax: hexOr(tok('--spark-a'), [0, 0.584, 0.478]), pk: hexOr(tok('--spark-b'), [0.878, 0.31, 0.333]) };
+  };
+  colors();
 
   // a new canvas in place of an old one, focus kept, and the old store let go at once (iOS counts a detached canvas
   // against its memory until it is collected)
@@ -1695,32 +1718,48 @@ function initRepackStage() {
   }
 
   // ---------------------------------------------------------------- WebGL
+  // u_ink 1: ink on the light page (v_col the hue laid, v_w its weight); 0: light on the dark one (v_col the light).
+  // u_mode 0 the cell, 1 the changes, 2 their rings, 3 the paper disc under a ring. The mode reaches the fragment
+  // shader as varyings: a uniform declared in both shaders must match their precisions.
   const VS = `attribute vec3 a_pos; attribute vec3 a_col; attribute float a_size; attribute float a_t;
-uniform mat4 u_mvp; uniform float u_vox, u_k, u_time, u_mode, u_dist, u_maxpt; uniform vec3 u_spark;
-varying vec3 v_col; varying float v_ring;
+uniform mat4 u_mvp; uniform float u_vox, u_k, u_time, u_mode, u_dist, u_maxpt, u_ink; uniform vec3 u_spark, u_inkc;
+varying vec3 v_col; varying float v_ring, v_w, v_ink;
 void main() {
   vec4 p = u_mvp * vec4(a_pos, 1.0);
   gl_Position = p;
   float fog = clamp((p.w - u_dist + 0.95) / 1.9, 0.0, 1.0);
   float size;
-  if (u_mode < 0.5) { v_col = a_col * mix(1.2, 0.5, fog); v_ring = 0.0; size = a_size * u_vox / p.w; }
-  else {
+  v_ink = u_ink;
+  if (u_mode < 0.5) {
+    // the cell in one tone: the light a point gives on the dark page is the ink it lays on the light one
+    v_w = dot(a_col, vec3(0.2126, 0.7152, 0.0722)) * 1.5 * mix(1.2, 0.5, fog);
+    v_col = u_ink > 0.5 ? u_inkc : vec3(v_w);
+    v_ring = 0.0; size = a_size * u_vox / p.w;
+  } else {
     float d = (u_k - a_t) * 7.0;                       // d * d, not pow(d, 2.0): pow is undefined for d < 0
     float k = clamp((u_k - a_t) * 3.0, 0.0, 1.0);
     float flare = 1.0 + 1.6 * exp(-d * d) * step(a_t, u_k);
     float tw = 0.85 + 0.15 * sin(u_time * 5.0 + a_t * 40.0);
-    v_col = u_spark * k * tw * flare * mix(1.0, 0.6, fog);
-    v_ring = u_mode > 1.5 ? 1.0 : 0.0;
-    size = (u_mode > 1.5 ? 5.2 : (1.5 + 1.1 * (flare - 1.0))) * u_vox / p.w * k;
+    v_w = k * tw * flare * mix(1.0, 0.6, fog);
+    v_col = u_ink > 0.5 ? u_spark : u_spark * v_w;
+    v_ring = u_mode > 2.5 ? 2.0 : u_mode > 1.5 ? 1.0 : 0.0;
+    size = (u_mode > 2.5 ? 5.8 : u_mode > 1.5 ? 5.2 : (1.5 + 1.1 * (flare - 1.0))) * u_vox / p.w * k;
   }
   gl_PointSize = min(size, u_maxpt);
 }`;
-  const FS = `precision mediump float; varying vec3 v_col; varying float v_ring;
+  const FS = `precision mediump float; varying vec3 v_col; varying float v_ring, v_w, v_ink;
 void main() {
   float r = length(gl_PointCoord - 0.5) * 2.0;
-  float a = v_ring > 0.5 ? smoothstep(0.74, 0.82, r) * (1.0 - smoothstep(0.88, 0.98, r)) * 0.95 : exp(-r * r * 4.0) * step(r, 1.0);
-  vec3 c = v_col * a;
-  gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));   // valid premultiplied light over the stage
+  float a = v_ring > 1.5 ? 1.0 - smoothstep(0.8, 0.98, r)
+    : v_ring > 0.5 ? smoothstep(0.74, 0.82, r) * (1.0 - smoothstep(0.88, 0.98, r)) * 0.95 : exp(-r * r * 4.0) * step(r, 1.0);
+  if (v_ink > 0.5) {
+    float al = clamp(v_w * a, 0.0, 1.0);
+    // a point: what it takes from the paper, multiplied in; a ring or its disc: laid over, premultiplied
+    gl_FragColor = v_ring > 0.5 ? vec4(v_col * al, al) : vec4((1.0 - v_col) * al, 1.0);
+  } else {
+    vec3 c = v_col * a;
+    gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));   // valid premultiplied light over the dark page
+  }
 }`;
   const GL_ATTRS = { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: 'low-power' };
   // a WebGL renderer on canvas cv, or null. setup() can run again on the same context after a restore.
@@ -1735,7 +1774,7 @@ void main() {
       gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
       if (!gl.getProgramParameter(prog, gl.LINK_STATUS) && !gl.isContextLost()) throw new Error(gl.getProgramInfoLog(prog));
       gl.useProgram(prog);
-      const U = {}; ['u_mvp', 'u_vox', 'u_k', 'u_time', 'u_mode', 'u_dist', 'u_spark', 'u_maxpt'].forEach((n) => { U[n] = gl.getUniformLocation(prog, n); });
+      const U = {}; ['u_mvp', 'u_vox', 'u_k', 'u_time', 'u_mode', 'u_dist', 'u_spark', 'u_maxpt', 'u_ink', 'u_inkc'].forEach((n) => { U[n] = gl.getUniformLocation(prog, n); });
       const buf = (arr, n, name) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW); return { b, n, l: gl.getAttribLocation(prog, name) }; };
       const set = (p, t, n) => [buf(p, 3, 'a_pos'), buf(new Float32Array(n * 3), 3, 'a_col'), buf(new Float32Array(n).fill(1), 1, 'a_size'), buf(t, 1, 'a_t')];
       X = {
@@ -1753,7 +1792,13 @@ void main() {
       restore() { try { setup(); return true; } catch (e) { console.warn('repack stage: WebGL restore failed', e); return false; } },
       draw(f) {
         const { U } = X;
-        gl.viewport(0, 0, cv.width, cv.height); gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.viewport(0, 0, cv.width, cv.height);
+        // ink: the sheet's paper, opaque, that each point multiplies (its alpha kept at one); light: nothing, added to
+        if (INK) gl.clearColor(PAPER[0], PAPER[1], PAPER[2], 1); else gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        const mult = () => (INK ? gl.blendFuncSeparate(gl.ZERO, gl.ONE_MINUS_SRC_COLOR, gl.ZERO, gl.ONE) : gl.blendFunc(gl.ONE, gl.ONE));
+        const over = () => (INK ? gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE) : gl.blendFunc(gl.ONE, gl.ONE));
+        gl.uniform1f(U.u_ink, INK ? 1 : 0); gl.uniform3f(U.u_inkc, ...INKC);
         f.views.forEach((v, side) => {
           const c = camera(v, f.dpr, f.yaw, f.pitch);
           if (c.w < 2 || c.h < 2) return;
@@ -1761,12 +1806,15 @@ void main() {
           gl.uniformMatrix4fv(U.u_mvp, false, c.mvp);
           gl.uniform1f(U.u_dist, c.dist); gl.uniform1f(U.u_vox, c.vox); gl.uniform1f(U.u_maxpt, X.maxpt);
           gl.uniform1f(U.u_time, (f.now / 1000) % 1256.6370614359173);   // a whole number of twinkles, so the wrap is seamless
-          gl.uniform1f(U.u_mode, 0); bind(X.cell); gl.drawArrays(gl.POINTS, 0, S.NP);
+          mult(); gl.uniform1f(U.u_mode, 0); bind(X.cell); gl.drawArrays(gl.POINTS, 0, S.NP);
           gl.uniform1f(U.u_k, f.kSpark);
           if (side === 1) { gl.uniform3f(U.u_spark, ...SPARK.pk); gl.uniform1f(U.u_mode, 1); bind(X.pk); gl.drawArrays(gl.POINTS, 0, S.pk.n); }
           else {
-            gl.uniform3f(U.u_spark, ...SPARK.ax); gl.uniform1f(U.u_mode, 1); bind(X.ax); gl.drawArrays(gl.POINTS, 0, S.ax.n);
-            gl.uniform1f(U.u_mode, 2); gl.drawArrays(gl.POINTS, 0, S.ax.n);   // circled: one in 14,000 is too small to see
+            bind(X.ax);
+            // circled: one in 14,000 is too small to see. On paper each stands on a disc of the paper, so it reads
+            if (INK) { over(); gl.uniform3f(U.u_spark, ...PAPER); gl.uniform1f(U.u_mode, 3); gl.drawArrays(gl.POINTS, 0, S.ax.n); }
+            mult(); gl.uniform3f(U.u_spark, ...SPARK.ax); gl.uniform1f(U.u_mode, 1); gl.drawArrays(gl.POINTS, 0, S.ax.n);
+            over(); gl.uniform1f(U.u_mode, 2); gl.drawArrays(gl.POINTS, 0, S.ax.n);
           }
         });
       },
@@ -1779,20 +1827,28 @@ void main() {
     const g = cv.getContext('2d');
     if (!g) return null;
     const SPR = 32;
-    const bake = (rgb, ring) => {                         // the fragment shader, at 32 x 32, premultiplied by hand
+    // the fragment shader, at 32 x 32: light (rgb holding its strength), premultiplied by hand, or ink (rgb the hue, w
+    // the weight). shape: a soft dot, a ring (true) or a disc ('disc')
+    const bake = (rgb, ring, w) => {
       const c = document.createElement('canvas'); c.width = c.height = SPR;
       const x = c.getContext('2d'), img = x.createImageData(SPR, SPR);
       for (let j = 0; j < SPR; j++) for (let i = 0; i < SPR; i++) {
         const r = Math.hypot((i + 0.5) / SPR - 0.5, (j + 0.5) / SPR - 0.5) * 2;
         const ss = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-        const a = ring ? ss(0.74, 0.82, r) * (1 - ss(0.88, 0.98, r)) * 0.95 : (r <= 1 ? Math.exp(-r * r * 4) : 0);
+        const a = ring === 'disc' ? 1 - ss(0.8, 0.98, r) : ring ? ss(0.74, 0.82, r) * (1 - ss(0.88, 0.98, r)) * 0.95 : (r <= 1 ? Math.exp(-r * r * 4) : 0);
+        if (w !== undefined) {
+          const al = Math.min(1, w * a);
+          if (al > 0) img.data.set([rgb[0] * 255, rgb[1] * 255, rgb[2] * 255, al * 255], (j * SPR + i) * 4);
+          continue;
+        }
         const p = rgb.map((v) => Math.min(1, v * a)), al = Math.max(...p);
         if (al > 0) img.data.set([p[0] / al * 255, p[1] / al * 255, p[2] / al * 255, al * 255], (j * SPR + i) * 4);
       }
       x.putImageData(img, 0, 0); return c;
     };
-    const cellSpr = S.kinds.map((rgb) => bake(rgb.map((v) => v * 1.2)));
-    const pkSpr = bake(SPARK.pk), axSpr = bake(SPARK.ax), ringSpr = bake(SPARK.ax, true);
+    // the cell in one tone, as the shader has it
+    const tone = (rgb) => (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) * 1.5 * 1.2;
+    let cellSpr = null, pkSpr = null, axSpr = null, ringSpr = null, discSpr = null;
     const project = (m, x, y, z) => { const w = m[3] * x + m[7] * y + m[11] * z + m[15]; return [(m[0] * x + m[4] * y + m[8] * z + m[12]) / w, (m[1] * x + m[5] * y + m[9] * z + m[13]) / w, w]; };
     function dots(c, pos, n, each) {
       for (let i = 0; i < n; i++) {
@@ -1805,11 +1861,21 @@ void main() {
     const layer = document.createElement('canvas'), lg = layer.getContext('2d');
     let key = '';
     cv.addEventListener('contextrestored', () => { key = ''; kick(); });   // a 2D context given back blank
+    function sprites() {                                  // again when the theme changes
+      cellSpr = S.kinds.map((rgb) => { const w = tone(rgb); return INK ? bake(INKC, false, w) : bake([w, w, w]); });
+      pkSpr = INK ? bake(SPARK.pk, false, 1) : bake(SPARK.pk);
+      axSpr = INK ? bake(SPARK.ax, false, 1) : bake(SPARK.ax);
+      ringSpr = INK ? bake(SPARK.ax, true, 1) : bake(SPARK.ax, true);
+      discSpr = INK ? bake(PAPER, 'disc', 1) : null;
+      key = '';
+    }
+    sprites();
     function cellsInto(f, stride) {
       if (layer.width !== cv.width || layer.height !== cv.height) { layer.width = cv.width; layer.height = cv.height; }
       lg.setTransform(1, 0, 0, 1, 0, 0); lg.globalCompositeOperation = 'source-over'; lg.globalAlpha = 1;
       lg.clearRect(0, 0, layer.width, layer.height);
-      lg.globalCompositeOperation = 'lighter';
+      if (INK) { lg.fillStyle = `rgb(${PAPER.map((v) => Math.round(v * 255))})`; lg.fillRect(0, 0, layer.width, layer.height); }
+      lg.globalCompositeOperation = INK ? 'multiply' : 'lighter';
       f.views.forEach((v) => {
         const c = camera(v, f.dpr, f.yaw, f.pitch);
         if (c.w < 2 || c.h < 2) return;
@@ -1827,7 +1893,7 @@ void main() {
       lg.globalCompositeOperation = 'source-over'; lg.globalAlpha = 1;
     }
     return {
-      still: true, lost: () => false, restore: () => true, dispose() { layer.width = layer.height = 0; },
+      still: true, lost: () => false, restore: () => true, dispose() { layer.width = layer.height = 0; }, recolor: sprites,
       draw(f) {
         const stride = f.drag ? 3 : 1;
         const k = [f.yaw, f.pitch, f.dpr, cv.width, cv.height, stride, f.lv].join();
@@ -1837,7 +1903,7 @@ void main() {
         g.clearRect(0, 0, cv.width, cv.height);
         g.drawImage(layer, 0, 0);
         if (f.kSpark <= 0) return;
-        g.globalCompositeOperation = 'lighter';
+        const add = INK ? 'multiply' : 'lighter', lay = INK ? 'source-over' : 'lighter';
         f.views.forEach((v, side) => {
           const c = camera(v, f.dpr, f.yaw, f.pitch);
           if (c.w < 2 || c.h < 2) return;
@@ -1845,10 +1911,11 @@ void main() {
           dots(c, set.pos, set.n, (i, x, y, w, fog) => {
             const kk = clamp((f.kSpark - set.t[i]) * 3, 0, 1);
             if (kk <= 0) return;
-            const s = Math.max(1, 1.5 * c.vox / w * kk);
+            const s = Math.max(1, 1.5 * c.vox / w * kk), r = 5.2 * c.vox / w * kk;
             g.globalAlpha = Math.min(1, kk * (1 + (0.6 - 1) * fog));
-            g.drawImage(spr, x - s / 2, y - s / 2, s, s);
-            if (!side) { const r = 5.2 * c.vox / w * kk; g.drawImage(ringSpr, x - r / 2, y - r / 2, r, r); }
+            if (!side && discSpr) { const d = r * 5.8 / 5.2; g.globalCompositeOperation = lay; g.drawImage(discSpr, x - d / 2, y - d / 2, d, d); }
+            g.globalCompositeOperation = add; g.drawImage(spr, x - s / 2, y - s / 2, s, s);
+            if (!side) { g.globalCompositeOperation = lay; g.drawImage(ringSpr, x - r / 2, y - r / 2, r, r); }
           });
         });
         g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
@@ -1920,7 +1987,14 @@ void main() {
 
   // ---------------------------------------------------------------- the memory strips: all positions in raster order
   const SEG = 16, perm = [9, 3, 14, 0, 11, 6, 1, 13, 4, 15, 7, 2, 12, 5, 10, 8];
-  const SCOL = [[22, 28, 27], [96, 78, 150], [26, 150, 124], [235, 228, 240]];
+  // each class's tone along memory, from the memory ramp: outside nearly the sheet, then the cytoplasm, the organelles
+  // and, deepest, the nucleus. Read again when the theme changes.
+  let SCOL = null;
+  const stripColors = () => {
+    const m = RAMPS.mem(), rgb = (l) => lab2rgb(l).map((c) => Math.round(c * 255));
+    SCOL = [rgb(mixLab(lab(tok('--surface') || '#FFFFFF'), m(0), 0.35)), rgb(m(0.12)), rgb(m(1)), rgb(m(0.55))];
+  };
+  stripColors();
   let stripSrc = null, sg = [];
   function stripImage(w) {                              // each pixel the mean color of the positions it covers
     if (stripSrc) stripSrc.width = 0;
@@ -2096,6 +2170,15 @@ void main() {
   motion.on((paused) => { last = 0; kick(); if (!paused) autoplay(); });
   // focus in the window stops its autoplay, so the button's name never changes under focus
   stage.addEventListener('focusin', () => { if (!played) { played = true; clearTimeout(autoT); autoT = 0; } });
+
+  onTheme(() => {
+    colors(); stripColors();
+    if (S && stripSrc) stripSrc = stripImage(stripSrc.width);
+    stripsAt = -1;
+    if (rd && rd.recolor) rd.recolor();
+    if (!(rd && rd.lost())) paint(performance.now());
+    kick();
+  });
 
   setPhase(RM ? 'after' : 'before');                    // reduced motion: a still of the result, which still answers the button
   if (RM) played = true;
@@ -2422,10 +2505,11 @@ function initEnd() {
   // a lower camera than Figure 1's, turned toward the front, so the word reads left to right
   const AZ = 18 * Math.PI / 180, CA = Math.cos(AZ), SA = Math.sin(AZ), EL = 0.3, ZS = 1;
   const DV = [SA, CA, EL / ZS];            // toward the viewer; painting far to near sorts on this
-  // the opening's ramp; the stage keeps its colors in both themes, so they are read once
-  const rampF = RAMPS.mem();
-  const BLACK = lab('#000000'), WHITE = lab('#FFFFFF'), EDGE = tok('--stage-bg'), MINT = tok('--stage-mint');
-  const UNWRITTEN = `rgba(${rgbOf(tok('--stage-ink'))},0.08)`;
+  // the memory ramp, and the ink and the paper the word is drawn in; read again when the theme changes
+  const BLACK = lab('#000000'), WHITE = lab('#FFFFFF');
+  let rampF = null, EDGE = '', INK = '', UNWRITTEN = '';
+  const colors = () => { rampF = RAMPS.mem(); EDGE = tok('--bg'); INK = tok('--ink'); UNWRITTEN = `rgba(${rgbOf(INK)},0.08)`; };
+  colors();
   // on touch screens there is no pointer to hover and usually no arrow keys: say "tap"
   if (HOVERLESS) $('#endRead').textContent = 'Tap a cube, or slide a finger across the word, to read its two indices.';
   const HINT = $('#endRead').textContent;
@@ -2581,7 +2665,7 @@ function initEnd() {
     if (head < 0) return;
     const from = Math.max(0, head - TRAIL);
     ctx.save();
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = MINT; ctx.lineWidth = Math.max(1.3, k * 0.075);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1.3, k * 0.075);
     let prev = ctr(order[from]);
     for (let i = from + 1; i <= head; i++) {
       const p = ctr(order[i]);
@@ -2589,7 +2673,8 @@ function initEnd() {
       ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
       prev = p;
     }
-    ctx.globalAlpha = trailA; ctx.fillStyle = MINT; ctx.shadowColor = MINT; ctx.shadowBlur = 16;
+    ctx.globalAlpha = trailA; ctx.fillStyle = INK;
+    if (isDark()) { ctx.shadowColor = INK; ctx.shadowBlur = 16; }   // a light glows; ink does not
     ctx.beginPath(); ctx.arc(prev[0], prev[1], Math.max(2.6, k * 0.14), 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
@@ -2599,17 +2684,17 @@ function initEnd() {
     const lo = Math.max(0, i - 3), hi = Math.min(n - 1, i + 3);
     ctx.save();
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    ctx.strokeStyle = MINT; ctx.lineWidth = Math.max(1.6, k * 0.08);
+    ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1.6, k * 0.08);
     ctx.beginPath();
     for (let m = lo; m <= hi; m++) { const p = ctr(order[m]); if (m === lo) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]); }
     ctx.stroke();
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
+    ctx.strokeStyle = INK; ctx.lineWidth = 2;
     quads(T[order[i]], T[order[i]].z).forEach((p) => {
       ctx.beginPath(); p.forEach((v, m) => (m ? ctx.lineTo(v[0], v[1]) : ctx.moveTo(v[0], v[1]))); ctx.closePath(); ctx.stroke();
     });
     for (let m = lo; m <= hi; m++) {
       const p = ctr(order[m]);
-      ctx.fillStyle = m === i ? '#FFFFFF' : MINT;
+      ctx.fillStyle = INK;
       ctx.beginPath(); ctx.arc(p[0], p[1], m === i ? Math.max(3, k * 0.15) : Math.max(2.2, k * 0.1), 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
@@ -2622,9 +2707,9 @@ function initEnd() {
       rctx.fillStyle = land(i, NP) > 0 ? ribCol[i] : UNWRITTEN;
       rctx.fillRect(i * cw, 0, cw + 0.6, RH);
     }
-    if (P > 0 && P < 1) { rctx.fillStyle = MINT; rctx.fillRect(clamp(Math.min(n, NP) * cw - 1, 0, RW - 2), 0, 2, RH); }
+    if (P > 0 && P < 1) { rctx.fillStyle = INK; rctx.fillRect(clamp(Math.min(n, NP) * cw - 1, 0, RW - 2), 0, 2, RH); }
     const fi = focusI();
-    if (fi >= 0) { rctx.fillStyle = '#FFFFFF'; rctx.fillRect(clamp((fi + 0.5) * cw - 1.5, 0, RW - 3), 0, 3, RH); }
+    if (fi >= 0) { rctx.fillStyle = INK; rctx.fillRect(clamp((fi + 0.5) * cw - 1.5, 0, RW - 3), 0, 3, RH); }
   }
   function count(NP) {
     const c = Math.min(n, Math.floor(NP));
@@ -2691,8 +2776,8 @@ function initEnd() {
   const again = $('#endAgain');
   if (RM) again.hidden = true; else again.addEventListener('click', () => build());
 
-  const unTip = () => { hideTip(); tip.classList.remove('on-dark'); };
-  const tipFor = (j, ev) => { const t = T[j]; showTip(`<b>${eq('<i>i</i>', mem[j])}</b> · ${eq('<i>c</i>', at(t.z, t.y, t.x))}`, ev); tip.classList.add('on-dark'); };
+  const unTip = () => hideTip();
+  const tipFor = (j, ev) => { const t = T[j]; showTip(`<b>${eq('<i>i</i>', mem[j])}</b> · ${eq('<i>c</i>', at(t.z, t.y, t.x))}`, ev); };
   function hit(px, py) {
     const NP = NPnow();
     const inQuad = (p) => {
@@ -2874,11 +2959,7 @@ function initControls() {
 
 // ====================================================================== nav, copy
 function initNav() {
-  const bar = $('#progress'), topbar = $('.topbar'), main = $('main'), sheet = $('.standfirst');
-  const wins = $$('.stage-window');
-  // the browser's own bar follows ours: the markup gives the stage's color, data-page the page's
-  const metas = $$('meta[name="theme-color"]');
-  metas.forEach((m) => { m.dataset.stage = m.content; });
+  const bar = $('#progress'), topbar = $('.topbar');
   const toc = $('#toc'), btn = $('#tocBtn'), menu = $('#tocMenu'), label = $('#tocLabel');
   const links = $$('a', menu);
   const spots = links.filter((a) => a.hash).map((a) => ({ a, s: $(a.hash), name: $('.t', a).textContent, short: a.dataset.short || '' }))
@@ -2978,45 +3059,27 @@ function initNav() {
   // tabbing out closes it; a click that leaves focus nowhere (Safari does not focus links) does not
   toc.addEventListener('focusout', (e) => { if (e.relatedTarget && !toc.contains(e.relatedTarget)) close(false); });
 
-  // One update a frame, every measure read before anything is written, so a scroll forces no layout. The edge comes
-  // from the bar's style, not its sticky box: Safari can report that from before a jump for a frame.
-  let raf = 0, scope = '', edge = 0, resized = true, barW = 0;
+  // One update a frame, every measure read before anything is written, so a scroll forces no layout
+  let raf = 0, barW = 0;
   const update = () => {
     raf = 0;
     const h = document.documentElement, y = window.scrollY, vw = h.clientWidth, vh = window.innerHeight, max = h.scrollHeight - h.clientHeight;
-    if (resized) edge = (parseFloat(getComputedStyle(topbar).top) || 0) + topbar.offsetHeight;
-    const mb = main.getBoundingClientRect().bottom;
-    const onStage = !!sheet && sheet.getBoundingClientRect().top > edge;   // the opening is under the bar
-    const overWin = wins.some((w) => { const r = w.getBoundingClientRect(); return r.top < edge && r.bottom > edge; });
     let i = -1;
     spots.forEach((p, j) => { if (p.s.getBoundingClientRect().top < vh * 0.35) i = j; });
-    const s = onStage || overWin ? 'stage' : mb < edge ? 'end' : 'page';
-    if (s !== scope) {
-      // an open menu closes rather than change color under the reader
-      if (scope && isOpen()) close(menu.contains(document.activeElement));
-      scope = s;
-      topbar.classList.toggle('on-stage', s === 'stage');
-      topbar.classList.toggle('on-end', s === 'end');
-      h.classList.toggle('stage-top', s !== 'page');   // the strip above the bar follows it
-      metas.forEach((m) => { if (m.dataset.page) m.content = s === 'page' ? m.dataset.page : m.dataset.stage; });
-    }
     topbar.classList.toggle('at-start', y < 4);
-    h.classList.toggle('at-end', mb < vh);             // overscroll past the end shows the stage
-    h.classList.toggle('at-top', onStage);             // and so does overscroll above the opening
     bar.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`;
     // a new width (a rotation, Safari's Page Zoom, which fires no resize of its own) measures the names again
     if (vw !== barW) { barW = vw; fits = null; }
-    resized = false;
     setCur(i);
     if (!fits) fit();
     if (isOpen() && Math.abs(y - openedAt) > 120) close(menu.contains(document.activeElement));
   };
   const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', () => { resized = true; onScroll(); }, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
   // Safari's Page Zoom resizes only the visual viewport; a pinch or a toolbar leaves the layout's width as it was
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => { if (document.documentElement.clientWidth !== barW) { resized = true; onScroll(); } }, { passive: true });
-  if (document.fonts) document.fonts.ready.then(() => { fits = null; resized = true; onScroll(); });   // names measured in Inter
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => { if (document.documentElement.clientWidth !== barW) onScroll(); }, { passive: true });
+  if (document.fonts) document.fonts.ready.then(() => { fits = null; onScroll(); });   // names measured in Inter
   // larger text at the same width: the slash, which only the text's size resizes, hears it
   const sep = $('.crumb-sep');
   let sepH = 0;
