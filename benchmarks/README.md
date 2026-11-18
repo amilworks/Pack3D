@@ -81,7 +81,12 @@ Incremental peak allocation was 4.03 GiB for both paths on the 262,144-token
 grid. Geometry is prepared before timing. Native Morton keeps an extra 1 MiB
 index at this size, and raster packing uses direct strides. [Raw timings, gradient errors, and kernel profiles](results/h200_2026-11-18.json)
 
-Regenerate the [README figure](../docs/assets/h200-attention-latency.png) from the recorded samples
-with `python benchmarks/plot_h200.py` in an environment with Matplotlib installed.
+The README uses author-designed [light](../docs/assets/h200-attention-latency-light.png)
+and [dark](../docs/assets/h200-attention-latency-dark.png) exports of these measurements,
+selected automatically by the reader's GitHub theme.
+
+Regenerate the original [Matplotlib figure](../docs/assets/h200-attention-latency.png)
+from the recorded samples with `python benchmarks/plot_h200.py` in an environment
+with Matplotlib installed.
 The script loads the bundled Ultra Sans regular and bold fonts automatically.
 Their license is included in [fonts/LICENSE.md](fonts/LICENSE.md).

@@ -85,7 +85,8 @@ The paper also reports:
 
 ## GPU performance
 
-![Median time for a complete PACK3D forward and backward pass on H200. At 262,144 BF16 tokens, spatial tiling reduces raster time from 28.73 to 18.81 ms and native Morton time from 28.66 to 18.97 ms.](docs/assets/h200-attention-latency.png)
+![Median time for a complete PACK3D forward and backward pass on H200. At 65,536 and 262,144 tokens, spatial tiling is 1.46–1.53× faster than indexed backward; the 4,096-token small preset is effectively tied.](docs/assets/h200-attention-latency-light.png#gh-light-mode-only)
+![Median time for a complete PACK3D forward and backward pass on H200. At 65,536 and 262,144 tokens, spatial tiling is 1.46–1.53× faster than indexed backward; the 4,096-token small preset is effectively tied.](docs/assets/h200-attention-latency-dark.png#gh-dark-mode-only)
 
 Spatial tiling lets adjacent voxels share neighborhood loads during backward. At 262,144 tokens,
 the BF16 layer ran **1.53× faster in raster order** and **1.51× faster in native Morton order**.
