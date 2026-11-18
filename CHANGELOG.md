@@ -8,6 +8,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Attention performance
 
+- The public Triton layer now tiles local forward on eligible FP16 and BF16 vision grids,
+  retains spatial execution through repacking, and caches rotary phases across calls.
+  [Paired H200 timings for the combined layer](benchmarks/results/h200_vision_2026-11-18.md)
 - The public Triton layer shares rotary phases across projections, skips backward-only buffers during
   inference, and uses spatial tiles for local gradients on eligible FP16 and BF16 grids. The existing
   `PACK3DAttention` API selects the execution path. [H200 benchmarks](benchmarks/README.md)

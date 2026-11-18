@@ -4,7 +4,21 @@ Date: 2026-11-06. These are release-engineering and numerical checks, not new
 segmentation experiments. The original research files and frozen metric rows
 were not overwritten. No principal model was retrained for this extraction.
 
-## H200 attention updates, November 17–18, 2026
+## Combined vision paths on H200, November 18, 2026
+
+The combined public layer passed the full 82-test suite with CUDA enabled on
+physical GPU 2. Six spatial and rotary regression cases also passed NVIDIA
+Compute Sanitizer memcheck with zero reported errors. They cover partial tiles,
+transported layouts, FP16 and BF16 autocast, large FP16 score gradients,
+inference followed by autograd, and CUDA graph capture.
+
+Against revision `e04be252`, the eight whole-layer workloads had at most
+0.011% relative L2 difference in outputs and 0.249% in input or parameter
+gradients. The image-slice outputs and gradients matched exactly.
+[Paired timings](../benchmarks/results/h200_vision_2026-11-18.md) ·
+[Per-tensor errors](../benchmarks/results/h200_vision_2026-11-18.json)
+
+## Earlier H200 attention updates, November 17–18, 2026
 
 The public Triton layer was compared with the indexed implementation on the same weights and
 inputs. Across six workloads, forward outputs matched and the largest relative L2 error in an

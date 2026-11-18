@@ -208,6 +208,13 @@ class TokenLayout:
         mapped_nb = torch.where(nb >= 0, inverse[nb.clamp_min(0)], -1)
         mapped_blocks = torch.where(blocks >= 0, inverse[blocks.clamp_min(0)], -1)
         geom = prepare_geometry(mapped_nb, mapped_blocks, self.geometry.pool_size)
+        if self.geometry._radius_one_grid is not None:
+            # Compose raster -> old row -> new row using the verified graph's own map.
+            old_map = self.geometry._raster_to_packed
+            mapping = inverse if old_map is None else inverse[old_map.cpu().long()]
+            direct = torch.equal(mapping, torch.arange(n))
+            geom = replace(geom, _seal=_VALIDATED_GEOMETRY, _radius_one_grid=self.geometry._radius_one_grid,
+                           _raster_to_packed=None if direct else mapping.to(torch.int32))
         new = TokenLayout(self.grid_shape, self.order.cpu()[p].clone(),
                           self.coords.cpu()[p].clone(), geom)
         return new.to(self.order.device)
@@ -253,8 +260,7 @@ def build_layout(grid_shape, block_shape=(2, 2, 2), *, radius=1, pool_size=4,
     blocks = torch.arange(n).reshape(-1, math.prod(block))
     geom = prepare_geometry(torch.stack(neighbors, 1), blocks, pool_size)
     if rad == (1, 1, 1) and n >= 4096 and shape[0] >= 2 and shape[1] >= 2 and shape[2] >= 4:
-        # Only this constructor knows the graph is the complete voxel stencil.
-        # Small or thin grids do better with indexed loads. Repacking drops this hint.
+        # This constructor establishes the complete stencil. Repacking transports its map.
         mapping = None if layout == "raster_block" else inverse.to(torch.int32)
         geom = replace(geom, _seal=_VALIDATED_GEOMETRY, _radius_one_grid=shape, _raster_to_packed=mapping)
     return TokenLayout(shape, order, coords, geom)

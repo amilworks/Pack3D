@@ -1,4 +1,6 @@
 """Rotate projected queries and keys directly into head-major attention buffers."""
+from functools import lru_cache
+
 import torch
 from torch.autograd.function import once_differentiable
 import triton
@@ -68,17 +70,37 @@ class _Rotary(torch.autograd.Function):
         return dx, None, None, None, None, None
 
 
+@torch.inference_mode(False)
+def _build_phases(device, pairs, table_shape):
+    # A table first built during inference must also be saveable for backward.
+    parts = []
+    for axis, count in enumerate(pairs):
+        if count:
+            part = 10000.0 ** (-torch.arange(count, device=device, dtype=torch.float32) / count)
+            if table_shape:
+                positions = torch.arange(table_shape[axis], device=device, dtype=torch.float32)
+                part = (positions[:, None] * part).flatten()
+            parts.append(part)
+    phase = parts[0] if len(parts) == 1 else torch.cat(parts)
+    return torch.stack((phase.cos(), phase.sin()), -1) if table_shape else phase
+
+
+@lru_cache(maxsize=16)
+def _cached_phases(stream, pairs, table_shape):
+    # Including the CUDA stream covers device identity and orders asynchronous fills and reads.
+    return _build_phases(stream.device, pairs, table_shape)
+
+
 def rotate_projections(q, kl, kg, coords, pairs, grid_shape, *, packed):
-    # Match the reference's FP32 frequencies, including the per-axis restart.
-    frequencies = [10000.0 ** (-torch.arange(p, device=q.device, dtype=torch.float32) / p)
-                   for p in pairs if p]
+    pairs = tuple(pairs)
     sizes = tuple(size * p for size, p in zip(grid_shape, pairs))
-    # Bound shared cos/sin storage to 64 KiB even on long, thin grids.
-    if not packed and sum(sizes) <= 8192:
-        angles = torch.cat([(torch.arange(size, device=q.device, dtype=torch.float32)[:, None] * freq).flatten()
-                            for size, freq in zip(grid_shape, frequencies)])
-        phases = torch.stack((angles.cos(), angles.sin()), -1)
-    else:
+    table_shape = tuple(grid_shape) if not packed and sum(sizes) <= 8192 else ()
+    if not table_shape:
         sizes = (0, 0, 0)
-        phases = frequencies[0] if len(frequencies) == 1 else torch.cat(frequencies)
+    with torch.cuda.device(q.device):
+        if torch.cuda.is_current_stream_capturing():
+            # Captured allocations and writes belong to that graph's replay.
+            phases = _build_phases(q.device, pairs, table_shape)
+        else:
+            phases = _cached_phases(torch.cuda.current_stream(), pairs, table_shape)
     return tuple(_Rotary.apply(x, coords, phases, pairs, sizes, packed) for x in (q, kl, kg))
