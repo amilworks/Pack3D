@@ -6,8 +6,8 @@
       "destination": "src/pack3d/geometry.py",
       "source_sha256": "c7f7e59d187fe4e867529b001f2fad4435e6e5c4a9ddffe379107a3baf068b8c",
       "extracted_sha256": "bc8697f38aa1cb833e91c6f2acd3098725d0988c6eb779e03d3362c87423488b",
-      "public_sha256": "75e5775d838943b3a6b3fd856d474b39fbe6c7c31ee00d8f2460dac536a47aeb",
-      "release_changes": "Extracted prepared geometry; added public coordinate layouts and membership-preserving transport."
+      "public_sha256": "8aa4cec22d5cdbe776f5f5993522339ff8cc03f53b289adb055c3c824c3b10f3",
+      "release_changes": "Extracted prepared geometry and added coordinate layouts and membership-preserving transport. The public layout builder also records validated radius-one grids and tracks the optional Morton index for spatial backward."
     },
     {
       "source": "hypernsa/attention/pack3d_streamed_2026_11_04.py",
@@ -30,16 +30,16 @@
       "destination": "src/pack3d/backends/triton/autograd.py",
       "source_sha256": "c7f7e59d187fe4e867529b001f2fad4435e6e5c4a9ddffe379107a3baf068b8c",
       "extracted_sha256": "4bb2d91028d84c495cdf769efb000f3d7a261e3ea8689178ebda5567685c1998",
-      "public_sha256": "4bb2d91028d84c495cdf769efb000f3d7a261e3ea8689178ebda5567685c1998",
-      "release_changes": "Namespace/import extraction only."
+      "public_sha256": "71d7c7133e80d12385c6212a44cac47c00c2854de2806e61b066dcd10775b98b",
+      "release_changes": "Adapted imports to the public package. Gradient-free calls now dispatch directly to kernels that omit backward-only state."
     },
     {
       "source": "hypernsa/attention/pack3d_streamed_kernels_2026_11_04.py",
       "destination": "src/pack3d/backends/triton/kernels.py",
       "source_sha256": "66ad7c596c6fc29452cd4c66717f983be274899a7fd842a378a379893486ca36",
       "extracted_sha256": "7e1cd6c6686eac5190263296e59729d134365c1e1a1774ccc93f7584a1408582",
-      "public_sha256": "80bba56beb30638db39b8c3328fbd5c630df732d56e010a45d255afa6731fdc6",
-      "release_changes": "Updated module header and removed unused import; numerical kernel bodies retained."
+      "public_sha256": "26418f7c3a3a632a21854d271771b459fc4981dd0bc7650bc767fcff3d85dc93",
+      "release_changes": "Adapted the module to the public package. Inference omits backward-only stores, global query gradients accumulate into the local buffer, and eligible local backward passes dispatch to the spatial kernel."
     },
     {
       "source": "hypernsa/attention/hypernsa_morton.py",
@@ -198,8 +198,8 @@
       "destination": "tests/test_triton.py",
       "source_sha256": "d04123f196be653406ddf973eaecd4070f5a7b721bff98e233eb13181f8ba391",
       "extracted_sha256": "69257edc5603436b9232393bf010ffbe33633b4c7521355e6a578e7d6385a933",
-      "public_sha256": "552f0ff1918131ee68b852e4e11428282facfe4a41f6e0518f15651814eae969",
-      "release_changes": "Updated imports; extended public API and historical local-Triton execution checks."
+      "public_sha256": "5c77de90ad94e87e83b638c7dec8b2440f2e48c6b7b8e5ae426feda312089557",
+      "release_changes": "Adapted imports and extended public API and historical execution checks. Added coverage for gradient-free execution, fused rotary encodings, and spatial backward across repacks and large FP16 score gradients."
     },
     {
       "source": "rebuttal/scripts/evaluate_msd_repacking_sweep_2026_07_26.py",

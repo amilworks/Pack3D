@@ -53,3 +53,12 @@ def test_named_layout_changes_partition():
     def supports(x):
         return {frozenset(x.order[block.long()].tolist()) for block in x.geometry.blocks}
     assert supports(raster) != supports(native)
+
+
+def test_stencil_index_cannot_change_after_layout_validation():
+    layout = build_layout((16, 16, 16)).to("cpu")
+    mapping = layout.geometry._raster_to_packed
+    torch.testing.assert_close(mapping.long(), layout.order.argsort())
+    mapping[0] = layout.geometry.num_tokens
+    with pytest.raises(RuntimeError, match="changed"):
+        layout.check_unmodified()

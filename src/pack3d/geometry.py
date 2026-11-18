@@ -1,5 +1,5 @@
 """Validated coordinate graph and summary membership metadata."""
-from dataclasses import InitVar, dataclass, field
+from dataclasses import InitVar, dataclass, field, replace
 import math
 import torch
 from torch import Tensor
@@ -15,12 +15,18 @@ class Pack3DGeometry:
     pool_size: int
     num_tokens: int
     _seal: InitVar[object] = None
+    _radius_one_grid: tuple[int, int, int] | None = field(default=None, kw_only=True, repr=False)
+    _raster_to_packed: Tensor | None = field(default=None, kw_only=True, repr=False)
     _versions: tuple[int, ...] = field(init=False, repr=False)
 
     def __post_init__(self, _seal):
         if _seal is not _VALIDATED_GEOMETRY:
             raise ValueError("Use prepare_geometry() to validate indices before launching CUDA")
-        object.__setattr__(self, "_versions", tuple(t._version for t in self.tensors))
+        object.__setattr__(self, "_versions", self._tensor_versions())
+
+    def _tensor_versions(self):
+        versions = tuple(t._version for t in self.tensors)
+        return versions if self._raster_to_packed is None else (*versions, self._raster_to_packed._version)
 
     @property
     def tensors(self):
@@ -33,11 +39,14 @@ class Pack3DGeometry:
     @torch.inference_mode(False)
     def to(self, device):
         self.check_unmodified()
+        mapping = self._raster_to_packed
         return Pack3DGeometry(*(t.to(device) for t in self.tensors), self.pool_size,
-                              self.num_tokens, _seal=_VALIDATED_GEOMETRY)
+                              self.num_tokens, _seal=_VALIDATED_GEOMETRY,
+                              _radius_one_grid=self._radius_one_grid,
+                              _raster_to_packed=None if mapping is None else mapping.to(device))
 
     def check_unmodified(self):
-        if tuple(t._version for t in self.tensors) != self._versions:
+        if self._tensor_versions() != self._versions:
             raise RuntimeError("Geometry changed after validation; prepare it again")
 
 
@@ -243,5 +252,10 @@ def build_layout(grid_shape, block_shape=(2, 2, 2), *, radius=1, pool_size=4,
         neighbors.append(torch.where(valid, inverse[index], -1))
     blocks = torch.arange(n).reshape(-1, math.prod(block))
     geom = prepare_geometry(torch.stack(neighbors, 1), blocks, pool_size)
+    if rad == (1, 1, 1) and n >= 4096 and shape[0] >= 2 and shape[1] >= 2 and shape[2] >= 4:
+        # Only this constructor knows the graph is the complete voxel stencil.
+        # Small or thin grids do better with indexed loads. Repacking drops this hint.
+        mapping = None if layout == "raster_block" else inverse.to(torch.int32)
+        geom = replace(geom, _seal=_VALIDATED_GEOMETRY, _radius_one_grid=shape, _raster_to_packed=mapping)
     return TokenLayout(shape, order, coords, geom)
 

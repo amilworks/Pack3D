@@ -4,6 +4,14 @@ Date: 2026-11-06. These are release-engineering and numerical checks, not new
 segmentation experiments. The original research files and frozen metric rows
 were not overwritten. No principal model was retrained for this extraction.
 
+## H200 attention updates, November 17–18, 2026
+
+The public Triton layer was compared with the indexed implementation on the same weights and
+inputs. Across six workloads, forward outputs matched and the largest relative L2 error in an
+input or parameter gradient was 0.20%. CUDA memory checking covered partial spatial tiles,
+repacking, and large FP16 score gradients. The timings cover a full attention layer on a shared
+GPU. [Benchmark protocol and measurements](../benchmarks/README.md)
+
 ## Review iterations
 
 1. **Organization and scientific contract.** Separate the readable operator,

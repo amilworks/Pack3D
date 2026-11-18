@@ -20,15 +20,40 @@ Both local and global attention use grouped-query heads. Fusion retains the
 channel-scaled local residual and adds the gated, channel-scaled global output.
 
 The kernels stream global online softmax, recompute probabilities and pooling
-weights in backward, and accumulate reductions in FP32. Local K/V gradients use
-reverse adjacency; global K/V gradients use bounded split-query partials. This
+weights in backward, and accumulate reductions in FP32. Indexed local K/V
+gradients use reverse adjacency. Global K/V gradients use bounded split-query partials. This
 path does not store an `N x M` score matrix or an all-query `N x w x d` gathered
 local-feature tensor and does not call SDPA. Geometry and split-reduction buffers
 still consume memory. Multiple launches are used, not one whole-layer kernel.
 
-Projections, RoPE, gates, normalization, outer residuals, and small final
-reductions remain PyTorch operations. In the historical path, summary autograd
-is separate and the global SDPA backend determines its allocation behavior.
+The public Triton layer rotates projected queries and keys directly into the
+head-major layout consumed by attention. On 3D grids it shares a table of
+sines and cosines indexed by axis coordinate across heads and projections.
+The table is capped at 64 KiB. Larger axis tables and packed-sequence positions
+use on-the-fly rotation. Backward applies the inverse rotation. Both paths use
+the same per-axis FP32 frequencies as the reference. Values pass through
+without rotation.
+
+Gradient-free execution skips the global branch output and both softmax
+normalizers saved for backward. With gradients enabled, the global query
+gradient is added directly to the local query gradient in its owning kernel.
+Projections, gates, normalization, outer residuals, and final reductions use
+PyTorch. The historical model retains its own rotary code and SDPA global path.
+
+## Automatic local backward on vision grids
+
+`build_layout` records when the local graph is a complete radius-one voxel
+neighborhood. With FP16 or BF16 projections, `backend="triton"` processes
+2 × 2 × 4 voxels together and reuses their shared halo when computing query,
+key, and value gradients. Each program writes the gradients for its own voxels.
+The fast path starts at 4,096 tokens and requires at least 2 × 2 × 4 voxels
+along the corresponding axes. Raster order uses voxel strides directly. Native
+block Morton order uses one additional 32-bit packed index per voxel.
+
+Use standard PyTorch autocast or convert the layer and input to the same
+supported precision. The backend selects indexed gradients for arbitrary
+repacks, custom graphs, smaller or thinner grids, other radii, and FP32.
+The forward computation is shared by both backward paths.
 
 ## Support and validation
 

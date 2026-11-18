@@ -28,6 +28,15 @@ class _Pack3D(torch.autograd.Function):
         return (*grads, None, None)
 
 
+def _check_cuda(q):
+    if os.environ.get("TRITON_INTERPRET") == "1":
+        raise ValueError("interpreter mode cannot attest a CUDA backend")
+    if q.device.type != "cuda" or q.dtype not in (torch.float32, torch.float16, torch.bfloat16):
+        raise ValueError("triton backend requires CUDA fp32/fp16/bf16 Q/K/V")
+    if torch.cuda.get_device_capability(q.device)[0] < 8:
+        raise ValueError("this backend targets Ampere or newer NVIDIA GPUs")
+
+
 def pack3d_streamed(q, kl, vl, kg, vg, weight, bias, gate, sl, sg,
                    geometry: Pack3DGeometry, *, temperature=1.0, backend="triton"):
     """Local-residual/global-gated one-atom PACK3D, including learned pooling.
@@ -42,14 +51,16 @@ def pack3d_streamed(q, kl, vl, kg, vg, weight, bias, gate, sl, sg,
         if os.environ.get("TRITON_INTERPRET") != "1" or q.device.type != "cpu" or q.dtype != torch.float32:
             raise ValueError("interpret requires TRITON_INTERPRET=1 and CPU fp32 inputs")
     elif backend == "triton":
-        if os.environ.get("TRITON_INTERPRET") == "1":
-            raise ValueError("interpreter mode cannot attest a CUDA backend")
-        if q.device.type != "cuda" or q.dtype not in (torch.float32, torch.float16, torch.bfloat16):
-            raise ValueError("triton backend requires CUDA fp32/fp16/bf16 Q/K/V")
-        if torch.cuda.get_device_capability(q.device)[0] < 8:
-            raise ValueError("this backend targets Ampere or newer NVIDIA GPUs")
+        _check_cuda(q)
     else:
         raise ValueError(f"unknown explicit backend {backend!r}")
-    return _Pack3D.apply(q, kl, vl, kg, vg, weight, bias, gate, sl, sg, geometry, float(temperature))
+    inputs = (q, kl, vl, kg, vg, weight, bias, gate, sl, sg)
+    if torch.is_grad_enabled() and any(t.requires_grad for t in inputs):
+        return _Pack3D.apply(*inputs, geometry, float(temperature))
+
+    from . import kernels
+    output, _ = kernels.forward(*(t.contiguous() for t in inputs), geometry, float(temperature),
+                                save_state=False)
+    return output
 
 

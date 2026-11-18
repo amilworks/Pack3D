@@ -52,8 +52,8 @@ class PACK3DAttention(nn.Module):
 
     def forward(self, x, layout: TokenLayout):
         layout.check_unmodified()
-        if x.ndim != 3 or x.shape[1:] != (layout.geometry.num_tokens, self.dim):
-            raise ValueError("x must be [batch,layout_tokens,dim]")
+        if x.ndim != 3 or x.shape[0] == 0 or x.shape[1:] != (layout.geometry.num_tokens, self.dim):
+            raise ValueError("x must be [batch,layout_tokens,dim] with a nonempty batch")
         if x.device != layout.coords.device:
             raise ValueError("x and layout are on different devices; move both with .to(device)")
         if layout.geometry.blocks.shape[1] != len(self.slot_bias):
@@ -65,20 +65,25 @@ class PACK3DAttention(nn.Module):
         q = self.to_q(x).reshape(b, n, self.heads, self.head_dim).transpose(1, 2)
         kl, vl, kg, vg = (t.reshape(b, n, self.kv_heads, self.head_dim).transpose(1, 2)
                           for t in self.to_kv(x).chunk(4, -1))
-        coords, pairs = layout.coords, balanced_pairs(self.head_dim)
-        if self.position_encoding == "packed":
-            seq = torch.arange(n, device=x.device)
-            coords = torch.stack((seq, torch.zeros_like(seq), torch.zeros_like(seq)), -1)
-            pairs = (self.head_dim // 2, 0, 0)
-        elif self.position_encoding != "axial":
+        if self.position_encoding not in ("axial", "packed"):
             raise ValueError("unknown position_encoding")
-        q, kl, kg = (axial_rope(t, coords, pairs=pairs) for t in (q, kl, kg))
+        packed = self.position_encoding == "packed"
+        pairs = (self.head_dim // 2, 0, 0) if packed else balanced_pairs(self.head_dim)
+        coords = layout.coords
+        if self.backend == "triton":
+            from .backends.triton.autograd import _check_cuda, pack3d_streamed
+            _check_cuda(q)
+            from .backends.triton.rotary import rotate_projections
+            q, kl, kg = rotate_projections(q, kl, kg, coords, pairs, layout.grid_shape, packed=packed)
+            core = pack3d_streamed
+        else:
+            if packed:
+                seq = torch.arange(n, device=x.device)
+                coords = torch.stack((seq, torch.zeros_like(seq), torch.zeros_like(seq)), -1)
+            q, kl, kg = (axial_rope(t, coords, pairs=pairs) for t in (q, kl, kg))
+            core = pack3d_reference
         gates = self.gate(x).reshape(b, n, self.heads, 2).softmax(-1)
         gate = gates[..., 1].transpose(1, 2)
-        core = pack3d_reference
-        if self.backend == "triton":
-            from .backends.triton.autograd import pack3d_streamed
-            core = pack3d_streamed
         out = core(q, kl, vl, kg, vg, self.pool_weight, self.slot_bias, gate,
                    self.local_scale, self.global_scale, layout.geometry, temperature=self.temperature)
         return residual + self.to_out(out.transpose(1, 2).reshape(b, n, -1))

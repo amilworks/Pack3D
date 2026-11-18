@@ -90,6 +90,9 @@ def test_forward_and_every_gradient(gpu, dtype, shape):
         assert err < tol, (name, err.item(), tol)
         if dtype == torch.float32:
             torch.testing.assert_close(actual, reference, atol=3e-5, rtol=3e-5)
+    with torch.inference_mode():
+        inference = pack3d_streamed(*inputs, geometry, temperature=0.7)
+    torch.testing.assert_close(inference, got, atol=tol, rtol=tol)
 
 
 def test_repacking_forward_and_gradients(gpu):
@@ -269,12 +272,14 @@ def test_singleton_summary_has_no_query_or_key_gradient(gpu, dtype):
 
 
 @pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
-def test_standalone_layer_and_repacked_layout(gpu, dtype):
+@pytest.mark.parametrize("encoding", ["axial", "packed"])
+def test_standalone_layer_and_repacked_layout(gpu, dtype, encoding):
     import copy
     from pack3d import PACK3DAttention, build_layout
     torch.manual_seed(52)
     layout = build_layout((4, 4, 4), pool_size=2).to(gpu)
-    layer = PACK3DAttention(32, heads=2, kv_heads=1, head_dim=16, backend="triton").to(gpu, dtype)
+    layer = PACK3DAttention(32, heads=2, kv_heads=1, head_dim=16,
+                            position_encoding=encoding, backend="triton").to(gpu, dtype)
     ref = copy.deepcopy(layer)
     ref.backend = "reference"
     x = torch.randn(1, 64, 32, device=gpu, dtype=dtype, requires_grad=True)
@@ -291,7 +296,88 @@ def test_standalone_layer_and_repacked_layout(gpu, dtype):
     changed = layout.repack(p)
     with torch.no_grad():
         yp = layer(x[:, p], changed)[:, p.argsort()]
-    torch.testing.assert_close(yp, y, rtol=tolerance, atol=tolerance)
+        # Packed-sequence rotations follow the new row positions after repacking.
+        target = y if encoding == "axial" else ref(x[:, p], changed)[:, p.argsort()]
+    torch.testing.assert_close(yp, target, rtol=tolerance, atol=tolerance)
+
+
+@pytest.mark.parametrize("d,packed", [(16, True), (32, False), (64, False), (128, False)])
+def test_fused_rotary_positions_and_strides(gpu, d, packed):
+    from pack3d.backends.triton.rotary import rotate_projections
+    from pack3d.rope import axial_rope, balanced_pairs
+
+    n = 65539 if packed else 67
+    pairs = (d // 2, 0, 0) if packed else balanced_pairs(d)
+    i = torch.arange(n, device=gpu)
+    width = (n - 1) * 4099 + 1 if d == 128 else 29
+    coords = torch.stack((i, i % 7, i * 4099 % width), 0).T
+    # Projection slices have a nonunit channel stride and a token tail.
+    x = torch.randn(1, n, 3, 2 * d, device=gpu)[..., ::2].transpose(1, 2).requires_grad_()
+    inputs = x.split(1, dim=1)
+    actual = rotate_projections(*inputs, coords, pairs, (n, 7, width), packed=packed)
+    expected = [axial_rope(t, coords, pairs=pairs) for t in inputs]
+    dy = [torch.randn_like(t[..., :1]).expand_as(t) for t in actual]
+    grads = torch.autograd.grad(actual, inputs, dy)
+    refs = torch.autograd.grad(expected, inputs, dy)
+    for a, b in zip((*actual, *grads), (*expected, *refs)):
+        torch.testing.assert_close(a, b, atol=2e-6, rtol=2e-6)
+
+
+@pytest.mark.parametrize("order,dtype,batch,heads,groups", [
+    ("raster_block", torch.bfloat16, 2, 2, 1),
+    ("native_block_morton", torch.float16, 1, 4, 2),
+])
+def test_stencil_layer_gradients_and_repack(gpu, order, dtype, batch, heads, groups):
+    import copy
+    from pack3d import build_layout, PACK3DAttention
+
+    torch.manual_seed(71)
+    # The odd extents exercise partial bricks and corners in all three axes.
+    layout = build_layout((7, 11, 55), (1, 1, 5), pool_size=8, layout=order).to(gpu)
+    layer = PACK3DAttention(32, heads=heads, kv_heads=groups, head_dim=16,
+                            block_volume=5, backend="triton").to(gpu, dtype)
+    ref = copy.deepcopy(layer)
+    ref.backend = "reference"
+    x = torch.randn(batch, layout.geometry.num_tokens, 32, device=gpu, dtype=dtype, requires_grad=True)
+    dy = torch.randn_like(x)
+    def evaluate(model, tokens, geometry, upstream):
+        y = model(tokens, geometry)
+        dx, *params = torch.autograd.grad(y, (tokens, *model.parameters()), upstream)
+        return y.detach(), dx, *params
+
+    actual = evaluate(layer, x, layout, dy)
+    oracle = evaluate(ref, x, layout, dy)
+    p = torch.randperm(x.shape[1], device=gpu)
+    repacked = evaluate(layer, x[:, p], layout.repack(p), dy[:, p])
+    inv = p.argsort()
+    aligned = (repacked[0][:, inv], repacked[1][:, inv], *repacked[2:])
+    tol = .035 if dtype == torch.bfloat16 else .005
+    for a, reference, transported in zip(actual, oracle, aligned):
+        for target in (reference, transported):
+            rel = (a.float() - target.float()).norm() / target.float().norm().clamp_min(1e-7)
+            assert rel < tol, rel.item()
+
+
+def test_stencil_fp16_large_score_gradients(gpu):
+    from pack3d import build_layout
+
+    torch.manual_seed(27)
+    geom = build_layout((8, 16, 32), layout="raster_block").to(gpu).geometry
+    n, d = geom.num_tokens, 16
+    q, k = [(torch.randn(1, 1, n, d, device=gpu, dtype=torch.float16) * .001).requires_grad_()
+            for _ in range(2)]
+    sign = (torch.arange(n, device=gpu) % 2) * 2 - 1
+    v = (sign.to(q.dtype) * 1024).view(1, 1, n, 1).expand_as(k).contiguous().requires_grad_()
+    # A score derivative can exceed FP16 range while all three local VJPs fit.
+    inputs = (q, k, v, torch.zeros_like(k), torch.zeros_like(v), q.new_zeros(d),
+              q.new_zeros(8), q.new_zeros(1, 1, n), q.new_ones(d), q.new_zeros(d))
+    dy = torch.full_like(q, 1024)
+    fast = torch.autograd.grad(pack3d_streamed(*inputs, geom), (q, k, v), dy)
+    indexed = prepare_geometry(geom.neighbors, geom.blocks, geom.pool_size).to(gpu)
+    expected = torch.autograd.grad(pack3d_streamed(*inputs, indexed), (q, k, v), dy)
+    for a, b in zip(fast, expected):
+        assert torch.isfinite(a).all()
+        assert (a.float() - b.float()).norm() / b.float().norm() < .001
 
 
 def test_paper_backend_executes_requested_local_triton(gpu):

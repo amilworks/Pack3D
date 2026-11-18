@@ -83,6 +83,15 @@ The paper also reports:
 - **Cost.** A full PACK3D layer runs within 7–31% of window-attention latency while adding a global
   pathway.
 
+## GPU performance
+
+![Median time for a complete PACK3D forward and backward pass on H200. At 262,144 BF16 tokens, spatial tiling reduces raster time from 28.73 to 18.81 ms and native Morton time from 28.66 to 18.97 ms.](docs/assets/h200-attention-latency.png)
+
+Spatial tiling lets adjacent voxels share neighborhood loads during backward. At 262,144 tokens,
+the BF16 layer ran **1.53× faster in raster order** and **1.51× faster in native Morton order**.
+The 4,096-token small preset was effectively tied. Each pair uses the same weights, inputs, and
+forward pass on one shared NVIDIA H200. [Reproduce the comparison](benchmarks/README.md#local-backward-on-november-18-2026) · [Raw timings and gradient checks](benchmarks/results/h200_2026-11-18.json)
+
 ## Installation
 
 PACK3D needs Python 3.11 or newer and PyTorch 2.11 or newer. Install the
@@ -123,16 +132,20 @@ never reads a token's memory position. The layer takes `[batch, tokens, channels
 same shape. Its `block_volume` (default 8) must equal the number of tokens in a block, so if you
 change `block_shape`, change it too: for example, `block_volume=64` for `(4, 4, 4)` blocks.
 
-To run on an NVIDIA GPU, install the `triton` extra, build the layer with `backend="triton"`, and
-move the layer, the layout and the inputs to the GPU:
+For NVIDIA GPUs, install the `triton` extra and move the layer, layout, and tokens to CUDA.
+Build the layout once and reuse it across attention layers.
 
 ```python
 attention = PACK3DAttention(64, heads=4, kv_heads=2, head_dim=16, backend="triton").cuda()
 layout = layout.to("cuda")
 tokens = tokens.cuda()
+with torch.autocast("cuda", dtype=torch.bfloat16):
+    out = attention(tokens, layout)
+out.float().square().mean().backward()
 ```
 
-[docs/backends.md](docs/backends.md) lists what each backend supports.
+The Triton backend selects the local backward kernel automatically for both raster and native
+Morton grids. The same call accepts repacked layouts. [Backend details](docs/backends.md)
 
 More [examples](examples/README.md), each of which runs on a CPU in seconds:
 

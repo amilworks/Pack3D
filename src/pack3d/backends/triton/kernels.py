@@ -43,7 +43,7 @@ def _pool(K, V, W, Bias, Blocks, SK, SV, N: tl.constexpr, D: tl.constexpr,
 @triton.jit
 def _local_fwd(Q, K, V, Nb, O, LSE, N: tl.constexpr, H: tl.constexpr,
                G: tl.constexpr, D: tl.constexpr, W: tl.constexpr,
-               WW: tl.constexpr, BQ: tl.constexpr):
+               WW: tl.constexpr, BQ: tl.constexpr, SAVE_STATE: tl.constexpr):
     i = tl.program_id(0) * BQ + tl.arange(0, BQ)
     bh = tl.program_id(1)
     bg = bh // H * G + (bh % H) // (H // G)
@@ -62,13 +62,15 @@ def _local_fwd(Q, K, V, Nb, O, LSE, N: tl.constexpr, H: tl.constexpr,
     denom = tl.maximum(tl.sum(p, 1), 1.e-20)
     o = tl.sum((p / denom[:, None])[:, :, None] * v, 1)
     tl.store(O + (bh * N + i[:, None]) * D + d[None, :], o, i[:, None] < N)
-    tl.store(LSE + bh * N + i, mx + tl.log(denom), i < N)
+    if SAVE_STATE:
+        tl.store(LSE + bh * N + i, mx + tl.log(denom), i < N)
 
 
 @triton.jit
 def _global_fwd(Q, K, V, OL, Gate, SL, SG, O, LSE, Y,
                 N: tl.constexpr, M: tl.constexpr, H: tl.constexpr,
-                G: tl.constexpr, D: tl.constexpr, BQ: tl.constexpr, BK: tl.constexpr):
+                G: tl.constexpr, D: tl.constexpr, BQ: tl.constexpr, BK: tl.constexpr,
+                SAVE_STATE: tl.constexpr):
     i = tl.program_id(0) * BQ + tl.arange(0, BQ)
     bh = tl.program_id(1)
     bg = bh // H * G + (bh % H) // (H // G)
@@ -90,8 +92,9 @@ def _global_fwd(Q, K, V, OL, Gate, SL, SG, O, LSE, Y,
         denom = denom * alpha + tl.sum(p, 1)
         mx = new_mx
     o = acc / denom[:, None]
-    tl.store(O + (bh * N + i[:, None]) * D + d[None, :], o, i[:, None] < N)
-    tl.store(LSE + bh * N + i, mx + tl.log(denom), i < N)
+    if SAVE_STATE:
+        tl.store(O + (bh * N + i[:, None]) * D + d[None, :], o, i[:, None] < N)
+        tl.store(LSE + bh * N + i, mx + tl.log(denom), i < N)
     ol = tl.load(OL + (bh * N + i[:, None]) * D + d[None, :], i[:, None] < N, 0).to(tl.float32)
     gate = tl.load(Gate + bh * N + i, i < N, 0).to(tl.float32)
     sl = tl.load(SL + d).to(tl.float32)
@@ -196,7 +199,11 @@ def _global_dq(Q, K, V, DO, LSE, Delta, DQ, N: tl.constexpr, M: tl.constexpr,
         if M == 1:
             ds = tl.full((BQ, BK), 0, k.dtype)
         dq += tl.dot(ds, k, input_precision="ieee")
-    tl.store(DQ + (bh * N + i[:, None]) * D + d[None, :], dq, i[:, None] < N)
+    # Each program owns these rows. Match the previous separately rounded
+    # local and global gradients before adding them into the local buffer.
+    ptr = DQ + (bh * N + i[:, None]) * D + d[None, :]
+    local = tl.load(ptr, i[:, None] < N, 0).to(tl.float32)
+    tl.store(ptr, local + dq.to(DQ.dtype.element_ty).to(tl.float32), i[:, None] < N)
 
 
 @triton.jit
@@ -275,22 +282,25 @@ def _local_tile(d, width, *, backward=False):
     return min(8 if backward else 16, max(1, budget // (d * triton.next_power_of_2(width))))
 
 
-def forward(q, kl, vl, kg, vg, weight, bias, gate, sl, sg, geometry, temperature):
+def forward(q, kl, vl, kg, vg, weight, bias, gate, sl, sg, geometry, temperature, *, save_state=True):
     b, h, n, d = q.shape
     g, (f, volume), m = kl.shape[1], geometry.blocks.shape, geometry.num_summaries
     sk, sv = (_empty((b, g, m, d), q) for _ in range(2))
-    ol, og, y = (_empty(q.shape, q) for _ in range(3))
-    ll, lg = (_empty((b, h, n), q, fp32=True) for _ in range(2))
+    ol, y = (_empty(q.shape, q) for _ in range(2))
+    og = ll = lg = None
+    if save_state:
+        og = _empty(q.shape, q)
+        ll, lg = (_empty((b, h, n), q, fp32=True) for _ in range(2))
     _pool[(m, b * g)](kg, vg, weight, bias, geometry.blocks, sk, sv, n, d, f, m,
                      volume, geometry.pool_size, temperature,
                      triton.next_power_of_2(geometry.pool_size), triton.next_power_of_2(volume))
     w = geometry.neighbors.shape[1]
     tile = _local_tile(d, w)
     _local_fwd[(triton.cdiv(n, tile), b * h)](q, kl, vl, geometry.neighbors, ol, ll,
-                                             n, h, g, d, w, triton.next_power_of_2(w), tile)
+                                             n, h, g, d, w, triton.next_power_of_2(w), tile, save_state)
     _global_fwd[(triton.cdiv(n, 64), b * h)](q, sk, sv, ol, gate, sl, sg, og, lg, y,
-                                            n, m, h, g, d, 64, 64)
-    return y, (sk, sv, ol, og, ll, lg)
+                                            n, m, h, g, d, 64, 64, save_state)
+    return y, (sk, sv, ol, og, ll, lg) if save_state else ()
 
 
 def backward(dy, inputs, saved, geometry, temperature):
@@ -306,20 +316,21 @@ def backward(dy, inputs, saved, geometry, temperature):
     _mix_bwd[(tiles, b * h)](dy, ol, og, gate, sl, sg, dol, dog, dl, dg, dgate,
                              dslp, dsgp, n, d, tiles, 128)
     dkl, dvl = (torch.empty_like(kl) for _ in range(2))
-    w = geometry.neighbors.shape[1]
-    tile = _local_tile(d, w, backward=True)
-    _local_dq[(triton.cdiv(n, tile), b * h)](q, kl, vl, geometry.neighbors, dol, ll, dl,
-                                            dql, n, h, g, d, w, triton.next_power_of_2(w), tile)
-    rw = geometry.reverse_neighbors.shape[1]
-    tile = _local_tile(d, rw, backward=True)
-    _local_dkv[(triton.cdiv(n, tile), b * g)](q, kl, vl, geometry.reverse_neighbors, dol,
-                                          ll, dl, dkl, dvl, n, h, g, d, rw,
-                                          triton.next_power_of_2(rw), tile)
-    # Local VJPs have finished reading dOL. Reuse that buffer for global dQ,
-    # then accumulate in-place into the owned local dQ buffer, never an input.
-    _global_dq[(triton.cdiv(n, 64), b * h)](q, sk, sv, dog, lg, dg, dol, n, m, h, g, d, 64, 64)
-    dql.add_(dol)
+    if geometry._radius_one_grid is not None and q.dtype in (torch.bfloat16, torch.float16):
+        from .stencil import local_backward
+        local_backward(q, kl, vl, dol, ll, dl, geometry, dql, dkl, dvl)
+    else:
+        w = geometry.neighbors.shape[1]
+        tile = _local_tile(d, w, backward=True)
+        _local_dq[(triton.cdiv(n, tile), b * h)](q, kl, vl, geometry.neighbors, dol, ll, dl,
+                                                dql, n, h, g, d, w, triton.next_power_of_2(w), tile)
+        rw = geometry.reverse_neighbors.shape[1]
+        tile = _local_tile(d, rw, backward=True)
+        _local_dkv[(triton.cdiv(n, tile), b * g)](q, kl, vl, geometry.reverse_neighbors, dol,
+                                                 ll, dl, dkl, dvl, n, h, g, d, rw,
+                                                 triton.next_power_of_2(rw), tile)
     del dol
+    _global_dq[(triton.cdiv(n, 64), b * h)](q, sk, sv, dog, lg, dg, dql, n, m, h, g, d, 64, 64)
     splits = min(32, max(1, triton.cdiv(n, 1024)))
     dkpart, dvpart = (_empty((b, g, splits, m, d), q, fp32=True) for _ in range(2))
     _global_dkv[(triton.cdiv(m, 64), b * g, splits)](q, sk, sv, dog, lg, dg, dkpart,

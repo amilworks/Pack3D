@@ -6,7 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-Every change below is to the project website.
+### Attention performance
+
+- The public Triton layer shares rotary phases across projections, skips backward-only buffers during
+  inference, and uses spatial tiles for local gradients on eligible FP16 and BF16 grids. The existing
+  `PACK3DAttention` API selects the execution path. [H200 benchmarks](benchmarks/README.md)
 
 ### Added
 
