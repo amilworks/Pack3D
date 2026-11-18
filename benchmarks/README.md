@@ -83,3 +83,5 @@ index at this size, and raster packing uses direct strides. [Raw timings, gradie
 
 Regenerate the [README figure](../docs/assets/h200-attention-latency.png) from the recorded samples
 with `python benchmarks/plot_h200.py` in an environment with Matplotlib installed.
+The script loads the bundled Ultra Sans regular and bold fonts automatically.
+Their license is included in [fonts/LICENSE.md](fonts/LICENSE.md).

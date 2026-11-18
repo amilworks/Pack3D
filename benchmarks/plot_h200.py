@@ -6,6 +6,7 @@ from statistics import median, quantiles
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.transforms import blended_transform_factory
@@ -14,6 +15,7 @@ from matplotlib.transforms import blended_transform_factory
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "benchmarks/results/h200_2026-11-18.json"
 FIGURE = ROOT / "docs/assets/h200-attention-latency.png"
+FONTS = ROOT / "benchmarks/fonts"
 BACKGROUND = "#F9F8F4"
 INK = "#191A18"
 MUTED = "#66655F"
@@ -30,8 +32,11 @@ def main():
     runs = report["protocol"]["samples_per_path"]
     workloads = sorted(report["workloads"], key=lambda w: (
         w["tokens"], w["dtype"], w["layout"] != "raster_block"))
+    for style in ("Regular", "Bold"):
+        font_manager.fontManager.addfont(str(FONTS / f"UltraSans-{style}.ttf"))
+    family = font_manager.FontProperties(fname=FONTS / "UltraSans-Regular.ttf").get_name()
     plt.rcParams.update({
-        "font.family": "DejaVu Sans",
+        "font.family": family,
         "text.color": INK,
         "axes.labelcolor": INK,
         "axes.facecolor": BACKGROUND,

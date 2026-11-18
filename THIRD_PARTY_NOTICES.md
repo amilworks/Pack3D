@@ -33,6 +33,17 @@ The equations on the website were rendered to SVG ahead of time with MathJax 3.2
 released under the Apache License 2.0. Figure 1, in every form the website carries it, is the authors'
 own figure from the paper.
 
+## Plot fonts
+
+The benchmark figure uses Ultra Sans 0.103 by Amil Khan, derived from DM Sans with
+adapted glyphs from Inter. The bundled [regular](benchmarks/fonts/UltraSans-Regular.ttf)
+and [bold](benchmarks/fonts/UltraSans-Bold.ttf) fonts are static instances at weights
+400 and 700 and optical size 14, generated with FontTools 4.68.0 from the font used
+in the PACK3D presentation. The source WOFF2 has SHA-256
+`dfbb838d92514a9fcdb793c47c9786b8e7959924ab80ae059baf1cc9875b87bc`.
+The [font license](benchmarks/fonts/LICENSE.md) and upstream copyright notices
+are included under the SIL Open Font License 1.1.
+
 ## Data
 
 No dataset is included, and this repository grants no dataset license. Obtain each dataset from its
