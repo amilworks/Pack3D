@@ -29,8 +29,11 @@ still consume memory. Multiple launches are used, not one whole-layer kernel.
 The public Triton layer rotates projected queries and keys directly into the
 head-major layout consumed by attention. On 3D grids it shares a table of
 sines and cosines indexed by axis coordinate across heads and projections.
-The table is capped at 64 KiB. Larger axis tables and packed-sequence positions
-use on-the-fly rotation. Backward applies the inverse rotation. Both paths use
+Each FP32 table is at most 64 KiB. A process-wide cache retains up to 16 entries
+across CUDA streams, keyed by stream (including device), axis sizes and pair allocation.
+Repeated encoder blocks on the same stream reuse the table. Larger grids and packed
+positions share just the frequencies and compute rotations on the fly. CUDA graph
+capture builds its own replay-local data. Backward applies the inverse rotation. Both paths use
 the same per-axis FP32 frequencies as the reference. Values pass through
 without rotation.
 
@@ -40,20 +43,23 @@ gradient is added directly to the local query gradient in its owning kernel.
 Projections, gates, normalization, outer residuals, and final reductions use
 PyTorch. The historical model retains its own rotary code and SDPA global path.
 
-## Automatic local backward on vision grids
+## Tiled local attention on vision grids
 
 `build_layout` records when the local graph is a complete radius-one voxel
 neighborhood. With FP16 or BF16 projections, `backend="triton"` processes
-2 × 2 × 4 voxels together and reuses their shared halo when computing query,
-key, and value gradients. Each program writes the gradients for its own voxels.
+2 × 2 × 4 voxels together. The 16 queries share a halo of up to 96 key/value
+positions. A coordinate mask selects each query's original neighbors, including at
+faces, edges and corners. Backward reuses the same voxel coordinates and mask.
 The fast path starts at 4,096 tokens and requires at least 2 × 2 × 4 voxels
-along the corresponding axes. Raster order uses voxel strides directly. Native
-block Morton order uses one additional 32-bit packed index per voxel.
+along the corresponding axes. Raster order uses voxel strides directly. Other
+orders use one additional 32-bit packed index per voxel. `layout.repack(p)`
+composes that map with the permutation, preserving the local graph, canonical
+fine slots and coarse groups. Returning to raster order recovers direct strides.
 
 Use standard PyTorch autocast or convert the layer and input to the same
-supported precision. The backend selects indexed gradients for arbitrary
-repacks, custom graphs, smaller or thinner grids, other radii, and FP32.
-The forward computation is shared by both backward paths.
+supported precision. Custom graphs from `prepare_geometry`, smaller or thinner
+grids, other radii, and FP32 use indexed kernels. The tiled and indexed reductions
+can round differently. [Numerical checks and H200 timings](../benchmarks/results/h200_vision_2026-11-18.md)
 
 ## Support and validation
 

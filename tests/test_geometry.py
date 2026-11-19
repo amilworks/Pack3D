@@ -62,3 +62,25 @@ def test_stencil_index_cannot_change_after_layout_validation():
     mapping[0] = layout.geometry.num_tokens
     with pytest.raises(RuntimeError, match="changed"):
         layout.check_unmodified()
+
+
+def test_repacking_transports_only_a_proven_stencil():
+    from pack3d import TokenLayout, prepare_geometry
+
+    layout = build_layout((16, 16, 16))
+    generator = torch.Generator().manual_seed(112)
+    permutations = [torch.randperm(len(layout.order), generator=generator) for _ in range(2)]
+    tagged = layout
+    for p in permutations:
+        tagged = tagged.repack(p)
+        torch.testing.assert_close(tagged.geometry._raster_to_packed.long(), tagged.order.argsort())
+        torch.testing.assert_close(tagged.coords[tagged.geometry.blocks.long()],
+                                   layout.coords[layout.geometry.blocks.long()])
+
+    raster = tagged.repack(tagged.order.argsort())
+    assert raster.geometry._radius_one_grid == layout.grid_shape
+    assert raster.geometry._raster_to_packed is None
+    # An indexed graph with the same shape and degree can have completely different edges.
+    custom = prepare_geometry(layout.geometry.neighbors.roll(1, 0), layout.geometry.blocks, 4)
+    untagged = TokenLayout(layout.grid_shape, layout.order, layout.coords, custom)
+    assert untagged.repack(permutations[0]).geometry._radius_one_grid is None

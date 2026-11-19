@@ -85,6 +85,14 @@ The paper also reports:
 
 ## GPU performance
 
+On a shared H200, the current Triton layer ran BF16 inference on a 262,144-token raster
+volume in **4.64 ms**, down from **6.34 ms** with the preceding public layer. Forward and
+backward together took **15.10 ms**, down from **17.25 ms**. Both use the same public API.
+The comparison also covers Morton order, transported layouts, FP16, autocast and image slices.
+[Full benchmark table](benchmarks/results/h200_vision_2026-11-18.md)
+
+The figure below isolates the earlier backward optimization.
+
 ![Median time for a complete PACK3D forward and backward pass on H200. At 65,536 and 262,144 tokens, spatial tiling is 1.46–1.53× faster than indexed backward; the 4,096-token small preset is effectively tied.](docs/assets/h200-attention-latency-light.png#gh-light-mode-only)
 ![Median time for a complete PACK3D forward and backward pass on H200. At 65,536 and 262,144 tokens, spatial tiling is 1.46–1.53× faster than indexed backward; the 4,096-token small preset is effectively tied.](docs/assets/h200-attention-latency-dark.png#gh-dark-mode-only)
 

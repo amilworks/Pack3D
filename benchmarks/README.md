@@ -52,10 +52,11 @@ grids use the Allen-15 preset. [Raw samples, memory measurements, and CUDA profi
 
 ## Local backward on November 18, 2026
 
-`--compare-indexed` times the public layer twice on the same model, input,
+At revision `e04be252`, `--compare-indexed` times the public layer twice on the same model, input,
 and graph. It alternates the two paths each iteration and checks the output,
 input gradient, and every parameter gradient on the full requested grid.
-With one GPU selected, this command reproduces the native Morton comparison.
+Run the following at that revision to reproduce the backward-only native Morton comparison.
+On the current revision the same flag compares both forward and backward against indexed kernels.
 
 ```bash
 python benchmarks/attention.py --preset allen15 --grid 32 128 64 \
@@ -90,3 +91,28 @@ from the recorded samples with `python benchmarks/plot_h200.py` in an environmen
 with Matplotlib installed.
 The script loads the bundled Ultra Sans regular and bold fonts automatically.
 Their license is included in [fonts/LICENSE.md](fonts/LICENSE.md).
+
+## Combined vision optimizations
+
+The [final H200 table](results/h200_vision_2026-11-18.md) compares the previous
+public layer with tiled local forward, spatial execution through repacking and
+reused rotary phases enabled together. Each row has separate inference and
+forward-plus-backward results. The [raw record](results/h200_vision_2026-11-18.json)
+includes all 31 pairs, source hashes, incremental peak allocation and relative L2
+errors for the outputs, input gradient and every parameter gradient.
+
+From the new checkout, with its package installed or available on `PYTHONPATH`,
+select one available NVIDIA GPU with `CUDA_VISIBLE_DEVICES` and run:
+
+```bash
+git worktree add --detach ../pack3d-before-vision e04be252d1d4b4051b8171041305955b5601f4a0
+python benchmarks/vision.py --baseline-src ../pack3d-before-vision/src \
+  --baseline-revision e04be252d1d4b4051b8171041305955b5601f4a0 \
+  --output artifacts/h200-vision.json
+```
+
+The command writes the raw JSON and a matching Markdown table. It compares two
+independent packages with the same weights, input and precomputed upstream
+gradient. Random repacking uses the same permutation for both. Setup, compilation
+and cache warmup are outside the timer. Workloads run on one shared device
+without an optimizer or a dataset.

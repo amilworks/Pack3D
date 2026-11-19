@@ -282,6 +282,10 @@ def _local_tile(d, width, *, backward=False):
     return min(8 if backward else 16, max(1, budget // (d * triton.next_power_of_2(width))))
 
 
+def _uses_stencil(q, geometry):
+    return geometry._radius_one_grid is not None and q.dtype in (torch.bfloat16, torch.float16)
+
+
 def forward(q, kl, vl, kg, vg, weight, bias, gate, sl, sg, geometry, temperature, *, save_state=True):
     b, h, n, d = q.shape
     g, (f, volume), m = kl.shape[1], geometry.blocks.shape, geometry.num_summaries
@@ -294,10 +298,14 @@ def forward(q, kl, vl, kg, vg, weight, bias, gate, sl, sg, geometry, temperature
     _pool[(m, b * g)](kg, vg, weight, bias, geometry.blocks, sk, sv, n, d, f, m,
                      volume, geometry.pool_size, temperature,
                      triton.next_power_of_2(geometry.pool_size), triton.next_power_of_2(volume))
-    w = geometry.neighbors.shape[1]
-    tile = _local_tile(d, w)
-    _local_fwd[(triton.cdiv(n, tile), b * h)](q, kl, vl, geometry.neighbors, ol, ll,
-                                             n, h, g, d, w, triton.next_power_of_2(w), tile, save_state)
+    if _uses_stencil(q, geometry):
+        from .stencil import local_forward
+        local_forward(q, kl, vl, geometry, ol, ll, save_state)
+    else:
+        w = geometry.neighbors.shape[1]
+        tile = _local_tile(d, w)
+        _local_fwd[(triton.cdiv(n, tile), b * h)](q, kl, vl, geometry.neighbors, ol, ll,
+                                                 n, h, g, d, w, triton.next_power_of_2(w), tile, save_state)
     _global_fwd[(triton.cdiv(n, 64), b * h)](q, sk, sv, ol, gate, sl, sg, og, lg, y,
                                             n, m, h, g, d, 64, 64, save_state)
     return y, (sk, sv, ol, og, ll, lg) if save_state else ()
@@ -316,7 +324,7 @@ def backward(dy, inputs, saved, geometry, temperature):
     _mix_bwd[(tiles, b * h)](dy, ol, og, gate, sl, sg, dol, dog, dl, dg, dgate,
                              dslp, dsgp, n, d, tiles, 128)
     dkl, dvl = (torch.empty_like(kl) for _ in range(2))
-    if geometry._radius_one_grid is not None and q.dtype in (torch.bfloat16, torch.float16):
+    if _uses_stencil(q, geometry):
         from .stencil import local_backward
         local_backward(q, kl, vl, dol, ll, dl, geometry, dql, dkl, dvl)
     else:

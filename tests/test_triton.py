@@ -380,6 +380,74 @@ def test_stencil_fp16_large_score_gradients(gpu):
         assert (a.float() - b.float()).norm() / b.float().norm() < .001
 
 
+@pytest.mark.parametrize("dtype,d", [(torch.float16, 32), (torch.bfloat16, 128)])
+def test_repacked_stencil_autocast_matches_indexed(gpu, dtype, d):
+    from pack3d import PACK3DAttention, TokenLayout, build_layout
+
+    torch.manual_seed(137)
+    layout = build_layout((7, 11, 55), (1, 1, 5), pool_size=8)
+    layout = layout.repack(torch.randperm(len(layout.order))).to(gpu)
+    geom = layout.geometry
+    indexed = prepare_geometry(geom.neighbors, geom.blocks, geom.pool_size).to(gpu)
+    other = TokenLayout(layout.grid_shape, layout.order, layout.coords, indexed)
+    model = PACK3DAttention(64, heads=2, kv_heads=1, head_dim=d, block_volume=5, backend="triton").to(gpu)
+    x = torch.randn(1, geom.num_tokens, 64, device=gpu, requires_grad=True)
+    upstream = torch.randn_like(x)
+    results = []
+    for packing in (other, layout):
+        with torch.inference_mode(), torch.autocast("cuda", dtype):
+            inference = model(x, packing)
+        with torch.autocast("cuda", dtype):
+            y = model(x, packing)
+        gradients = torch.autograd.grad(y, (x, *model.parameters()), upstream)
+        results.append((inference, y.detach(), *gradients))
+    for actual, ref in zip(results[1], results[0]):
+        error = (actual.float() - ref.float()).norm() / ref.float().norm().clamp_min(1e-7)
+        assert error < (.005 if dtype == torch.float16 else .035), error.item()
+
+
+def test_rotary_cache_inference_then_autograd_and_graph(gpu):
+    from pack3d.backends.triton.rotary import rotate_projections
+    from pack3d.geometry import grid_coordinates
+    from pack3d.rope import axial_rope, balanced_pairs
+
+    d = 32
+    pairs = balanced_pairs(d)
+    x = torch.randn(1, 2, 90, d, device=gpu, requires_grad=True)
+    upstream = torch.randn_like(x)
+    stream = torch.cuda.Stream(device=gpu)
+    stream.wait_stream(torch.cuda.current_stream(gpu))
+    with torch.cuda.stream(stream):
+        for shape in ((3, 5, 6), (5, 3, 6)):
+            coords = grid_coordinates(shape).to(gpu)
+            with torch.inference_mode():
+                rotate_projections(x, x, x, coords, pairs, shape, packed=False)
+            y = rotate_projections(x, x, x, coords, pairs, shape, packed=False)[0]
+            expected = axial_rope(x, coords)
+            dx, = torch.autograd.grad(y, x, upstream)
+            dx_ref, = torch.autograd.grad(expected, x, upstream)
+            torch.testing.assert_close(y, expected, atol=2e-6, rtol=2e-6)
+            torch.testing.assert_close(dx, dx_ref, atol=2e-6, rtol=2e-6)
+    torch.cuda.current_stream(gpu).wait_stream(stream)
+    # First use of this axis order inside a graph must also be safe for a later eager call.
+    shape = (6, 5, 3)
+    coords = grid_coordinates(shape).to(gpu)
+    with torch.no_grad():
+        # Warm the shape-specialized Triton kernel on a different stream before capture.
+        rotate_projections(x, x, x, coords, pairs, shape, packed=False)
+        torch.cuda.synchronize(gpu)
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph, stream=stream):
+            captured = rotate_projections(x, x, x, coords, pairs, shape, packed=False)[0]
+        with torch.cuda.stream(stream):
+            eager = rotate_projections(x, x, x, coords, pairs, shape, packed=False)[0]
+            graph.replay()
+        torch.cuda.current_stream(gpu).wait_stream(stream)
+        reference = axial_rope(x, coords)
+        torch.testing.assert_close(eager, reference, atol=2e-6, rtol=2e-6)
+        torch.testing.assert_close(captured, reference, atol=2e-6, rtol=2e-6)
+
+
 def test_paper_backend_executes_requested_local_triton(gpu):
     from hypernsa.attention.hypernsa_morton import HypergridMortonSparseAttention
     layer = HypergridMortonSparseAttention(
